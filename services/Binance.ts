@@ -1,9 +1,9 @@
 import Binance from 'binance-api-node';
-
+import configJson from '../config';
 
 const binance = Binance({
-  apiKey: process.env.BINANCE_APIKEY,
-  apiSecret: process.env.BINANCE_APISECRET,
+  apiKey: configJson.get('Api:BINANCE_APIKEY'),
+  apiSecret: configJson.get('Api:BINANCE_APISECRET'),
 })
 
 // function balance_update(data) {

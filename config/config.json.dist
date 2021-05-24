@@ -1,0 +1,24 @@
+{
+  "Api": {
+    "BINANCE_APIKEY": false,
+    "BINANCE_APISECRET": false,
+
+    "FTT_APIKEY": false,
+    "FTT_APISECRET": false
+  },
+  "pairs": {
+    "binance": [
+      "ETHBUSD",
+      "SOLBUSD",
+      "ADABUSD",
+      "CKBBUSD",
+      "ETCBUSD",
+      "LINKBUSD",
+      "SRMBUSD",
+      "XRPBUSD",
+      "SHIBBUSD",
+      "MATICBUSD"
+    ],
+    "ftx": ["ETH/EUR"]
+  }
+}

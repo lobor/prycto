@@ -7,6 +7,8 @@ import next, { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import * as socketio from "socket.io";
 import { AssetBalance, QueryOrderResult } from "binance-client";
 import binance from "./services/Binance";
+import { clientRest as ftxRest } from "./services/Ftx";
+import config from "./config";
 import fs from "fs";
 import { promisify } from "util";
 
@@ -25,47 +27,66 @@ const io: socketio.Server = new socketio.Server(server, {
   allowEIO3: true,
 });
 
-const pairs: string[] = [];
+const pairs: Record<string, string[]> = { binance: [], ftx: [] };
 
-const balances: AssetBalance[] = [];
+const balances: Record<string, AssetBalance[]> = { binance: [], ftx: [] };
 
 const getHistoryOrder = async () => {
   await Promise.all(
-    pairs.map(async (pair) => {
+    pairs.binance.map(async (pair) => {
       const orders = await binance.allOrders({ symbol: pair });
-      await writeFile(`./.tmp/${pair}.json`, JSON.stringify(orders));
+      await writeFile(`./.tmp/binance_${pair}.json`, JSON.stringify(orders));
+    })
+  );
+  await Promise.all(
+    pairs.ftx.map(async (pair) => {
+      console.log(pair)
+      const ordersFtx = await ftxRest.getOrderHistory({ market: pair });
+      await writeFile(
+        `./.tmp/ftx_${pair.replace('/', '_')}.json`,
+        JSON.stringify(ordersFtx.result)
+      );
     })
   );
 };
 
 const getPositions = async () => {
   const historyOrder: QueryOrderResult[] = flatten(
-    await Promise.all(
-      pairs.map(async (pair) => {
-        return JSON.parse((await readFile(`./.tmp/${pair}.json`)).toString());
-      })
-    )
+    await Promise.all([
+      ...pairs.binance.map(async (pair) => {
+        return JSON.parse(
+          (await readFile(`./.tmp/binance_${pair}.json`)).toString()
+        );
+      }),
+      ...pairs.ftx.map(async (pair) => {
+        return JSON.parse(
+          (await readFile(`./.tmp/ftx_${pair.replace('/', '_')}.json`)).toString()
+        );
+      }),
+    ])
   );
 
   const historyOrderByPair = historyOrder.reduce<
     Record<string, QueryOrderResult[]>
   >((acc, order) => {
-    if (!acc[order.symbol]) {
-      acc[order.symbol] = [];
+    const key = order.symbol || order.market;
+    if (!acc[key]) {
+      acc[key] = [];
     }
-    acc[order.symbol].push(order);
+    acc[key].push(order);
     return acc;
   }, {});
+  console.log(Object.keys(historyOrderByPair));
 
   const positions: { pair: string; investment: number; available: number }[] =
     [];
   await Promise.all(
-    pairs.map(async (pairConfig) => {
+    pairs.binance.map(async (pairConfig) => {
       const goodPair = Object.keys(historyOrderByPair).find((pair) => {
         return pairConfig === pair;
       });
       if (goodPair) {
-        const balance = balances.find((balance) => {
+        const balance = balances.binance.find((balance) => {
           return new RegExp(`^${balance.asset}`).exec(goodPair);
         });
         // console.log(balance)
@@ -89,6 +110,36 @@ const getPositions = async () => {
       }
     })
   );
+  await Promise.all(
+    pairs.ftx.map(async (pairConfig) => {
+      const goodPair = Object.keys(historyOrderByPair).find((pair) => {
+        return pairConfig === pair.replace('-', '/');
+      });
+      if (goodPair) {
+        const balance = balances.ftx.find((balance) => {
+          return balance.coin === goodPair.replace('/', '');
+        });
+        // console.log(balance)
+        let investment = 0;
+        const orders = historyOrderByPair[goodPair];
+        orders.forEach((order) => {
+          if (order.status === "closed") {
+            if (order.side === "buy") {
+              investment += Number(order.avgFillPrice);
+            }
+            if (order.side === "sell") {
+              investment -= Number(order.avgFillPrice);
+            }
+          }
+        });
+        positions.push({
+          pair: goodPair,
+          investment: investment < 0 ? 0 : investment,
+          available: (balance && Number(balance.free)) || 0,
+        });
+      }
+    })
+  );
   return { positions, historyOrderByPair };
 };
 
@@ -98,15 +149,17 @@ io.on("connection", async (socket: socketio.Socket) => {
     console.log("client disconnected");
   });
 
-
   socket.on("positions", async () => {
-    const { positions } = await getPositions()
+    const { positions } = await getPositions();
     socket.emit("positions", positions);
   });
   const { historyOrderByPair } = await getPositions();
-  let cancelTrades = binance.ws.trades(Object.keys(historyOrderByPair), (trade) => {
-    socket.emit("market", { [trade.symbol]: trade.price });
-  });
+  let cancelTrades = binance.ws.trades(
+    Object.keys(historyOrderByPair),
+    (trade) => {
+      socket.emit("market", { [trade.symbol]: trade.price });
+    }
+  );
 
   socket.on("reloadPositions", async () => {
     cancelTrades();
@@ -115,18 +168,22 @@ io.on("connection", async (socket: socketio.Socket) => {
     socket.emit("reloadPositions", positions);
     binance.ws.trades(Object.keys(historyOrderByPair), (trade) => {
       socket.emit("market", { [trade.symbol]: trade.price });
-    })
+    });
   });
-
 });
 
 nextApp.prepare().then(async () => {
-  const { pairs: pairsConfig }: { pairs: string[] } = JSON.parse(
-    (await readFile(`./config.json`)).toString()
-  );
-  pairs.push(...pairsConfig);
+  const pairsConfig = config.get("pairs:binance");
+  pairs.binance.push(...pairsConfig);
   const user = await binance.accountInfo();
-  balances.push(...user.balances.filter(({ free }) => Number(free) > 0));
+
+  balances.binance.push(
+    ...user.balances.filter(({ free }) => Number(free) > 0)
+  );
+  balances.ftx.push(...(await ftxRest.getBalances()).result);
+
+  const pairsFtx = config.get("pairs:ftx");
+  pairs.ftx.push(...pairsFtx);
 
   await getHistoryOrder();
   app.all("*", (req: any, res: any) => nextHandler(req, res));
