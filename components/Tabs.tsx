@@ -1,0 +1,52 @@
+import classNames from "tailwindcss-classnames";
+import { useTabsContext } from "../context/tabs";
+
+const Tabs = () => {
+  const { tabs, selected, removeTab, selectTab } = useTabsContext();
+
+  return (
+    <div className="bg-gray-800 shadow-xl bottom-0 z-10 w-full">
+      <div className="content-center md:content-start text-left">
+        <ul className="list-reset flex flex-row py-0 pt-0 px-1 text-center md:text-left">
+          {tabs.map(({ key, canClose, label }) => {
+            return (
+              <li
+                key={key}
+                className={classNames("mr-3", "px-3", "cursor-pointer", {
+                  "border-b-2 border-blue-500": key === selected,
+                  "hover:border-blue-500 border-b-2 border-transparent":
+                    key !== selected,
+                })}
+              >
+                <div
+                  className="block py-1 md:py-3 pl-1 pr-1 align-middle text-white no-underline"
+                  onClick={() => {
+                    selectTab(key);
+                  }}
+                >
+                  <span className="pb-1 md:pb-0 text-xs md:text-base text-white md:text-white block md:inline-block">
+                    {label}
+                  </span>
+                  {canClose && (
+                    <button
+                      className="ml-1 hover:bg-gray-500 p-1 inline-block leading-none"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeTab(key);
+                      }}
+                    >
+                      X
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default Tabs;

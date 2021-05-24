@@ -1,0 +1,13 @@
+.em-grinning {
+  background-image: url(https://twemoji.maxcdn.com/2/72x72/1f600.png);
+}
+
+.em, .em-svg {
+  height: 1.5em;
+  width: 1.5em;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
