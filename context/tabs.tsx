@@ -35,7 +35,7 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
 
   const removeTab = (tabName: string) => {
     const isLastTabs = tabs[tabs.length - 1].key === tabName;
-    if (isLastTabs) {
+    if (isLastTabs && selected === tabName) {
       setSelected(tabs[tabs.length - 2].key);
     }
     setTabs(tabs.filter(({ key, canClose }) => !(canClose && key == tabName)));
