@@ -7,7 +7,7 @@ import next, { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import * as socketio from "socket.io";
 import { AssetBalance, QueryOrderResult } from "binance-client";
 import binance from "./services/Binance";
-import { clientRest as ftxRest } from "./services/Ftx";
+import { clientRest as ftxRest, ws as wsFtx } from "./services/Ftx";
 import config from "./config";
 import fs from "fs";
 import { promisify } from "util";
@@ -44,7 +44,7 @@ const getHistoryOrder = async () => {
       pairs.ftx.map(async (pair) => {
         const ordersFtx = await ftxRest.getOrderHistory({ market: pair });
         await writeFile(
-          `./.tmp/ftx_${pair.replace('/', '_')}.json`,
+          `./.tmp/ftx_${pair.replace("/", "_")}.json`,
           JSON.stringify(ordersFtx.result)
         );
       })
@@ -62,7 +62,9 @@ const getPositions = async () => {
       }),
       ...pairs.ftx.map(async (pair) => {
         return JSON.parse(
-          (await readFile(`./.tmp/ftx_${pair.replace('/', '_')}.json`)).toString()
+          (
+            await readFile(`./.tmp/ftx_${pair.replace("/", "_")}.json`)
+          ).toString()
         );
       }),
     ])
@@ -113,7 +115,7 @@ const getPositions = async () => {
   await Promise.all(
     pairs.ftx.map(async (pairConfig) => {
       const goodPair = Object.keys(historyOrderByPair).find((pair) => {
-        return pairConfig === pair.replace('-', '/');
+        return pairConfig === pair.replace("-", "/");
       });
       if (goodPair) {
         const balance = balances.ftx.find((balance) => {
@@ -159,6 +161,18 @@ io.on("connection", async (socket: socketio.Socket) => {
       socket.emit("market", { [trade.symbol]: trade.price });
     }
   );
+
+  if (wsFtx) {
+    wsFtx.on("response", (msg) => console.log("response: ", msg));
+    wsFtx.subscribe(
+      Object.keys(historyOrderByPair).map((trade) => {
+        return {
+          channel: "trades",
+          market: trade,
+        };
+      })
+    );
+  }
 
   socket.on("reloadPositions", async () => {
     cancelTrades();
