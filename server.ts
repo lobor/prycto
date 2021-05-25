@@ -117,7 +117,7 @@ const getPositions = async () => {
       });
       if (goodPair) {
         const balance = balances.ftx.find((balance) => {
-          return balance.coin === goodPair.replace('/', '');
+          return new RegExp(`^${balance.coin}`).exec(goodPair);
         });
         let investment = 0;
         const orders = historyOrderByPair[goodPair];
