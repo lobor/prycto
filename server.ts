@@ -38,16 +38,18 @@ const getHistoryOrder = async () => {
       await writeFile(`./.tmp/binance_${pair}.json`, JSON.stringify(orders));
     })
   );
-  await Promise.all(
-    pairs.ftx.map(async (pair) => {
-      console.log(pair)
-      const ordersFtx = await ftxRest.getOrderHistory({ market: pair });
-      await writeFile(
-        `./.tmp/ftx_${pair.replace('/', '_')}.json`,
-        JSON.stringify(ordersFtx.result)
-      );
-    })
-  );
+
+  if (ftxRest) {
+    await Promise.all(
+      pairs.ftx.map(async (pair) => {
+        const ordersFtx = await ftxRest.getOrderHistory({ market: pair });
+        await writeFile(
+          `./.tmp/ftx_${pair.replace('/', '_')}.json`,
+          JSON.stringify(ordersFtx.result)
+        );
+      })
+    );
+  }
 };
 
 const getPositions = async () => {
@@ -76,7 +78,6 @@ const getPositions = async () => {
     acc[key].push(order);
     return acc;
   }, {});
-  console.log(Object.keys(historyOrderByPair));
 
   const positions: { pair: string; investment: number; available: number }[] =
     [];
@@ -89,7 +90,6 @@ const getPositions = async () => {
         const balance = balances.binance.find((balance) => {
           return new RegExp(`^${balance.asset}`).exec(goodPair);
         });
-        // console.log(balance)
         let investment = 0;
         const orders = historyOrderByPair[goodPair];
         orders.forEach((order) => {
@@ -119,7 +119,6 @@ const getPositions = async () => {
         const balance = balances.ftx.find((balance) => {
           return balance.coin === goodPair.replace('/', '');
         });
-        // console.log(balance)
         let investment = 0;
         const orders = historyOrderByPair[goodPair];
         orders.forEach((order) => {
@@ -180,7 +179,10 @@ nextApp.prepare().then(async () => {
   balances.binance.push(
     ...user.balances.filter(({ free }) => Number(free) > 0)
   );
-  balances.ftx.push(...(await ftxRest.getBalances()).result);
+
+  if (ftxRest) {
+    balances.ftx.push(...(await ftxRest.getBalances()).result);
+  }
 
   const pairsFtx = config.get("pairs:ftx");
   pairs.ftx.push(...pairsFtx);

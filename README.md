@@ -2,8 +2,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-copy/paste config.json.dist => config.json
-copy/paste .env.dist => .env
+copy/paste config/config.json.dist => config/config.json
 
 First, run the development server:
 

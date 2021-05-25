@@ -41,10 +41,13 @@ const Positions = () => {
         console.warn("Local storage markets can't read")
       }
     }
+  }, [])
+
+  useEffect(() => {
     return () => {
       localStorage.setItem("markets", JSON.stringify(markets));
     };
-  }, []);
+  }, [markets]);
 
   const { globalInvestment, globalProfit } = (positions || []).reduce(
     (acc, position) => {
