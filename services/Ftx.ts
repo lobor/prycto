@@ -1,13 +1,18 @@
-import { RestClient } from "ftx-api";
+import { RestClient, WebsocketClient } from "ftx-api";
 import config from "../config";
 
-const clientRest =
-  (config.get("Api:FTT_APIKEY") &&
-    config.get("Api:FTT_APISECRET") &&
-    new RestClient(
-      config.get("Api:FTT_APIKEY"),
-      config.get("Api:FTT_APISECRET")
-    )) ||
-  false;
+let ws: WebsocketClient | false = false;
+let clientRest: RestClient | false = false;
 
-export { clientRest };
+if (config.get("Api:FTX_APIKEY") && config.get("Api:FTX_APISECRET")) {
+  ws = new WebsocketClient({
+    key: config.get("Api:FTX_APIKEY"),
+    secret: config.get("Api:FTX_APISECRET"),
+  });
+  clientRest = new RestClient(
+    config.get("Api:FTX_APIKEY"),
+    config.get("Api:FTX_APISECRET")
+  );
+}
+
+export { clientRest, ws };

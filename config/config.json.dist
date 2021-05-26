@@ -3,8 +3,8 @@
     "BINANCE_APIKEY": false,
     "BINANCE_APISECRET": false,
 
-    "FTT_APIKEY": false,
-    "FTT_APISECRET": false
+    "FTX_APIKEY": false,
+    "FTX_APISECRET": false
   },
   "pairs": {
     "binance": [

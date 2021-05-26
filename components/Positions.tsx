@@ -36,12 +36,12 @@ const Positions = () => {
     const marketStorage = localStorage.getItem("markets");
     if (marketStorage) {
       try {
-        setMarket(JSON.parse(marketStorage))
+        setMarket(JSON.parse(marketStorage));
       } catch (e) {
-        console.warn("Local storage markets can't read")
+        console.warn("Local storage markets can't read");
       }
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -59,6 +59,7 @@ const Positions = () => {
     },
     { globalInvestment: 0, globalProfit: 0 }
   );
+
   return (
     <>
       <div className="flex justify-between mt-6 mr-6">
@@ -103,7 +104,54 @@ const Positions = () => {
           {loadingReloadPosition ? "Loading..." : "Reload Position"}
         </button>
       </div>
-      <div className="bg-white shadow-md rounded mt-6">
+      <div className="shadow-md rounded mt-6 block md:hidden">
+        {positions && positions.map((position) => {
+          const market = (markets && markets[position.pair]) || 0;
+          const profit = market * position.available - position.investment;
+          return (
+            <div key={position.pair} className="mb-3 mx-2 bg-white ">
+              <div className="py-2 px-6 border-b border-grey-light">
+                <button
+                  className="hover:underline text-blue-500"
+                  onClick={() => {
+                    addTab({
+                      key: position.pair,
+                      label: position.pair,
+                      canClose: true,
+                    });
+                    selectTab(position.pair);
+                  }}
+                >
+                  {position.pair}
+                </button>
+              </div>
+              <div className="py-2 px-6">
+                Amount: {position.available}
+              </div>
+              <div className="py-2 px-6">Market: {market}</div>
+              <div className="py-2 px-6">
+                Investment: {round(position.investment)} /{" "}
+                <span className="text-gray-400">
+                  {round(market * position.available)}
+                </span>
+              </div>
+              <div
+                className={classnames("py-2 px-6", {
+                  "text-green-500": profit >= 0,
+                  "text-red-600": profit < 0,
+                })}
+              >
+                Profit: {round(profit)} (
+                {position.investment !== 0
+                  ? round((profit * 100) / position.investment)
+                  : 0}
+                %)
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="bg-white shadow-md rounded mt-6 hidden md:block">
         <table className="text-left w-full border-collapse">
           <thead>
             <tr>
