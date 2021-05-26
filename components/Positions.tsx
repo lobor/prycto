@@ -2,32 +2,39 @@ import classnames from "tailwindcss-classnames";
 import { useEffect, useState } from "react";
 import { useSocket, useEmit } from "socketio-hooks";
 import { useTabsContext } from "../context/tabs";
+import Button from "./Button";
+import Input from "./Input";
+import Select from "./Select";
+import Label from "./Label";
 
 const round = (num: number) => {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 };
 
 const Positions = () => {
+  const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   const { addTab, selectTab } = useTabsContext();
   const [markets, setMarket] =
     useState<Record<string, any> | undefined>(undefined);
   const [positions, setPositions] =
     useState<
-      { pair: string; available: number; investment: number }[] | undefined
+      | {
+          pair: string;
+          available: number;
+          investment: number;
+          exchange: string;
+        }[]
+      | undefined
     >(undefined);
-  const [loadingReloadPosition, setLoadingReloadPosition] = useState(false);
 
-  const reloadPositions = useEmit("reloadPositions");
   const getPositions = useEmit("positions");
+  const removePosition = useEmit("removePosition");
+  const addPosition = useEmit("addPosition");
 
-  useSocket("market", (message) => {
+  useSocket("markets", (message) => {
     setMarket({ ...(markets || {}), ...message });
   });
   useSocket("positions", (message) => {
-    setPositions(message);
-  });
-  useSocket("reloadPositions", (message) => {
-    setLoadingReloadPosition(false);
     setPositions(message);
   });
 
@@ -62,7 +69,53 @@ const Positions = () => {
 
   return (
     <>
-      <div className="flex justify-between mt-6 mr-6">
+      {addPosisitonShowing && (
+        <div className="h-screen absolute w-full flex flex-col items-center justify-center font-sans">
+          <div className="absolute top-0 bottom-0 left-0 right-0 bg-gray-800 opacity-90"></div>
+          <div className="h-screen w-full absolute flex items-center justify-center">
+            <div className="bg-gray-800 text-gray-200 rounded shadow p-8 m-4 max-w-xs max-h-full text-center">
+              <div className="mb-4">
+                <h1>Add position</h1>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  var formData = new FormData(e.currentTarget);
+                  const values: Record<string, unknown> = {};
+                  for (var entrie of formData.entries()) {
+                    const [key, value] = entrie;
+                    values[key] = value;
+                  }
+                  addPosition(values);
+                  setAddPositionShowing(false);
+                }}
+              >
+                <div className="mb-8">
+                  <Label htmlFor="exchange" label="Exchange">
+                    <Select id="exchange" name="exchange">
+                      <option value="binance">Binance</option>
+                      <option value="ftx">FTX</option>
+                    </Select>
+                  </Label>
+                  <Label htmlFor="pair" label="Pair">
+                    <Input name="pair" id="pair" />
+                  </Label>
+                </div>
+                <div className="flex justify-center">
+                  <Button onClick={() => setAddPositionShowing(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="validate" className="ml-2">
+                    Add
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="flex justify-between mt-6 mr-6 text-gray-200">
         <span className="ml-6">
           {round(globalInvestment)} /{" "}
           <span
@@ -93,83 +146,81 @@ const Positions = () => {
           </span>
           )
         </span>
-        <button
-          className="bg-blue-500 px-4 py-2 text-xs font-semibold tracking-wider text-white rounded hover:bg-blue-600 disabled:opacity-50"
-          disabled={loadingReloadPosition}
-          onClick={() => {
-            setLoadingReloadPosition(true);
-            reloadPositions();
-          }}
-        >
-          {loadingReloadPosition ? "Loading..." : "Reload Position"}
-        </button>
+        <div>
+          <Button
+            variant="validate"
+            onClick={() => {
+              setAddPositionShowing(true);
+            }}
+          >
+            Add positions
+          </Button>
+        </div>
       </div>
-      <div className="shadow-md rounded mt-6 block md:hidden">
-        {positions && positions.map((position) => {
-          const market = (markets && markets[position.pair]) || 0;
-          const profit = market * position.available - position.investment;
-          return (
-            <div key={position.pair} className="mb-3 mx-2 bg-white ">
-              <div className="py-2 px-6 border-b border-grey-light">
-                <button
-                  className="hover:underline text-blue-500"
-                  onClick={() => {
-                    addTab({
-                      key: position.pair,
-                      label: position.pair,
-                      canClose: true,
-                    });
-                    selectTab(position.pair);
-                  }}
+      <div className="shadow-md mt-6 block md:hidden">
+        {positions &&
+          positions.map((position) => {
+            const market = (markets && markets[position.pair]) || 0;
+            const profit = market * position.available - position.investment;
+            return (
+              <div key={position.pair} className="mb-3 mx-2 bg-gray-700 text-gray-200">
+                <div className="py-2 px-6 border-b border-gray-400">
+                  <img
+                    src={`${position.exchange}.ico`}
+                    alt={position.exchange}
+                    className="inline mr-1 align-text-top"
+                    style={{ height: "16px" }}
+                  />
+                  <Button
+                    variant="link"
+                    onClick={() => {
+                      addTab({
+                        key: position.pair,
+                        label: position.pair,
+                        canClose: true,
+                      });
+                      selectTab(position.pair);
+                    }}
+                  >
+                    {position.pair}
+                  </Button>
+                </div>
+                <div className="py-2 px-6">Amount: {position.available}</div>
+                <div className="py-2 px-6">Market: {market}</div>
+                <div className="py-2 px-6">
+                  Investment: {round(position.investment)} /{" "}
+                  <span className="text-gray-400">
+                    {round(market * position.available)}
+                  </span>
+                </div>
+                <div
+                  className={classnames("py-2", "px-6", {
+                    "text-green-500": profit >= 0,
+                    "text-red-600": profit < 0,
+                  })}
                 >
-                  {position.pair}
-                </button>
+                  Profit: {round(profit)} (
+                  {position.investment !== 0
+                    ? round((profit * 100) / position.investment)
+                    : 0}
+                  %)
+                </div>
               </div>
-              <div className="py-2 px-6">
-                Amount: {position.available}
-              </div>
-              <div className="py-2 px-6">Market: {market}</div>
-              <div className="py-2 px-6">
-                Investment: {round(position.investment)} /{" "}
-                <span className="text-gray-400">
-                  {round(market * position.available)}
-                </span>
-              </div>
-              <div
-                className={classnames("py-2 px-6", {
-                  "text-green-500": profit >= 0,
-                  "text-red-600": profit < 0,
-                })}
-              >
-                Profit: {round(profit)} (
-                {position.investment !== 0
-                  ? round((profit * 100) / position.investment)
-                  : 0}
-                %)
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
-      <div className="bg-white shadow-md rounded mt-6 hidden md:block">
+      <div className="shadow-md mt-6 hidden md:block">
         <table className="text-left w-full border-collapse">
           <thead>
-            <tr>
-              <th className="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                Paires
-              </th>
-              <th className="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                Amount
-              </th>
-              <th className="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                Market
-              </th>
-              <th className="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
+            <tr className="bg-gray-900 text-gray-200">
+              <th className="py-4 px-6 font-bold uppercase text-sm">Paires</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">Amount</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">Market</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">
                 Investment
               </th>
-              <th className="py-4 px-6 bg-grey-lightest font-bold uppercase text-sm text-grey-dark border-b border-grey-light">
-                Profit
-              </th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">Profit</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">Actions</th>
             </tr>
           </thead>
           {positions && (
@@ -179,10 +230,19 @@ const Positions = () => {
                 const profit =
                   market * position.available - position.investment;
                 return (
-                  <tr key={position.pair} className="hover:bg-gray-300">
-                    <td className="py-2 px-6 border-b border-grey-light">
-                      <button
-                        className="hover:underline text-blue-500"
+                  <tr
+                    key={position.pair}
+                    className="hover:bg-gray-900 text-gray-200 border-b border-gray-900"
+                  >
+                    <td className="py-2 px-6 ">
+                      <img
+                        src={`${position.exchange}.ico`}
+                        alt={position.exchange}
+                        className="inline mr-1 align-text-top"
+                        style={{ height: "16px" }}
+                      />
+                      <Button
+                        variant="link"
                         onClick={() => {
                           addTab({
                             key: position.pair,
@@ -193,15 +253,11 @@ const Positions = () => {
                         }}
                       >
                         {position.pair}
-                      </button>
+                      </Button>
                     </td>
-                    <td className="py-2 px-6 border-b border-grey-light">
-                      {position.available}
-                    </td>
-                    <td className="py-2 px-6 border-b border-grey-light">
-                      {market}
-                    </td>
-                    <td className="py-2 px-6 border-b border-grey-light">
+                    <td className="py-2 px-6">{position.available}</td>
+                    <td className="py-2 px-6">{market}</td>
+                    <td className="py-2 px-6">
                       {round(position.investment)} /{" "}
                       <span className="text-gray-400">
                         {round(market * position.available)}
@@ -209,7 +265,8 @@ const Positions = () => {
                     </td>
                     <td
                       className={classnames(
-                        "py-2 px-6 border-b border-grey-light",
+                        "py-2",
+                        "px-6",
                         {
                           "text-green-500": profit >= 0,
                           "text-red-600": profit < 0,
@@ -221,6 +278,18 @@ const Positions = () => {
                         ? round((profit * 100) / position.investment)
                         : 0}
                       %)
+                    </td>
+                    <td className="py-2 px-6">
+                      <Button
+                        onClick={() => {
+                          removePosition({
+                            exchange: position.exchange,
+                            pair: position.pair,
+                          });
+                        }}
+                      >
+                        Remove
+                      </Button>
                     </td>
                   </tr>
                 );

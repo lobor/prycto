@@ -1,4 +1,4 @@
-import classNames from "tailwindcss-classnames";
+import classNames, { TArg } from "tailwindcss-classnames";
 import { useTabsContext } from "../context/tabs";
 
 const Tabs = () => {
@@ -9,14 +9,16 @@ const Tabs = () => {
       <div className="content-center md:content-start text-left">
         <ul className="list-reset flex flex-row py-0 pt-0 px-1 text-center md:text-left">
           {tabs.map(({ key, canClose, label }) => {
+            const className: TArg[] = []
+            if (key === selected) {
+              className.push("border-blue-500" as TArg)
+            } else {
+              className.push("hover:border-blue-500" as TArg, "border-transparent" as TArg)
+            }
             return (
               <li
                 key={key}
-                className={classNames("mr-3", "px-3", "cursor-pointer", {
-                  "border-b-2 border-blue-500": key === selected,
-                  "hover:border-blue-500 border-b-2 border-transparent":
-                    key !== selected,
-                })}
+                className={classNames("mr-3", "px-3", "cursor-pointer", "border-b-2", ...className)}
               >
                 <div
                   className="block py-1 md:py-3 pl-1 pr-1 align-middle text-white no-underline"
