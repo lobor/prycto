@@ -11,6 +11,7 @@ import { clientRest as ftxRest, ws as wsFtx } from "./services/Ftx";
 import config from "./config";
 import fs from "fs";
 import { promisify } from "util";
+import { ReconnectingWebSocketHandler } from "binance-api-node";
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -138,6 +139,12 @@ const getPositions = async () => {
           investment: investment < 0 ? 0 : investment,
           available: (balance && Number(balance.free)) || 0,
         });
+      } else {
+        positions.push({
+          pair: pairConfig,
+          investment: 0,
+          available: 0,
+        });
       }
     })
   );
@@ -148,24 +155,42 @@ io.on("connection", async (socket: socketio.Socket) => {
   console.log("connection");
   socket.on("disconnect", () => {
     console.log("client disconnected");
+    if (wsFtx) {
+      wsFtx.unsubscribe(pairs.ftx.map((trade) => {
+        return {
+          channel: "trades",
+          market: trade,
+        };
+      }))
+    }
   });
 
   socket.on("positions", async () => {
     const { positions } = await getPositions();
     socket.emit("positions", positions);
   });
-  const { historyOrderByPair } = await getPositions();
-  let cancelTrades = binance.ws.trades(
-    Object.keys(historyOrderByPair),
-    (trade) => {
-      socket.emit("market", { [trade.symbol]: trade.price });
-    }
-  );
+  let cancelTrades: ReconnectingWebSocketHandler | false;
+  if (binance) {
+    cancelTrades = binance.ws.trades(
+      pairs.binance,
+      (trade) => {
+        socket.emit("market", { [trade.symbol]: trade.price });
+      }
+    );
+  }
 
   if (wsFtx) {
-    wsFtx.on("response", (msg) => console.log("response: ", msg));
+    wsFtx.on('update', (msg) => {
+      if (msg.channel === 'trades') {
+        const [trade] = msg.data || [] ;
+        console.log('msg', msg)
+        if (trade) {
+          socket.emit("market", { [msg.market]: trade.price })
+        }
+      }
+    });
     wsFtx.subscribe(
-      Object.keys(historyOrderByPair).map((trade) => {
+      pairs.ftx.map((trade) => {
         return {
           channel: "trades",
           market: trade,
@@ -175,13 +200,17 @@ io.on("connection", async (socket: socketio.Socket) => {
   }
 
   socket.on("reloadPositions", async () => {
-    cancelTrades();
+    if (cancelTrades) {
+      cancelTrades();
+    }
     await getHistoryOrder();
-    const { positions, historyOrderByPair } = await getPositions();
+    const { positions } = await getPositions();
     socket.emit("reloadPositions", positions);
-    binance.ws.trades(Object.keys(historyOrderByPair), (trade) => {
-      socket.emit("market", { [trade.symbol]: trade.price });
-    });
+    if (binance) {
+      binance.ws.trades(pairs.binance, (trade) => {
+        socket.emit("market", { [trade.symbol]: trade.price });
+      });
+    }
   });
 });
 

@@ -23,12 +23,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Nav />
         <div className="flex flex-col flex-1">
           <Tabs />
-          <div className="main-content flex-1 bg-gray-100">
-            <div className="flex flex-wrap">
-              <div className="w-full">
-                <Component {...pageProps} />
-              </div>
-            </div>
+          <div className="main-content flex-1 bg-gray-100 flex flex-wrap h-full w-full getDiv">
+            <Component {...pageProps} />
           </div>
         </div>
       </TabsProvider>
