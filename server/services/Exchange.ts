@@ -2,7 +2,10 @@ import { flatten } from "lodash";
 import Binance from "../interfaces/Binance";
 import Ftx from "../interfaces/Ftx";
 import config from "../config";
+import { ClassLogger } from '../utils/classLogger'
+import { MethodLogger } from '../utils/methodLogger'
 
+@ClassLogger({ name: 'Exchange' })
 export default class Exchange {
   private binance?: Binance;
   private ftx?: Ftx;
@@ -12,6 +15,7 @@ export default class Exchange {
     this.ftx = ftx;
   }
 
+  @MethodLogger({ logSuccess: true })
   public unsubscribe() {
     if (this.binance) {
       this.binance.unsubscribe();
@@ -21,6 +25,7 @@ export default class Exchange {
     }
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getAllPairs() {
     const pairs = [];
     if (this.binance) {
@@ -48,6 +53,7 @@ export default class Exchange {
     return pairs;
   }
 
+  @MethodLogger({ logSuccess: true })
   public async addPosition(exchange: string, pair: string) {
     const pairsExchange = config.get(`pairs:${exchange}`);
     pairsExchange.push(pair);
@@ -90,6 +96,7 @@ export default class Exchange {
     }
   }
 
+  @MethodLogger({ logSuccess: true })
   public getMarkets(cb: (params: { [key: string]: string }) => void) {
     if (this.binance) {
       this.binance.getMarket(cb);
@@ -99,8 +106,7 @@ export default class Exchange {
     }
   }
 
-  public getHistories() {}
-
+  @MethodLogger({ logSuccess: true })
   public async getPositions() {
     const positions = [];
     if (this.binance) {

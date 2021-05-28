@@ -3,10 +3,13 @@ import fs from "fs";
 import { promisify } from "util";
 import config from "../config";
 import { flatten } from "lodash";
+import { ClassLogger } from '../utils/classLogger'
+import { MethodLogger } from '../utils/methodLogger'
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
+@ClassLogger({ name: 'Ftx' })
 class Ftx {
   private rest: RestClient;
   private ws: WebsocketClient;
@@ -33,6 +36,7 @@ class Ftx {
     );
   }
 
+  @MethodLogger({ logSuccess: true })
   public unsubscribe() {
     this.ws.unsubscribe(
       this.getPairs().map((trade) => {
@@ -44,6 +48,7 @@ class Ftx {
     );
   }
 
+  @MethodLogger({ logSuccess: true })
   private async getHistoryCacheByPair(pair: string) {
     let data: any[] = [];
     try {
@@ -56,15 +61,18 @@ class Ftx {
     return data;
   }
 
+  @MethodLogger({ logSuccess: true })
   public async addPosition(pair: string) {
     await this.getHistoryCacheByPair(pair);
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getAllPairs(): Promise<{ name: string }[]> {
     const { result } = await this.rest.getMarkets();
     return result
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getHistoryExchange(pair: string) {
     const ordersFtx = await this.rest.getOrderHistory({ market: pair });
     await writeFile(
@@ -74,6 +82,7 @@ class Ftx {
     return ordersFtx.result;
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getHistoryCache(): Promise<{
     historyOrderByPair: { [key: string]: any[] };
     historyOrder: any[];
@@ -98,10 +107,12 @@ class Ftx {
     return { historyOrderByPair, historyOrder };
   }
 
+  @MethodLogger({ logSuccess: true })
   private getPairs(): string[] {
     return config.get("pairs:ftx");
   }
 
+  @MethodLogger({ logSuccess: true })
   public getMarket(cb: (params: { [key: string]: string }) => void) {
     this.ws.on("update", (msg) => {
       if (msg.channel === "trades") {
@@ -111,6 +122,7 @@ class Ftx {
         }
       }
     });
+    this.ws.on('error', msg => console.log('err: ', msg));
     this.ws.subscribe(
       this.getPairs().map((trade) => {
         return {
@@ -121,6 +133,7 @@ class Ftx {
     );
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getPositions() {
     const pairs = this.getPairs();
     const { historyOrderByPair } = await this.getHistoryCache();

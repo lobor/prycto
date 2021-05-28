@@ -41,7 +41,7 @@ if (config.get("Api:FTX_APIKEY") && config.get("Api:FTX_APISECRET")) {
         key: config.get("Api:FTX_APIKEY"),
         secret: config.get("Api:FTX_APISECRET"),
       },
-      { error: () => {}, info: () => {}, warning: () => {} } as typeof DefaultLogger
+      // { error: () => {}, info: () => {}, warning: () => {} } as typeof DefaultLogger
     ),
     rest: new RestClient(
       config.get("Api:FTX_APIKEY"),

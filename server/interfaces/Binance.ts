@@ -8,14 +8,19 @@ import { flatten } from "lodash";
 import fs from "fs";
 import { promisify } from "util";
 import config from "../config";
+import { ClassLogger } from '../utils/classLogger'
+import { MethodLogger } from '../utils/methodLogger'
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
+
+@ClassLogger({ name: 'Binance' })
 class Binance {
   private binance: BinanceInstance;
   private balances: AssetBalance[] = [];
   private unsubscribeSocket?: ReconnectingWebSocketHandler;
+
   constructor(binance: BinanceInstance) {
     this.binance = binance;
     this.binance.accountInfo().then((user) => {
@@ -27,10 +32,12 @@ class Binance {
     });
   }
 
+  @MethodLogger({ logSuccess: true })
   public getAllPairs () {
     return this.binance.exchangeInfo()
   }
 
+  @MethodLogger({ logSuccess: true })
   public getMarket(cb: (params: { [key: string]: string }) => void) {
     this.unsubscribeSocket = this.binance.ws.trades(
       this.getPairs(),
@@ -40,16 +47,19 @@ class Binance {
     );
   }
 
+  @MethodLogger({ logSuccess: true })
   private getPairs(): string[] {
     return config.get("pairs:binance");
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getHistoryExchange(pair: string) {
     const orders = await this.binance.allOrders({ symbol: pair });
     await writeFile(`./.tmp/binance_${pair}.json`, JSON.stringify(orders));
     return orders;
   }
 
+  @MethodLogger({ logSuccess: true })
   public unsubscribe() {
     if (this.unsubscribeSocket) {
       this.unsubscribeSocket();
@@ -57,10 +67,12 @@ class Binance {
     }
   }
 
+  @MethodLogger({ logSuccess: true })
   public async addPosition(pair: string) {
     await this.getHistoryCacheByPair(pair);
   }
 
+  @MethodLogger({ logSuccess: true })
   private async getHistoryCacheByPair(pair: string) {
     let data: any[] = [];
     try {
@@ -73,6 +85,7 @@ class Binance {
     return data;
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getHistoryCache(): Promise<{
     historyOrderByPair: { [key: string]: QueryOrderResult[] };
     historyOrder: QueryOrderResult[];
@@ -96,6 +109,7 @@ class Binance {
     return { historyOrderByPair, historyOrder };
   }
 
+  @MethodLogger({ logSuccess: true })
   public async getPositions() {
     const pairs = this.getPairs();
     const { historyOrderByPair } = await this.getHistoryCache();
