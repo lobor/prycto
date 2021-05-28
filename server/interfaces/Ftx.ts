@@ -156,10 +156,10 @@ class Ftx {
         orders.forEach((order) => {
           if (order.status === "closed") {
             if (order.side === "buy") {
-              investment += Number(order.avgFillPrice);
+              investment += Number(order.avgFillPrice * order.size);
             }
             if (order.side === "sell") {
-              investment -= Number(order.avgFillPrice);
+              investment -= Number(order.avgFillPrice * order.size);
             }
           }
         });
