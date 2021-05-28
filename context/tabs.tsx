@@ -1,9 +1,10 @@
 import React from "react";
 
-interface Tab {
+export interface Tab {
   key: string;
   label: string;
   canClose: boolean;
+  exchange?: string;
 }
 
 interface ContextTabs {
@@ -30,7 +31,12 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
   const [selected, setSelected] = React.useState(value.selected);
 
   const addTab = (tab: Tab) => {
-    setTabs([...tabs, tab]);
+    console.log(tab)
+    if (tabs.filter(({ key }) => key === tab.key).length) {
+      setSelected(tab.key)
+    } else {
+      setTabs([...tabs, tab]);
+    }
   };
 
   const removeTab = (tabName: string) => {

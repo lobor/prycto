@@ -5,20 +5,29 @@ const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
 
   return (
-    <div className="bg-gray-800 shadow-xl bottom-0 z-10 w-full">
+    <div className="bg-gray-800 shadow-xl bottom-0 w-full">
       <div className="content-center md:content-start text-left">
         <ul className="list-reset flex flex-row py-0 pt-0 px-1 text-center md:text-left">
-          {tabs.map(({ key, canClose, label }) => {
-            const className: TArg[] = []
+          {tabs.map(({ key, canClose, label, exchange }) => {
+            const className: TArg[] = [];
             if (key === selected) {
-              className.push("border-blue-500" as TArg)
+              className.push("border-blue-500" as TArg);
             } else {
-              className.push("hover:border-blue-500" as TArg, "border-transparent" as TArg)
+              className.push(
+                "hover:border-blue-500" as TArg,
+                "border-transparent" as TArg
+              );
             }
             return (
               <li
                 key={key}
-                className={classNames("mr-3", "px-3", "cursor-pointer", "border-b-2", ...className)}
+                className={classNames(
+                  "mr-3",
+                  "px-3",
+                  "cursor-pointer",
+                  "border-b-2",
+                  ...className
+                )}
               >
                 <div
                   className="block py-1 md:py-3 pl-1 pr-1 align-middle text-white no-underline"
@@ -27,6 +36,14 @@ const Tabs = () => {
                   }}
                 >
                   <span className="pb-1 md:pb-0 text-xs md:text-base text-white md:text-white block md:inline-block">
+                    {exchange && (
+                      <img
+                        src={`${exchange}.ico`}
+                        alt={exchange}
+                        className="inline mr-1 align-text-top"
+                        style={{ height: "16px" }}
+                      />
+                    )}
                     {label}
                   </span>
                   {canClose && (

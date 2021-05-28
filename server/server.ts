@@ -69,18 +69,21 @@ io.on("connection", async (socket: socketio.Socket) => {
     socket.emit("markets", params);
   });
 
+  socket.on("getAllPairs", async (msg) => {
+    socket.emit("getAllPairs", await exchange.getAllPairs());
+  });
+
   socket.on("addPosition", async (msg) => {
-    const pairsExchange = config.get(`pairs:${msg.exchange}`);
-    pairsExchange.push(msg.pair);
-    config.set(`pairs:${msg.exchange}`, pairsExchange);
-    config.save(async (err: Error | undefined) => {
-      if (!err) {
-        socket.emit("positions", await exchange.getPositions());
-        exchange.unsubscribe();
-        exchange.getMarkets((params) => {
-          socket.emit("markets", params);
-        });
-      }
+    try  {
+      await exchange.addPosition(msg.exchange, msg.pair);
+    } catch (e) {
+      console.log(e)
+      socket.emit("error", e.toString());
+    }
+    socket.emit("positions", await exchange.getPositions());
+    exchange.unsubscribe();
+    exchange.getMarkets((params) => {
+      socket.emit("markets", params);
     });
   });
 

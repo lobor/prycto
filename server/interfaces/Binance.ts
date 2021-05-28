@@ -1,4 +1,4 @@
-import BinanceMethod, {
+import {
   AssetBalance,
   Binance as BinanceInstance,
   QueryOrderResult,
@@ -20,15 +20,24 @@ class Binance {
     this.binance = binance;
     this.binance.accountInfo().then((user) => {
       this.balances.push(
-        ...user.balances.filter(({ free }) => Number(free) > 0)
+        ...user.balances.filter(({ free, asset }) => {
+          return Number(free) > 0;
+        })
       );
     });
   }
 
+  public getAllPairs () {
+    return this.binance.exchangeInfo()
+  }
+
   public getMarket(cb: (params: { [key: string]: string }) => void) {
-    this.unsubscribeSocket = this.binance.ws.trades(this.getPairs(), (trade) => {
-      cb({ [trade.symbol]: trade.price });
-    });
+    this.unsubscribeSocket = this.binance.ws.trades(
+      this.getPairs(),
+      (trade) => {
+        cb({ [trade.symbol]: trade.price });
+      }
+    );
   }
 
   private getPairs(): string[] {
@@ -41,11 +50,27 @@ class Binance {
     return orders;
   }
 
-  public unsubscribe () {
+  public unsubscribe() {
     if (this.unsubscribeSocket) {
-      this.unsubscribeSocket()
+      this.unsubscribeSocket();
       this.unsubscribeSocket = undefined;
     }
+  }
+
+  public async addPosition(pair: string) {
+    await this.getHistoryCacheByPair(pair);
+  }
+
+  private async getHistoryCacheByPair(pair: string) {
+    let data: any[] = [];
+    try {
+      data = JSON.parse(
+        (await readFile(`./.tmp/binance_${pair}.json`)).toString()
+      );
+    } catch (e) {
+      data = await this.getHistoryExchange(pair);
+    }
+    return data;
   }
 
   public async getHistoryCache(): Promise<{
@@ -54,19 +79,9 @@ class Binance {
   }> {
     const pairs = this.getPairs();
     const historyOrder = flatten(
-      await Promise.all([
-        ...pairs.map(async (pair) => {
-          let data: any[] = []
-          try {
-            data = JSON.parse(
-              (await readFile(`./.tmp/binance_${pair}.json`)).toString()
-            )
-          } catch (e) {
-            data = await this.getHistoryExchange(pair)
-          }
-          return data;
-        }),
-      ])
+      await Promise.all(
+        pairs.map(async (pair) => this.getHistoryCacheByPair(pair))
+      )
     );
     const historyOrderByPair = historyOrder.reduce<
       Record<string, (QueryOrderResult | any)[]>
@@ -90,39 +105,38 @@ class Binance {
       available: number;
       exchange: string;
     }[] = [];
-    await Promise.all(
-      pairs.map(async (pairConfig) => {
-        const goodPair = Object.keys(historyOrderByPair).find((pair) => {
-          return pairConfig === pair;
+    pairs.forEach((pairConfig) => {
+      const goodPair = Object.keys(historyOrderByPair).find((pair) => {
+        return pairConfig === pair;
+      });
+      const position = {
+        exchange: "binance",
+        pair: goodPair || pairConfig,
+        investment: 0,
+        available: 0,
+      };
+      if (goodPair) {
+        const balance = this.balances.find((balance) => {
+          return new RegExp(`^${balance.asset}`).exec(goodPair);
         });
-        const position = {
-          exchange: "binance",
-          pair: goodPair || pairConfig,
-          investment: 0,
-          available: 0,
-        };
-        if (goodPair) {
-          const balance = this.balances.find((balance) => {
-            return new RegExp(`^${balance.asset}`).exec(goodPair);
-          });
-          let investment = 0;
-          const orders = historyOrderByPair[goodPair];
-          orders.forEach((order) => {
-            if (order.status === "FILLED") {
-              if (order.side === "BUY") {
-                investment += Number(order.cummulativeQuoteQty);
-              }
-              if (order.side === "SELL") {
-                investment -= Number(order.cummulativeQuoteQty);
-              }
+        let investment = 0;
+        const orders = historyOrderByPair[goodPair];
+        orders.forEach((order) => {
+          if (order.status === "FILLED") {
+            if (order.side === "BUY") {
+              investment += Number(order.cummulativeQuoteQty);
             }
-          });
-          position.investment = investment < 0 ? 0 : investment;
-          position.available = (balance && Number(balance.free)) || 0;
-        }
-        positions.push(position);
-      })
-    );
+            if (order.side === "SELL") {
+              investment -= Number(order.cummulativeQuoteQty);
+            }
+          }
+        });
+        position.investment = investment < 0 ? 0 : investment;
+        position.available =
+          (balance && Number(balance.free) + Number(balance.locked)) || 0;
+      }
+      positions.push(position);
+    });
     return positions;
   }
 }

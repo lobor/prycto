@@ -34,12 +34,35 @@ class Ftx {
   }
 
   public unsubscribe() {
-    this.ws.unsubscribe(this.getPairs().map((trade) => {
-      return {
-        channel: "trades",
-        market: trade,
-      };
-    }));
+    this.ws.unsubscribe(
+      this.getPairs().map((trade) => {
+        return {
+          channel: "trades",
+          market: trade,
+        };
+      })
+    );
+  }
+
+  private async getHistoryCacheByPair(pair: string) {
+    let data: any[] = [];
+    try {
+      data = JSON.parse(
+        (await readFile(`./.tmp/ftx_${pair.replace("/", "_")}.json`)).toString()
+      );
+    } catch (e) {
+      data = await this.getHistoryExchange(pair);
+    }
+    return data;
+  }
+
+  public async addPosition(pair: string) {
+    await this.getHistoryCacheByPair(pair);
+  }
+
+  public async getAllPairs(): Promise<{ name: string }[]> {
+    const { result } = await this.rest.getMarkets();
+    return result
   }
 
   public async getHistoryExchange(pair: string) {
@@ -57,21 +80,9 @@ class Ftx {
   }> {
     const pairs = this.getPairs();
     const historyOrder = flatten(
-      await Promise.all([
-        ...pairs.map(async (pair) => {
-          let data: any[] = [];
-          try {
-            data = JSON.parse(
-              (
-                await readFile(`./.tmp/ftx_${pair.replace("/", "_")}.json`)
-              ).toString()
-            );
-          } catch (e) {
-            data = await this.getHistoryExchange(pair);
-          }
-          return data;
-        }),
-      ])
+      await Promise.all(
+        pairs.map(async (pair) => this.getHistoryCacheByPair(pair))
+      )
     );
     const historyOrderByPair = historyOrder.reduce<Record<string, any[]>>(
       (acc, order) => {
