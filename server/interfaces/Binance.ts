@@ -1,28 +1,29 @@
 import {
   AssetBalance,
   Binance as BinanceInstance,
+  CandleChartInterval,
   QueryOrderResult,
   ReconnectingWebSocketHandler,
 } from "binance-api-node";
-import { flatten } from "lodash";
-import fs from "fs";
-import { promisify } from "util";
+import { Db } from "mongodb";
+import { flatten, orderBy } from "lodash";
+import promiseLimit from "promise-limit";
 import config from "../config";
-import { ClassLogger } from '../utils/classLogger'
-import { MethodLogger } from '../utils/methodLogger'
+import { ClassLogger } from "../utils/classLogger";
+import { MethodLogger } from "../utils/methodLogger";
 
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
+var limit = promiseLimit(1);
 
-
-@ClassLogger({ name: 'Binance' })
+@ClassLogger({ name: "Binance" })
 class Binance {
   private binance: BinanceInstance;
+  private db: Db;
   private balances: AssetBalance[] = [];
   private unsubscribeSocket?: ReconnectingWebSocketHandler;
 
-  constructor(binance: BinanceInstance) {
+  constructor(binance: BinanceInstance, db: Db) {
     this.binance = binance;
+    this.db = db;
     this.binance.accountInfo().then((user) => {
       this.balances.push(
         ...user.balances.filter(({ free, asset }) => {
@@ -33,8 +34,19 @@ class Binance {
   }
 
   @MethodLogger({ logSuccess: true })
-  public getAllPairs () {
-    return this.binance.exchangeInfo()
+  public async getAllPairs() {
+    return this.binance.exchangeInfo();
+  }
+
+  @MethodLogger({ logSuccess: true })
+  public async getPrices() {
+    const pairs = this.getPairs();
+    const allPairs = await Promise.all(
+      pairs.map((pair) => this.binance.prices({ symbol: pair }))
+    );
+    return allPairs.reduce((acc, pair) => {
+      return { ...acc, ...pair };
+    }, {});
   }
 
   @MethodLogger({ logSuccess: true })
@@ -54,9 +66,24 @@ class Binance {
 
   @MethodLogger({ logSuccess: true })
   public async getHistoryExchange(pair: string) {
-    const orders = await this.binance.allOrders({ symbol: pair });
-    await writeFile(`./.tmp/binance_${pair}.json`, JSON.stringify(orders));
-    return orders;
+    const collection = this.db.collection("history");
+    const histories = await collection
+      .find({ symbol: pair })
+      .sort({ time: -1 })
+      .toArray();
+    const params = { symbol: pair };
+    if (histories.length > 0) {
+      params.orderId = histories[0].orderId;
+    }
+    // const orders = await this.binance.allOrders(params);
+    // const historiesByOrderid = histories.map(({ orderId }) => orderId);
+    // const orderToAdd = orders.filter(
+    //   ({ orderId }) => !historiesByOrderid.includes(orderId)
+    // );
+    // if (orderToAdd.length > 0) {
+    //   collection.insertMany(orderToAdd);
+    // }
+    return [...histories, ...[]];
   }
 
   @MethodLogger({ logSuccess: true })
@@ -69,20 +96,7 @@ class Binance {
 
   @MethodLogger({ logSuccess: true })
   public async addPosition(pair: string) {
-    await this.getHistoryCacheByPair(pair);
-  }
-
-  @MethodLogger({ logSuccess: true })
-  private async getHistoryCacheByPair(pair: string) {
-    let data: any[] = [];
-    try {
-      data = JSON.parse(
-        (await readFile(`./.tmp/binance_${pair}.json`)).toString()
-      );
-    } catch (e) {
-      data = await this.getHistoryExchange(pair);
-    }
-    return data;
+    await this.getHistoryExchange(pair);
   }
 
   @MethodLogger({ logSuccess: true })
@@ -93,24 +107,74 @@ class Binance {
     const pairs = this.getPairs();
     const historyOrder = flatten(
       await Promise.all(
-        pairs.map(async (pair) => this.getHistoryCacheByPair(pair))
+        pairs.map(async (pair) => limit(() => this.getHistoryExchange(pair)))
       )
     );
-    const historyOrderByPair = historyOrder.reduce<
-      Record<string, (QueryOrderResult | any)[]>
-    >((acc, order) => {
-      const key = order.symbol || order.market;
-      if (!acc[key]) {
-        acc[key] = [];
+    const historyOrderByPair: Record<string, (QueryOrderResult | any)[]> = {};
+    pairs.forEach((pair) => {
+      if (!historyOrderByPair[pair]) {
+        historyOrderByPair[pair] = [];
       }
-      acc[key].push(order);
-      return acc;
-    }, {});
+      historyOrderByPair[pair].push(
+        ...historyOrder.filter(({ symbol }) => symbol === pair)
+      );
+    });
     return { historyOrderByPair, historyOrder };
+  }
+
+  public async getHistoryPrice() {
+    const pairs = this.getPairs();
+    const historiesProfit: { [key: number]: { [key: string]: number } } = {};
+    await Promise.all(
+      pairs.map(async (pair) => {
+        const toto = await this.binance.candles({
+          symbol: pair,
+          interval: CandleChartInterval.ONE_DAY,
+        });
+        const histories = await this.getHistoryExchange(pair);
+        const [historic] = orderBy(histories, "time");
+        let investment = 0;
+        let available = 0;
+        toto
+          .filter(({ closeTime }) => {
+            return !historic || closeTime >= historic.time;
+          })
+          .forEach((history) => {
+            const historiesDay = histories.filter(({ time }) => {
+              return history.openTime <= time && history.closeTime >= time;
+            });
+            historiesDay.forEach((order) => {
+              if (order.status === "FILLED") {
+                if (order.side === "BUY") {
+                  investment += Number(order.cummulativeQuoteQty);
+                  available += Number(order.executedQty);
+                }
+                if (order.side === "SELL") {
+                  investment -= Number(order.cummulativeQuoteQty);
+                  available -= Number(order.executedQty);
+                }
+              }
+            });
+            const { close, closeTime } = history;
+            if (!historiesProfit[closeTime]) {
+              historiesProfit[closeTime] = { time: closeTime };
+            }
+            historiesProfit[closeTime][pair] =
+              available * Number(close) - investment;
+          });
+      })
+    );
+    return Object.values(historiesProfit);
   }
 
   @MethodLogger({ logSuccess: true })
   public async getPositions() {
+    const collection = this.db.collection("position");
+    return collection.find({}).toArray();
+  }
+
+  @MethodLogger({ logSuccess: true })
+  public async updatePositions() {
     const pairs = this.getPairs();
     const { historyOrderByPair } = await this.getHistoryCache();
     const positions: {
@@ -151,6 +215,17 @@ class Binance {
       }
       positions.push(position);
     });
+    const collection = this.db.collection("position");
+    await collection.bulkWrite(
+      positions.map((position) => {
+        return {
+          updateOne: {
+            filter: { pair: position.pair },
+            update: { $set: { investment: position.investment, available: position.available } },
+          },
+        };
+      })
+    );
     return positions;
   }
 }

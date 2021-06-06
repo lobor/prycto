@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  app-prycto:
+    container_name: app-prycto
+    image: 'node:14.15.1-alpine'
+    command: npm run dev
+    depends_on:
+      - mongo-prycto
+    ports:
+      - '3001:3000'
+    user: node
+    volumes:
+      - './:/home/node/app'
+    working_dir: /home/node/app
+  mongo-prycto:
+    container_name: mongo-prycto
+    image: 'mongo:4.4'
+    ports:
+      - '27019:27017'
+    volumes:
+      - 'mongo-data-prycto:/data/db'
+volumes:
+  mongo-data-prycto: {}

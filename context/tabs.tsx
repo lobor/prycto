@@ -1,10 +1,12 @@
-import React from "react";
+import { useRouter } from "next/dist/client/router";
+import React, { useEffect } from "react";
 
 export interface Tab {
   key: string;
   label: string;
   canClose: boolean;
   exchange?: string;
+  href: string;
 }
 
 interface ContextTabs {
@@ -27,6 +29,7 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
   children,
   value,
 }) => {
+  const router = useRouter();
   const [tabs, setTabs] = React.useState(value.tabs);
   const [selected, setSelected] = React.useState(value.selected);
 
@@ -42,7 +45,9 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
   const removeTab = (tabName: string) => {
     const isLastTabs = tabs[tabs.length - 1].key === tabName;
     if (isLastTabs && selected === tabName) {
-      setSelected(tabs[tabs.length - 2].key);
+      const newSelected = tabs[tabs.length - 2]
+      setSelected(newSelected.key);
+      router.push(newSelected.href)
     }
     setTabs(tabs.filter(({ key, canClose }) => !(canClose && key == tabName)));
   };
@@ -50,6 +55,14 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
   const selectTab = (keyTab: string) => {
     setSelected(keyTab);
   };
+
+  // useEffect(() => {
+  //   router.pathname
+  //   const tabUrl = tabs.find(({ href }) => href === router.pathname)
+  //   if (!tabUrl) {
+  //     setSelected(tabUrl.key);
+  //   }
+  // }, [tabs, selected])
 
   return (
     <TabsContext.Provider

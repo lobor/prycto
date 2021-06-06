@@ -57,7 +57,6 @@ export default class Exchange {
   public async addPosition(exchange: string, pair: string) {
     const pairsExchange = config.get(`pairs:${exchange}`);
     pairsExchange.push(pair);
-    config.set(`pairs:${exchange}`, pairsExchange);
     await new Promise((resolve, reject) =>
       config.save(async (err: Error | undefined) => {
         if (!err) {
@@ -97,13 +96,35 @@ export default class Exchange {
   }
 
   @MethodLogger({ logSuccess: true })
-  public getMarkets(cb: (params: { [key: string]: string }) => void) {
+  public  async getMarkets(cb: (params: { [key: string]: string }) => void) {
     if (this.binance) {
       this.binance.getMarket(cb);
     }
     if (this.ftx) {
       this.ftx.getMarket(cb);
     }
+    // let price = {};
+    // await Promise.all([
+    //   (async ()=>{
+    //     if (this.binance) {
+    //       price = { ...price, ...(await this.binance.getPrices()) };
+    //     }
+    //   })(),
+    //   (async () => {
+    //     if (this.ftx) {
+    //       price = { ...price, ...(await this.ftx.getPrices()) };
+    //     }
+    //   })()
+    // ])
+    // cb(price)
+  }
+
+  public async getHistoricalPrice() {
+    const history = []
+    if (this.binance) {
+      history.push(...(await this.binance.getHistoryPrice()));
+    }
+    return history;
   }
 
   @MethodLogger({ logSuccess: true })

@@ -15,15 +15,15 @@ function MyApp({ Component, pageProps }: AppProps) {
       <TabsProvider
         value={{
           tabs: [
-            { label: "Positions", key: "position", canClose: false },
+            { label: "Dashboard", key: "dashboard", canClose: false, href: "/dashboard" },
+            { label: "Positions", key: "positions", canClose: false, href: "/positions" },
           ],
-          selected: "position",
+          selected: "positions",
         }}
       >
         <Nav />
         <div className="flex flex-col flex-1">
-          <Tabs />
-          <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv">
+          <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
             <Component {...pageProps} />
           </div>
         </div>

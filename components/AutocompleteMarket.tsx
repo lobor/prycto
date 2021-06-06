@@ -10,6 +10,7 @@ interface AutocompleteMarketProps {
   icon?: boolean;
   placeholder?: string;
   type?: string;
+  value?: { exchange: string; pair: string };
   onSelect?: (key: { exchange: string, pair: string }) => void;
 }
 const AutocompleteMarket = ({
@@ -17,6 +18,7 @@ const AutocompleteMarket = ({
   placeholder,
   type,
   onSelect,
+  value,
 }: AutocompleteMarketProps) => {
   const originalPairs = useRef<{ pair: string; exchange: string }[]>();
   const [pairs, setPairs] = useState<{ pair: string; exchange: string }[]>([]);
@@ -42,20 +44,11 @@ const AutocompleteMarket = ({
   };
 
   useEffect(() => {
-    if (!originalPairs.current || originalPairs.current.length === 0) {
-      const allPairs = localStorage.getItem("allPairs");
-      if (allPairs) {
-        try {
-          originalPairs.current = JSON.parse(allPairs);
-          setPairs(JSON.parse(allPairs));
-        } catch (e) {
-          getAllPairs();
-        }
-      } else {
-        getAllPairs();
-      }
+    console.log(show, originalPairs.current)
+    if (show && (!originalPairs.current || originalPairs.current.length === 0)) {
+      getAllPairs();
     }
-  }, []);
+  }, [show]);
 
   useEffect(() => {
     return () => {
@@ -92,6 +85,7 @@ const AutocompleteMarket = ({
             setShow(false);
           }, 200);
         }}
+        value={value && value.pair}
         type={type || "text"}
         placeholder={placeholder}
         className={`w-full bg-gray-900 text-white transition border border-transparent focus:outline-none focus:border-gray-400 rounded py-3 px-2 appearance-none leading-normal ${classnames(
@@ -129,6 +123,7 @@ const AutocompleteMarket = ({
                       style={style}
                       className="text-left px-2 py-1 hover:bg-gray-800 cursor-pointer block w-full"
                       onClick={handleSelect({ exchange, pair })}
+                      type="button"
                     >
                       <img
                         src={`${exchange}.ico`}

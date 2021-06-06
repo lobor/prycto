@@ -1,23 +1,52 @@
-import AutocompleteMarket from './AutocompleteMarket';
+import AutocompleteMarket from "./AutocompleteMarket";
 import { useTabsContext } from "../context/tabs";
+import Boutton from "./Button";
+import Tabs from "./Tabs";
+import { useRouter } from "next/dist/client/router";
 
 const Nav = () => {
+  const router = useRouter();
   const { addTab, selectTab } = useTabsContext();
   return (
     <nav className="bg-gray-800 pt-2 md:pt-1 pb-1 px-1 w-full">
       <div className="flex flex-wrap items-center">
-        <div className="flex flex-1 md:w-1/3 justify-center md:justify-start text-white px-2 pt-2">
-          <AutocompleteMarket icon type="search" placeholder="Search pairs" onSelect={(key) => {
-            const { exchange, pair } = key
-            addTab({
-              key: `${pair.toLowerCase()}`,
-              label: pair,
-              canClose: true,
-              exchange
-            });
-            selectTab(pair.toLowerCase());
-          }} />
+        <div className="flex justify-center md:justify-start text-white w-full md:w-auto">
+          <AutocompleteMarket
+            icon
+            type="search"
+            placeholder="Search pairs"
+            onSelect={(key) => {
+              const { exchange, pair } = key;
+              addTab({
+                key: `${pair.toLowerCase()}`,
+                label: pair,
+                canClose: true,
+                exchange,
+                href: "/tradingview",
+              });
+              selectTab(pair.toLowerCase());
+              router.push(`/tradingview?pair=${pair}`);
+            }}
+          />
         </div>
+        <div className="flex-1">
+          <Tabs />
+        </div>
+        <Boutton
+          className="hidden md:block"
+          onClick={() => {
+            addTab({
+              key: `exchange`,
+              label: 'Exchange',
+              canClose: true,
+              href: "/exchange",
+            });
+            selectTab('exchange');
+            router.push(`/exchange`);
+          }}
+        >
+          ⚙️
+        </Boutton>
       </div>
     </nav>
   );

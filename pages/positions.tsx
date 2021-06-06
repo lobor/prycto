@@ -1,50 +1,55 @@
 import classnames from "tailwindcss-classnames";
-import { useEffect, useMemo, useState } from "react";
-import { useSocket, useEmit } from "socketio-hooks";
+import { useEffect, useState } from "react";
+import { useEmit } from "socketio-hooks";
+import useSocket from "../hooks/useSocket";
 import { useTabsContext } from "../context/tabs";
-import Button from "./Button";
-import Input from "./Input";
-import Select from "./Select";
-import Label from "./Label";
-import AutocompleteMarket from "./AutocompleteMarket";
+import Button from "../components/Button";
+import AddPosition from "../components/AddPosition";
+import EditPosition from "../components/EditPosition";
+import { useRouter } from "next/dist/client/router";
 
-const round = (num: number) => {
-  return Math.round((num + Number.EPSILON) * 100) / 100;
+const round = (num: number, decimal = 2) => {
+  let decimalFactor = 1;
+  for (let i = 0; i < decimal; i++) {
+    decimalFactor *= 10;
+  }
+  return Math.round((num + Number.EPSILON) * decimalFactor) / decimalFactor;
 };
 
 const Positions = () => {
+  const router = useRouter();
+  const [initialState, setInitialState] = useState();
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
+  const [editPositionShowing, setEditPositionShowing] = useState();
   const { addTab, selectTab } = useTabsContext();
-  const [markets, setMarket] =
-    useState<Record<string, any> | undefined>(undefined);
-  const [positions, setPositions] =
-    useState<
-      | {
-          pair: string;
-          available: number;
-          investment: number;
-          exchange: string;
-        }[]
-      | undefined
-    >(undefined);
 
-  const getPositions = useEmit("positions");
   const removePosition = useEmit("removePosition");
   const addPosition = useEmit("addPosition");
+  const editPosition = useEmit("editPosition");
 
-  useSocket("markets", (message) => {
-    setMarket({ ...(markets || {}), ...message });
-  });
-  useSocket("positions", (message) => {
-    setPositions(message);
-  });
-
+  const { data: markets, loading } = useSocket<{ [key: string]: number }>(
+    "markets",
+    {
+      computeData: (state, data) => {
+        return { ...(state || {}), ...data };
+      },
+      initialState,
+    }
+  );
+  const { data: positions } =
+    useSocket<
+      {
+        pair: string;
+        available: number;
+        investment: number;
+        exchange: string;
+      }[]
+    >("positions");
   useEffect(() => {
-    getPositions();
     const marketStorage = localStorage.getItem("markets");
     if (marketStorage) {
       try {
-        setMarket(JSON.parse(marketStorage));
+        setInitialState(JSON.parse(marketStorage));
       } catch (e) {
         console.warn("Local storage markets can't read");
       }
@@ -53,14 +58,16 @@ const Positions = () => {
 
   useEffect(() => {
     return () => {
-      localStorage.setItem("markets", JSON.stringify(markets));
+      if (markets) {
+        localStorage.setItem("markets", JSON.stringify(markets));
+      }
     };
   }, [markets]);
 
   const { globalInvestment, globalProfit } = (positions || []).reduce(
     (acc, position) => {
       const market = (markets && markets[position.pair]) || 0;
-      const profit = market * position.available;
+      const profit = market * (position.available + (position.locked || 0));
       acc.globalProfit += profit;
       acc.globalInvestment += position.investment;
       return acc;
@@ -68,64 +75,56 @@ const Positions = () => {
     { globalInvestment: 0, globalProfit: 0 }
   );
 
-  const addPositionModal = useMemo(() => {
-    return (
-      <div className="h-screen absolute w-full flex flex-col items-center justify-center font-sans top-0 z-10">
-        <div className="absolute top-0 bottom-0 left-0 right-0 bg-gray-800 opacity-90"></div>
-        <div className="h-screen w-full absolute flex items-center justify-center top-0">
-          <div className="bg-gray-800 text-gray-200 rounded shadow p-8 m-4 max-w-xs max-h-full text-center ">
-            <div className="mb-4">
-              <h1>Add position</h1>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                var formData = new FormData(e.currentTarget);
-                const values: Record<string, unknown> = {};
-                for (var entrie of formData.entries()) {
-                  const [key, value] = entrie;
-                  values[key] = value;
-                }
-                addPosition(values);
-                setAddPositionShowing(false);
-              }}
-            >
-              <div className="mb-8">
-                <Label htmlFor="pair" label="Pair">
-                  <AutocompleteMarket onSelect={() => {
-                    console.log('ici')
-                  }} />
-                </Label>
-              </div>
-              <div className="flex justify-center">
-                <Button onClick={() => setAddPositionShowing(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="validate" className="ml-2">
-                  Add
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }, []);
-
   return (
     <>
-      {addPosisitonShowing && addPositionModal}
+      {loading && (
+        <div className="ml-6 mt-6 text-center text-gray-200">
+          Market loading...
+        </div>
+      )}
+      {addPosisitonShowing && (
+        <AddPosition
+          onSubmit={(e) => {
+            addPosition(e);
+            setAddPositionShowing(false);
+          }}
+          onCancel={() => {
+            setAddPositionShowing(false);
+          }}
+        />
+      )}
+      {editPositionShowing && (
+        <EditPosition
+          position={editPositionShowing}
+          onSubmit={(e) => {
+            console.log(e);
+            editPosition(e);
+            setEditPositionShowing(undefined);
+          }}
+          onCancel={() => {
+            setEditPositionShowing(undefined);
+          }}
+        />
+      )}
       <div className="flex justify-between mt-6 mr-6 text-gray-200">
         <span className="ml-6">
-          {round(globalInvestment)} /{" "}
+          {round(globalInvestment)}BUSD /{" "}
+          <span
+            className={classnames("inline-block", "w-28", {
+              "text-red-600": globalInvestment >= globalProfit,
+              "text-green-500": globalInvestment < globalProfit,
+            })}
+          >
+            {round(globalProfit)}BUSD
+          </span>{" "}
+          ≈ {round(globalInvestment * 0.82)}€ /{" "}
           <span
             className={classnames("inline-block", "w-14", {
               "text-red-600": globalInvestment >= globalProfit,
               "text-green-500": globalInvestment < globalProfit,
             })}
           >
-            {round(globalProfit)}
+            {round(globalProfit * 0.82)}€
           </span>
           <br />
           <span
@@ -134,7 +133,16 @@ const Positions = () => {
               "text-green-500": globalProfit - globalInvestment >= 0,
             })}
           >
-            {round(globalProfit - globalInvestment)}
+            {round(globalProfit - globalInvestment)}BUSD
+          </span>
+          {" ≈ "}
+          <span
+            className={classnames({
+              "text-red-600": globalProfit - globalInvestment < 0,
+              "text-green-500": globalProfit - globalInvestment >= 0,
+            })}
+          >
+            {round((globalProfit - globalInvestment) * 0.82)}€
           </span>{" "}
           (
           <span
@@ -147,22 +155,13 @@ const Positions = () => {
           </span>
           )
         </span>
-        <div>
-          <Button
-            variant="validate"
-            onClick={() => {
-              setAddPositionShowing(true);
-            }}
-          >
-            Add positions
-          </Button>
-        </div>
       </div>
       <div className="shadow-md mt-6 block md:hidden">
         {positions &&
           positions.map((position) => {
             const market = (markets && markets[position.pair]) || 0;
-            const profit = market * position.available - position.investment;
+            const total = position.available + (position.locked || 0)
+            const profit = market * total - position.investment;
             return (
               <div
                 key={position.pair}
@@ -182,6 +181,7 @@ const Positions = () => {
                         key: position.pair,
                         label: position.pair,
                         canClose: true,
+                        href: "/tradingview",
                       });
                       selectTab(position.pair);
                     }}
@@ -189,25 +189,25 @@ const Positions = () => {
                     {position.pair}
                   </Button>
                 </div>
-                <div className="py-2 px-6">Amount: {position.available}</div>
-                <div className="py-2 px-6">Market: {market}</div>
-                <div className="py-2 px-6">
-                  Investment: {round(position.investment)} /{" "}
-                  <span className="text-gray-400">
-                    {round(market * position.available)}
+                <div className="py-2 px-6 flex justify-between">
+                  <span>
+                    {round(position.investment)} /{" "}
+                    <span className="text-gray-400">
+                      {round(market * total)}
+                    </span>
                   </span>
-                </div>
-                <div
-                  className={classnames("py-2", "px-6", {
-                    "text-green-500": profit >= 0,
-                    "text-red-600": profit < 0,
-                  })}
-                >
-                  Profit: {round(profit)} (
-                  {position.investment !== 0
-                    ? round((profit * 100) / position.investment)
-                    : 0}
-                  %)
+                  <span
+                    className={classnames({
+                      "text-green-500": profit >= 0,
+                      "text-red-600": profit < 0,
+                    })}
+                  >
+                    {round(profit)} (
+                    {position.investment !== 0
+                      ? round((profit * 100) / position.investment)
+                      : 0}
+                    %)
+                  </span>
                 </div>
               </div>
             );
@@ -219,20 +219,33 @@ const Positions = () => {
             <tr className="bg-gray-900 text-gray-200">
               <th className="py-4 px-6 font-bold uppercase text-sm">Paires</th>
               <th className="py-4 px-6 font-bold uppercase text-sm">Amount</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">
+                Price bought
+              </th>
               <th className="py-4 px-6 font-bold uppercase text-sm">Market</th>
               <th className="py-4 px-6 font-bold uppercase text-sm">
                 Investment
               </th>
               <th className="py-4 px-6 font-bold uppercase text-sm">Profit</th>
-              <th className="py-4 px-6 font-bold uppercase text-sm">Actions</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm text-center">
+                <Button
+                  variant="validate"
+                  onClick={() => {
+                    setAddPositionShowing(true);
+                  }}
+                >
+                  Add
+                </Button>
+              </th>
             </tr>
           </thead>
           {positions && (
             <tbody>
               {positions.map((position) => {
                 const market = (markets && markets[position.pair]) || 0;
+                const total = position.available + (position.locked || 0)
                 const profit =
-                  market * position.available - position.investment;
+                  market * total - position.investment;
                 return (
                   <tr
                     key={position.pair}
@@ -252,20 +265,30 @@ const Positions = () => {
                             key: position.pair,
                             label: position.pair,
                             canClose: true,
-                            exchange: position.exchange
+                            exchange: position.exchange,
+                            href: `/tradingview?pair=${position.pair}`,
                           });
+                          router.push(`/tradingview?pair=${position.pair}`);
                           selectTab(position.pair);
                         }}
                       >
                         {position.pair}
                       </Button>
                     </td>
-                    <td className="py-2 px-6">{position.available}</td>
+                    <td className="py-2 px-6">{total}</td>
+                    <td className="py-2 px-6">
+                      {round(
+                        total === 0
+                          ? 0
+                          : position.investment / total,
+                        8
+                      )}
+                    </td>
                     <td className="py-2 px-6">{market}</td>
                     <td className="py-2 px-6">
                       {round(position.investment)} /{" "}
                       <span className="text-gray-400">
-                        {round(market * position.available)}
+                        {round(market * total)}
                       </span>
                     </td>
                     <td
@@ -280,7 +303,7 @@ const Positions = () => {
                         : 0}
                       %)
                     </td>
-                    <td className="py-2 px-6">
+                    <td className="py-2 px-6 text-center">
                       <Button
                         onClick={() => {
                           removePosition({
@@ -290,6 +313,14 @@ const Positions = () => {
                         }}
                       >
                         Remove
+                      </Button>
+                      <Button
+                        className="ml-2"
+                        onClick={() => {
+                          setEditPositionShowing(position);
+                        }}
+                      >
+                        Edit
                       </Button>
                     </td>
                   </tr>

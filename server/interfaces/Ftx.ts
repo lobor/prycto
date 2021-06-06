@@ -3,13 +3,13 @@ import fs from "fs";
 import { promisify } from "util";
 import config from "../config";
 import { flatten } from "lodash";
-import { ClassLogger } from '../utils/classLogger'
-import { MethodLogger } from '../utils/methodLogger'
+import { ClassLogger } from "../utils/classLogger";
+import { MethodLogger } from "../utils/methodLogger";
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
-@ClassLogger({ name: 'Ftx' })
+@ClassLogger({ name: "Ftx" })
 class Ftx {
   private rest: RestClient;
   private ws: WebsocketClient;
@@ -67,9 +67,9 @@ class Ftx {
   }
 
   @MethodLogger({ logSuccess: true })
-  public async getAllPairs(): Promise<{ name: string }[]> {
+  public async getAllPairs(): Promise<{ name: string; price: number }[]> {
     const { result } = await this.rest.getMarkets();
-    return result
+    return result;
   }
 
   @MethodLogger({ logSuccess: true })
@@ -113,6 +113,18 @@ class Ftx {
   }
 
   @MethodLogger({ logSuccess: true })
+  public async getPrices(): Promise<{ [key: string]: number }> {
+    const prices = await this.getAllPairs();
+    const pairs = this.getPairs();
+    const pricesPair = prices.filter(({ name }) => pairs.includes(name));
+    const pricesParsed: { [key: string]: number } = {};
+    pricesPair.forEach(({ name, price }) => {
+      pricesParsed[name] = price;
+    });
+    return pricesParsed;
+  }
+
+  @MethodLogger({ logSuccess: true })
   public getMarket(cb: (params: { [key: string]: string }) => void) {
     this.ws.on("update", (msg) => {
       if (msg.channel === "trades") {
@@ -122,7 +134,7 @@ class Ftx {
         }
       }
     });
-    this.ws.on('error', msg => console.log('err: ', msg));
+    this.ws.on("error", (msg) => console.log("err: ", msg));
     this.ws.subscribe(
       this.getPairs().map((trade) => {
         return {
