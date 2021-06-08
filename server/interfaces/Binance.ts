@@ -75,14 +75,14 @@ class Binance {
     if (histories.length > 0) {
       params.orderId = histories[0].orderId;
     }
-    // const orders = await this.binance.allOrders(params);
-    // const historiesByOrderid = histories.map(({ orderId }) => orderId);
-    // const orderToAdd = orders.filter(
-    //   ({ orderId }) => !historiesByOrderid.includes(orderId)
-    // );
-    // if (orderToAdd.length > 0) {
-    //   collection.insertMany(orderToAdd);
-    // }
+    const orders = await this.binance.allOrders(params);
+    const historiesByOrderid = histories.map(({ orderId }) => orderId);
+    const orderToAdd = orders.filter(
+      ({ orderId }) => !historiesByOrderid.includes(orderId)
+    );
+    if (orderToAdd.length > 0) {
+      collection.insertMany(orderToAdd);
+    }
     return [...histories, ...[]];
   }
 

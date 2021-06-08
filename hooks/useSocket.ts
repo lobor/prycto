@@ -25,8 +25,10 @@ function useSocket<Schema = any>(
     }
   }, [initialState]);
   useEffect(() => {
-    refetch();
-  }, []);
+    if (!data) {
+      refetch();
+    }
+  }, [data]);
   const refetch = () => {
     setLoading(true);
     getExchanges();

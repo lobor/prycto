@@ -2,13 +2,14 @@ import Label from "./Label";
 import AutocompleteMarket from "./AutocompleteMarket";
 import Button from "./Button";
 import { useState } from "react";
+import { GetAllPairsResponse } from '../type';
 
 interface AddPositionProps {
-  onSubmit: (params: { pair: string; exchange: string }) => void;
+  onSubmit: (params: GetAllPairsResponse) => void;
   onCancel: () => void
 }
 const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
-  const [value, setValue] = useState<{ pair: string; exchange: string }>();
+  const [value, setValue] = useState<GetAllPairsResponse>();
   return (
     <div className="h-screen absolute w-full flex flex-col items-center justify-center font-sans top-0 z-10">
       <div className="absolute top-0 bottom-0 left-0 right-0 bg-gray-800 opacity-90"></div>

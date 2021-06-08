@@ -1,16 +1,17 @@
 import Head from "next/head";
 import { useState } from "react";
-import { useEmit } from "socketio-hooks";
+// import { useEmit } from "socketio-hooks";
 import Button from "../components/Button";
 import AddExchange from "../components/AddExchange";
 import useSocket from "../hooks/useSocket";
+import useEmit from "../hooks/useEmit";
 
 export default function Exchange() {
   const [addExchangeShowing, setAddExchangeShowing] = useState(false);
   const { data: exchanges, refetch: getExchanges } =
     useSocket<{ _id: string; name: string }[]>("getExchange");
-  const addExchanges = useEmit("addExchange:request");
-  const removeExchanges = useEmit("removeExchange:request");
+  const [addExchanges] = useEmit("addExchange");
+  const [removeExchanges] = useEmit("removeExchange");
   return (
     <div>
       <Head>

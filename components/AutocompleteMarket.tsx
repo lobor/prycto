@@ -5,13 +5,14 @@ import { classnames } from "tailwindcss-classnames";
 import List from "react-virtualized/dist/commonjs/List";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Input from "./Input";
+import { GetAllPairsResponse } from '../type';
 
 interface AutocompleteMarketProps {
   icon?: boolean;
   placeholder?: string;
   type?: string;
-  value?: { exchange: string; pair: string };
-  onSelect?: (key: { exchange: string, pair: string }) => void;
+  value?: GetAllPairsResponse;
+  onSelect?: (key: GetAllPairsResponse) => void;
 }
 const AutocompleteMarket = ({
   icon,
@@ -20,12 +21,12 @@ const AutocompleteMarket = ({
   onSelect,
   value,
 }: AutocompleteMarketProps) => {
-  const originalPairs = useRef<{ pair: string; exchange: string }[]>();
-  const [pairs, setPairs] = useState<{ pair: string; exchange: string }[]>([]);
+  const originalPairs = useRef<GetAllPairsResponse[]>();
+  const [pairs, setPairs] = useState<GetAllPairsResponse[]>([]);
   const [show, setShow] = useState<boolean>(false);
-  const getAllPairs = useEmit("getAllPairs");
+  const getAllPairs = useEmit("getAllPairs:request");
 
-  useSocket("getAllPairs", (msg) => {
+  useSocket("getAllPairs:response", (msg) => {
     originalPairs.current = msg;
     setPairs(msg);
   });
@@ -36,7 +37,7 @@ const AutocompleteMarket = ({
       setPairs(
         filter(value, originalPairs.current, {
           extract: function (el) {
-            return el.pair;
+            return el.symbol;
           },
         }).map(({ original }) => original)
       );
@@ -44,8 +45,10 @@ const AutocompleteMarket = ({
   };
 
   useEffect(() => {
-    console.log(show, originalPairs.current)
-    if (show && (!originalPairs.current || originalPairs.current.length === 0)) {
+    if (
+      show &&
+      (!originalPairs.current || originalPairs.current.length === 0)
+    ) {
       getAllPairs();
     }
   }, [show]);
@@ -62,11 +65,11 @@ const AutocompleteMarket = ({
     };
   }, []);
 
-  const handleSelect = (params: { exchange: string, pair: string }) => () => {
+  const handleSelect = (params: GetAllPairsResponse) => () => {
     if (onSelect) {
       onSelect(params);
     }
-  }
+  };
 
   return (
     <span className="relative w-full">
@@ -85,7 +88,7 @@ const AutocompleteMarket = ({
             setShow(false);
           }, 200);
         }}
-        value={value && value.pair}
+        value={value && value.symbol}
         type={type || "text"}
         placeholder={placeholder}
         className={`w-full bg-gray-900 text-white transition border border-transparent focus:outline-none focus:border-gray-400 rounded py-3 px-2 appearance-none leading-normal ${classnames(
@@ -116,13 +119,13 @@ const AutocompleteMarket = ({
                 rowCount={pairs.length}
                 rowHeight={32}
                 rowRenderer={({ index, key, style }) => {
-                  const { exchange, pair } = pairs[index];
+                  const { exchange, symbol } = pairs[index];
                   return (
                     <button
                       key={key}
                       style={style}
                       className="text-left px-2 py-1 hover:bg-gray-800 cursor-pointer block w-full"
-                      onClick={handleSelect({ exchange, pair })}
+                      onClick={handleSelect(pairs[index])}
                       type="button"
                     >
                       <img
@@ -131,7 +134,7 @@ const AutocompleteMarket = ({
                         className="inline mr-1 align-text-top "
                         style={{ height: "16px" }}
                       />
-                      {pair}
+                      {symbol}
                     </button>
                   );
                 }}

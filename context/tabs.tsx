@@ -34,7 +34,6 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
   const [selected, setSelected] = React.useState(value.selected);
 
   const addTab = (tab: Tab) => {
-    console.log(tab)
     if (tabs.filter(({ key }) => key === tab.key).length) {
       setSelected(tab.key)
     } else {

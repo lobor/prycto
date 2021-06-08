@@ -7,7 +7,6 @@ export default function Trade() {
 
   const pair = tabs.find(({ key }) => key.toUpperCase() === selected.toUpperCase()) as Tab
   useEffect(() => {
-    console.log(pair, selected)
     if (pair && pair.exchange) {
       new window.TradingView.widget({
         autosize: true,

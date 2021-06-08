@@ -16,16 +16,16 @@ const Nav = () => {
             type="search"
             placeholder="Search pairs"
             onSelect={(key) => {
-              const { exchange, pair } = key;
+              const { exchange, symbol } = key;
               addTab({
-                key: `${pair.toLowerCase()}`,
-                label: pair,
+                key: `${symbol.toLowerCase()}`,
+                label: symbol,
                 canClose: true,
                 exchange,
                 href: "/tradingview",
               });
-              selectTab(pair.toLowerCase());
-              router.push(`/tradingview?pair=${pair}`);
+              selectTab(symbol.toLowerCase());
+              router.push(`/tradingview?pair=${symbol}`);
             }}
           />
         </div>

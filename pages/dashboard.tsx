@@ -28,7 +28,6 @@ const Dashboard = () => {
   ).sort();
 
   const colors = useMemo(() => {
-    console.log("ici");
     return [...Array(pairs.length)].map(
       (x) => `#${Math.floor(Math.random() * 16777215).toString(16)}`
     );
@@ -69,7 +68,6 @@ const Dashboard = () => {
           <CartesianGrid strokeDasharray="3 3" />
           <Legend
             onClick={(e) => {
-              console.log(e);
               if (hidden.includes(e.dataKey)) {
                 setHidden(hidden.filter((key) => key !== e.dataKey));
               } else {

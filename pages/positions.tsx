@@ -1,12 +1,20 @@
 import classnames from "tailwindcss-classnames";
-import { useEffect, useState } from "react";
-import { useEmit } from "socketio-hooks";
+import { useEffect, useRef, useState } from "react";
+// import { useEmit } from "socketio-hooks";
 import useSocket from "../hooks/useSocket";
+import useEmit from "../hooks/useEmit";
 import { useTabsContext } from "../context/tabs";
 import Button from "../components/Button";
 import AddPosition from "../components/AddPosition";
 import EditPosition from "../components/EditPosition";
 import { useRouter } from "next/dist/client/router";
+import { format } from "date-fns";
+import {
+  AddPositionParams,
+  RemovePositionParams,
+  GetPositionResponse,
+  EditPositionParams,
+} from "../type";
 
 const round = (num: number, decimal = 2) => {
   let decimalFactor = 1;
@@ -17,34 +25,51 @@ const round = (num: number, decimal = 2) => {
 };
 
 const Positions = () => {
+  const timeoutRef = useRef<NodeJS.Timeout>();
   const router = useRouter();
   const [initialState, setInitialState] = useState();
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   const [editPositionShowing, setEditPositionShowing] = useState();
   const { addTab, selectTab } = useTabsContext();
 
-  const removePosition = useEmit("removePosition");
-  const addPosition = useEmit("addPosition");
-  const editPosition = useEmit("editPosition");
+  const [removePosition] = useEmit<RemovePositionParams>("removePosition");
+  const [addPosition] = useEmit<AddPositionParams>("addPosition");
+  const [editPosition] = useEmit<EditPositionParams>("editPosition");
+  const [
+    updatePosition,
+    { data: syncPositions, loading: loadingSyncPosition },
+  ] = useEmit("syncPositions");
 
-  const { data: markets, loading } = useSocket<{ [key: string]: number }>(
-    "markets",
-    {
-      computeData: (state, data) => {
-        return { ...(state || {}), ...data };
-      },
-      initialState,
+  const { data: positions, refetch: refetchPositions } =
+    useSocket<GetPositionResponse[]>("getPositions");
+  const {
+    data: markets,
+    loading,
+    refetch,
+  } = useSocket<{ [key: string]: number }>("getMarkets", {
+    computeData: (state, data) => {
+      return { ...(state || {}), ...data };
+    },
+    initialState,
+  });
+
+  useEffect(() => {
+    if (syncPositions && !loadingSyncPosition) {
+      refetchPositions();
     }
-  );
-  const { data: positions } =
-    useSocket<
-      {
-        pair: string;
-        available: number;
-        investment: number;
-        exchange: string;
-      }[]
-    >("positions");
+  }, [loadingSyncPosition, syncPositions]);
+
+  useEffect(() => {
+    if (!loading && markets && !timeoutRef.current) {
+      timeoutRef.current = setTimeout(() => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = undefined;
+        }
+        refetch();
+      }, 2000);
+    }
+  }, [loading, markets]);
   useEffect(() => {
     const marketStorage = localStorage.getItem("markets");
     if (marketStorage) {
@@ -77,11 +102,6 @@ const Positions = () => {
 
   return (
     <>
-      {loading && (
-        <div className="ml-6 mt-6 text-center text-gray-200">
-          Market loading...
-        </div>
-      )}
       {addPosisitonShowing && (
         <AddPosition
           onSubmit={(e) => {
@@ -97,8 +117,12 @@ const Positions = () => {
         <EditPosition
           position={editPositionShowing}
           onSubmit={(e) => {
-            console.log(e);
-            editPosition(e);
+            editPosition({
+              exchangeId: e.exchangeId,
+              available: e.available,
+              locked: e.locked || 0,
+              positionId: e._id,
+            });
             setEditPositionShowing(undefined);
           }}
           onCancel={() => {
@@ -155,12 +179,14 @@ const Positions = () => {
           </span>
           )
         </span>
+        <br />
+        {format(new Date(), "HH:mm:ss")}
       </div>
       <div className="shadow-md mt-6 block md:hidden">
         {positions &&
           positions.map((position) => {
             const market = (markets && markets[position.pair]) || 0;
-            const total = position.available + (position.locked || 0)
+            const total = position.available + (position.locked || 0);
             const profit = market * total - position.investment;
             return (
               <div
@@ -243,9 +269,9 @@ const Positions = () => {
             <tbody>
               {positions.map((position) => {
                 const market = (markets && markets[position.pair]) || 0;
-                const total = position.available + (position.locked || 0)
-                const profit =
-                  market * total - position.investment;
+                const total =
+                  Number(position.available) + (Number(position.locked) || 0);
+                const profit = market * total - position.investment;
                 return (
                   <tr
                     key={position.pair}
@@ -277,12 +303,7 @@ const Positions = () => {
                     </td>
                     <td className="py-2 px-6">{total}</td>
                     <td className="py-2 px-6">
-                      {round(
-                        total === 0
-                          ? 0
-                          : position.investment / total,
-                        8
-                      )}
+                      {round(total === 0 ? 0 : position.investment / total, 8)}
                     </td>
                     <td className="py-2 px-6">{market}</td>
                     <td className="py-2 px-6">
@@ -306,10 +327,7 @@ const Positions = () => {
                     <td className="py-2 px-6 text-center">
                       <Button
                         onClick={() => {
-                          removePosition({
-                            exchange: position.exchange,
-                            pair: position.pair,
-                          });
+                          removePosition(position._id);
                         }}
                       >
                         Remove
@@ -321,6 +339,14 @@ const Positions = () => {
                         }}
                       >
                         Edit
+                      </Button>
+                      <Button
+                        className="ml-2"
+                        onClick={() => {
+                          updatePosition(position);
+                        }}
+                      >
+                        Update
                       </Button>
                     </td>
                   </tr>
