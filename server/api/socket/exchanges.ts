@@ -31,11 +31,6 @@ export default (context: { socket: Socket; db: Db }) => {
     "addExchange",
     async (msg, ctx) => {
       const exchangeCollection = ctx.db.collection("exchange");
-      console.log({
-        ...msg,
-        secretKey: encrypt(msg.secretKey),
-        publicKey: encrypt(msg.publicKey),
-      })
       const { ops } = await exchangeCollection.insertOne({
         ...msg,
         secretKey: encrypt(msg.secretKey),

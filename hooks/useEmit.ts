@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useEmit as useEmitOriginal, useSocket } from "socketio-hooks";
+import { useContext, useCallback, useState, useEffect } from "react";
+import SocketContext from "../context/socket";
 
 function useEmit<Schema = any>(
   name: string,
@@ -17,19 +17,35 @@ function useEmit<Schema = any>(
     error?: string;
   }
 ] {
+  const sockets = useContext(SocketContext);
   const [data, setData] = useState<Schema>();
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
-  const getData = useEmitOriginal(`${name}:request`);
-  useSocket(`${name}:response`, (dataResponse: Schema) => {
+  const getData = useCallback((params?: Schema) => {
+    if (sockets) {
+      sockets.emit(`${name}:request`, params)
+    }
+  }, [sockets])
+  
+  const onEvent = useCallback((dataResponse: Schema) => {
     setLoading(false);
     setData((computeData && computeData(data, dataResponse)) || dataResponse);
-  });
-
-  useSocket(`${name}:error`, (error: string) => {
+  }, [])
+  const onError = useCallback((error: string) => {
     setLoading(false);
     setError(error);
-  });
+  }, [])
+
+  useEffect(() => {
+    if (sockets) {
+      sockets.on(`${name}:response`, onEvent)
+      sockets.on(`${name}:error`, onError)
+      return () => {
+        sockets.off(`${name}:response`, onEvent);
+        sockets.off(`${name}:error`, onError);
+      }
+    }
+  }, [sockets])
 
   const fetch = (params?: Schema) => {
     setLoading(true);

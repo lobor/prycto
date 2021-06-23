@@ -15,11 +15,12 @@ export default (
   ctx: { socket: Socket; db: Db }
 ) => {
   ctx.socket.on(`${eventName}:request`, async (msg: any) => {
+    const start = Date.now();
     console.log(`Socket:${eventName} requested`);
     await cb(msg, {
       ...ctx,
       emit: (response: any) => {
-        console.error(`Socket:${eventName} response`);
+        console.log(`Socket:${eventName} response in ${Date.now() - start}ms`);
         ctx.socket.emit(`${eventName}:response`, response);
       },
       error: (code: number, error: string) => {

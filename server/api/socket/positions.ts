@@ -75,7 +75,7 @@ export default (context: { socket: Socket; db: Db }) => {
   );
 
   wrapEvent(
-    "syncPositions:request",
+    "syncPositions",
     async (
       positions: { _id: string; pair: string; exchangeId: string },
       { db, emit, error }
@@ -87,13 +87,30 @@ export default (context: { socket: Socket; db: Db }) => {
         error(404, `exchange not found`);
         return;
       }
-      const histories = await exchanges.getHistoryByExchangeId({
-        exchangeId: positions.exchangeId,
-        pairs: [positions.pair],
-      });
+      const historiesBdd = await db
+        .collection("position")
+        .find({ symbol: positions.pair })
+        .toArray();
+      const historiesBddOrderIds = historiesBdd.map(({ id }) => id);
+      const [histories, balances] = await Promise.all([
+        exchanges.getHistoryByExchangeId({
+          exchangeId: positions.exchangeId,
+          pairs: [positions.pair],
+        }),
+        exchanges.getBalances([{ _id: positions.exchangeId }]),
+      ]);
       const historiesOnPosition = histories.filter(
         ({ symbol }) => symbol === positions.pair
       );
+      const historyToInsert: any[] = [];
+      historiesOnPosition.forEach((order) => {
+        if (!historiesBddOrderIds.includes(order.id)) {
+          historyToInsert.push({ ...order, exchangeId: positions.exchangeId });
+        }
+      });
+      if (historyToInsert.length > 0) {
+        await db.collection("history").insertMany(historyToInsert);
+      }
       let investment = 0;
       historiesOnPosition.forEach((order) => {
         if (order.status === "closed") {
@@ -105,15 +122,6 @@ export default (context: { socket: Socket; db: Db }) => {
           }
         }
       });
-      await db
-        .collection("position")
-        .updateOne(
-          { _id: new ObjectId(positions._id) },
-          { $set: { investment } }
-        );
-      const balances = await exchanges.getBalances([
-        { _id: positions.exchangeId },
-      ]);
       const balance = balances[positions.exchangeId];
 
       Object.keys(exchange.balance).forEach((position) => {
@@ -122,12 +130,20 @@ export default (context: { socket: Socket; db: Db }) => {
         }
       });
 
-      await db
-        .collection("exchange")
-        .updateOne(
-          { _id: new ObjectId(positions.exchangeId) },
-          { $set: { balance: exchange.balance } }
-        );
+      await Promise.all([
+        db
+          .collection("position")
+          .updateOne(
+            { _id: new ObjectId(positions._id) },
+            { $set: { investment } }
+          ),
+        db
+          .collection("exchange")
+          .updateOne(
+            { _id: new ObjectId(positions.exchangeId) },
+            { $set: { balance: exchange.balance } }
+          ),
+      ]);
       emit(true);
     },
     context
@@ -204,24 +220,24 @@ export default (context: { socket: Socket; db: Db }) => {
     context
   );
 
-  wrapEvent(
-    "editPosition",
-    async ({ positionId, locked, available }: EditPositionParams, ctx) => {
-      const collection = ctx.db.collection("position");
-      const position = await collection.findOne({
-        _id: new ObjectId(positionId),
-      });
-      if (!position) {
-        ctx.error(404, "position not found");
-        return;
-      }
-      await collection.updateOne(
-        { _id: new ObjectId(positionId) },
-        { $set: { locked: Number(locked), available: Number(available) } }
-      );
-      ctx.emit(true);
-      ctx.socket.emit("getPositions:response", await getPositions(ctx));
-    },
-    context
-  );
+  // wrapEvent(
+  //   "editPosition",
+  //   async ({ positionId, locked, available }: EditPositionParams, ctx) => {
+  //     const collection = ctx.db.collection("position");
+  //     const position = await collection.findOne({
+  //       _id: new ObjectId(positionId),
+  //     });
+  //     if (!position) {
+  //       ctx.error(404, "position not found");
+  //       return;
+  //     }
+  //     await collection.updateOne(
+  //       { _id: new ObjectId(positionId) },
+  //       { $set: { locked: Number(locked), available: Number(available) } }
+  //     );
+  //     ctx.emit(true);
+  //     ctx.socket.emit("getPositions:response", await getPositions(ctx));
+  //   },
+  //   context
+  // );
 };

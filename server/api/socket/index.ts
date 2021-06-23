@@ -5,6 +5,7 @@ import pairs from './pairs';
 import positions from './positions';
 import markets from './markets';
 import exchanges from './exchanges';
+import pnl from './pnl';
 import { Db } from "mongodb";
 
 export default (ctx: { socket: Socket, db: Db }) => {
@@ -14,4 +15,5 @@ export default (ctx: { socket: Socket, db: Db }) => {
   positions(ctx);
   markets(ctx);
   exchanges(ctx);
+  pnl(ctx);
 }

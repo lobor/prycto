@@ -1,5 +1,4 @@
 import { createRef, useEffect, useRef, useState } from "react";
-import { useSocket } from "socketio-hooks";
 import Button from "./Button";
 
 const SnackbarItem = ({
@@ -46,9 +45,9 @@ const SnackbarItem = ({
 
 const Snackbar = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  useSocket("error", (message: string) => {
-    setErrors({ ...errors, [message]: message });
-  });
+  // useSocket("error", (message: string) => {
+  //   setErrors({ ...errors, [message]: message });
+  // });
 
   const removeError = (msg: string) => {
     if (errors[msg]) {

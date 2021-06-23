@@ -3,7 +3,7 @@ services:
   app-prycto:
     container_name: app-prycto
     image: 'node:14.15.1-alpine'
-    command: npm run dev
+    command: npm run start
     depends_on:
       - mongo-prycto
     ports:

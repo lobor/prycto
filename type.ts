@@ -23,7 +23,12 @@ export interface EditPositionParams {
   exchangeId: string;
   available: number;
   locked: number;
-  positionId: string
+  positionId: string;
+}
+
+export interface PnlParams {
+  symbol?: string;
+  exchangeId: string;
 }
 
 export type RemovePositionParams = string;

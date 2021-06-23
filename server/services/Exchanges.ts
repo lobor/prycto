@@ -20,6 +20,24 @@ export default class Exchanges {
   private exchanges: { [key: string]: ccxt.Exchange } = {};
 
   @MethodLogger({ logSuccess: true })
+  public fetchOHLCV(
+    exchangeId: string,
+    symbol: string,
+    timeframe?: string | undefined,
+    since?: number | undefined,
+    limit?: number | undefined,
+    params?: ccxt.Params | undefined
+  ) {
+    return this.exchanges[exchangeId].fetchOHLCV(
+      symbol,
+      timeframe,
+      since,
+      limit,
+      params
+    );
+  }
+
+  @MethodLogger({ logSuccess: true })
   public addExchange(exchange: addExchangeParams) {
     this.exchanges[exchange._id] = new ccxt[exchange.exchange]({
       enableRateLimit: true,
@@ -65,7 +83,9 @@ export default class Exchanges {
       const pairs = params[idExchange];
       callPromise.push(
         (async () => {
-          const pairsTickers = Object.values(await exchange.fetchTickers(pairs));
+          const pairsTickers = Object.values(
+            await exchange.fetchTickers(pairs)
+          );
           return {
             idExchange,
             pairs: pairsTickers,
@@ -75,6 +95,18 @@ export default class Exchanges {
     });
     const currencies = await Promise.all(callPromise);
     return currencies;
+  }
+
+  public async getCurrenciesByPair(params: {
+    exchangeId: string;
+    symbol: string;
+  }) {
+    const callPromise: Promise<any>[] = [];
+    const exchange = this.exchanges[params.exchangeId];
+    return {
+      idExchange: params.exchangeId,
+      pairs: await exchange.fetchTickers([params.symbol]),
+    }
   }
 
   @MethodLogger({ logSuccess: true })
@@ -117,8 +149,10 @@ export default class Exchanges {
       if (balance) {
         const exchange = exchangesToGet[index];
         Object.keys(balance.total).forEach((key) => {
-          if (balance.total[key] > 0) {
-            balancesValidate[exchange._id][key] = balance.total[key];
+          if ((balance.total as unknown as any)[key] > 0) {
+            balancesValidate[exchange._id][key] = (
+              balance.total as unknown as any
+            )[key];
           }
         });
       }

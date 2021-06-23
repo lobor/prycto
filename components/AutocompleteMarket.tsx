@@ -1,5 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { useEmit, useSocket } from "socketio-hooks";
+// import { useEmit, useSocket } from "socketio-hooks";
+import useSocket from "../hooks/useSocket";
+import useEmit from "../hooks/useEmit";
 import { filter } from "fuzzy";
 import { classnames } from "tailwindcss-classnames";
 import List from "react-virtualized/dist/commonjs/List";
@@ -24,12 +26,16 @@ const AutocompleteMarket = ({
   const originalPairs = useRef<GetAllPairsResponse[]>();
   const [pairs, setPairs] = useState<GetAllPairsResponse[]>([]);
   const [show, setShow] = useState<boolean>(false);
-  const getAllPairs = useEmit("getAllPairs:request");
+  const [getAllPairs, { data }] = useEmit("getAllPairs");
 
-  useSocket("getAllPairs:response", (msg) => {
-    originalPairs.current = msg;
-    setPairs(msg);
-  });
+  // useSocket("getAllPairs:response", (msg) => {
+  //   originalPairs.current = msg;
+  //   setPairs(msg);
+  // });
+
+  useEffect(() => {
+    originalPairs.current = data;
+  }, [data])
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.currentTarget;

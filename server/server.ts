@@ -6,7 +6,9 @@ import * as socketio from "socket.io";
 import { MongoClient } from "mongodb";
 import { exchanges } from "./context";
 import routeSocket from "./api/socket";
-import { decrypt } from './utils/crypt';
+import { decrypt } from "./utils/crypt";
+// @ts-ignore
+import ccxws from "ccxws";
 
 const port: number = parseInt(process.env.PORT || "3000", 10);
 const dev: boolean = process.env.NODE_ENV !== "production";
@@ -19,7 +21,6 @@ const io: socketio.Server = new socketio.Server(server, {
   serveClient: false,
   allowEIO3: true,
 });
-
 
 // Database Name
 const dbName = "prycto";
@@ -45,13 +46,41 @@ client.connect(async function (error?: Error) {
     });
   });
 
-  await exchanges.loadMarkets()
+  await exchanges.loadMarkets();
 
   io.on("connection", async (socket: socketio.Socket) => {
-    console.log("connection");
+    console.log(`Client connection`);
 
+    const binance = new ccxws.Binance();
+
+    const positions = await db.collection("position").find({}).toArray();
     socket.on("disconnect", () => {
+      positions.forEach((position) => {
+        const [base, quote] = position.pair.split("/");
+        binance.unsubscribeTrades({
+          id: position.pair.replace("/", ""),
+          base,
+          quote,
+        });
+      });
       console.log("client disconnected");
+    });
+
+    positions.forEach((position) => {
+      const [base, quote] = position.pair.split("/");
+      binance.subscribeTrades({
+        id: position.pair.replace("/", ""),
+        base,
+        quote,
+      });
+    });
+    binance.on("trade", (trade: any) => {
+      socket.emit(`getMarkets:response`, {
+        [`${trade.base}/${trade.quote}`]: Number(trade.price),
+      });
+      socket.emit(`getMarkets:${trade.base}/${trade.quote}:response`, {
+        [`${trade.base}/${trade.quote}`]: Number(trade.price),
+      });
     });
 
     routeSocket({ socket, db });

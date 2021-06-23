@@ -2,22 +2,44 @@ import Label from "./Label";
 import Input from "./Input";
 import Button from "./Button";
 import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface Position {
   _id: string;
   pair: string;
   exchange: string;
+  exchangeId: string;
   available: number;
   investment: number;
   locked?: number;
 }
 interface AddPositionProps {
-  onSubmit: (params: { pair: string; exchange: string }) => void;
+  onSubmit: (params: {
+    exchangeId: string;
+    available: number;
+    locked: number;
+    _id: string;
+  }) => void;
   onCancel: () => void;
   position?: Position;
 }
 const EditPosition = ({ onSubmit, onCancel, position }: AddPositionProps) => {
-  const [value, setValue] = useState<Position>(position);
+  const formik = useFormik({
+    validationSchema: Yup.object({
+      available: Yup.string().required(),
+      locked: Yup.string().required(),
+    }),
+    initialValues: {
+      available: (position && position.available) || 0,
+      locked: (position && position.locked) || 0,
+    },
+    onSubmit: (values) => {
+      if (position) {
+        onSubmit({ ...position, ...values });
+      }
+    },
+  });
   return (
     <div className="h-screen absolute w-full flex flex-col items-center justify-center font-sans top-0 z-10">
       <div className="absolute top-0 bottom-0 left-0 right-0 bg-gray-800 opacity-90"></div>
@@ -26,23 +48,19 @@ const EditPosition = ({ onSubmit, onCancel, position }: AddPositionProps) => {
           <div className="mb-4">
             <h1>Edit position - {position && position.pair}</h1>
           </div>
-          <form
-            onSubmit={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              if (value) {
-                onSubmit(value);
-              }
-            }}
-          >
+          <form onSubmit={formik.handleSubmit}>
             <div className="mb-8">
               <Label htmlFor="available" label="Available">
                 <Input
                   id="available"
                   name="available"
-                  defaultValue={position && position.available}
+                  defaultValue={formik.values.available}
                   onChange={(e) => {
-                    setValue({ ...value, available: Number(e.currentTarget.value) });
+                    formik.setFieldTouched("available");
+                    formik.setFieldValue(
+                      "available",
+                      Number(e.currentTarget.value)
+                    );
                   }}
                 />
               </Label>
@@ -50,9 +68,13 @@ const EditPosition = ({ onSubmit, onCancel, position }: AddPositionProps) => {
                 <Input
                   id="locked"
                   name="locked"
-                  value={position && position.locked}
+                  value={formik.values.locked}
                   onChange={(e) => {
-                    setValue({ ...value, locked: Number(e.currentTarget.value) });
+                    formik.setFieldTouched("locked");
+                    formik.setFieldValue(
+                      "locked",
+                      Number(e.currentTarget.value)
+                    );
                   }}
                 />
               </Label>

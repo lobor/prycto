@@ -2,6 +2,10 @@ import Head from "next/head";
 import { useEffect, useRef } from "react";
 import { useTabsContext, Tab } from "../context/tabs";
 
+declare global {
+  interface Window { TradingView: any; }
+}
+
 export default function Trade() {
   const { selected, tabs } = useTabsContext();
 
@@ -22,11 +26,8 @@ export default function Trade() {
         theme: "dark",
         style: "1",
         // "toolbar_bg": "#f1f3f6",
-        withdateranges: true,
         hide_side_toolbar: false,
-        allow_symbol_change: true,
         save_image: false,
-        details: true,
         // hideideas: true,
         studies: [
           "CCI@tv-basicstudies",
