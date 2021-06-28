@@ -1,0 +1,11 @@
+query positions {
+  positions {
+    _id
+    pair
+    exchangeId
+    available
+    locked
+    investment
+    objectif
+  }
+}

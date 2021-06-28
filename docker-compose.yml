@@ -1,17 +1,33 @@
 version: '3.8'
 services:
-  app-prycto:
-    container_name: app-prycto
+  prycto-client:
+    container_name: prycto-client
     image: 'node:14.15.1-alpine'
-    command: npm run start
+    command: npx lerna exec 'npm run dev' --scope prycto-client
     depends_on:
-      - mongo-prycto
+      - prycto-server
     ports:
       - '3001:3000'
     user: node
     volumes:
       - './:/home/node/app'
     working_dir: /home/node/app
+
+  prycto-server:
+    container_name: prycto-server
+    image: 'node:14.15.1-alpine'
+    command: npx lerna exec 'npm run start:dev' --scope prycto-server
+    env_file:
+      - ./prycto-server/.env
+    depends_on:
+      - mongo-prycto
+    ports:
+      - '3002:3000'
+    user: node
+    volumes:
+      - './:/home/node/app'
+    working_dir: /home/node/app
+
   mongo-prycto:
     container_name: mongo-prycto
     image: 'mongo:4.4'

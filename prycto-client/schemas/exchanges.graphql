@@ -1,0 +1,6 @@
+query exchanges {
+  exchanges {
+    name
+    _id
+  }
+}

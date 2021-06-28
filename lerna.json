@@ -1,0 +1,7 @@
+{
+  "packages": [
+    "prycto-server",
+    "prycto-client"
+  ],
+  "version": "independent"
+}

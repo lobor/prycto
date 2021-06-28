@@ -1,0 +1,6 @@
+query exchangeById($_id: String!) {
+  exchangeById(_id: $_id) {
+    name
+    _id
+  }
+}
