@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as ccxt from 'ccxt';
 import { flatten } from 'lodash';
-import { ExchangeService } from './exchanges/service';
 import * as CryptoJS from 'crypto-js';
+import { Exchange } from './exchanges/model';
+import { ExchangeService } from './exchanges/service';
 
 const secret = 'secret key 123';
 
@@ -17,6 +18,18 @@ export interface addExchangeParams {
 @Injectable()
 export class AppService {
   private exchanges: { [key: string]: ccxt.Exchange } = {};
+
+  constructor(private readonly exchangeService: ExchangeService) {
+    this.exchangeService.findAll().then((exchanges) => {
+      exchanges.forEach((exchange) => {
+        this.addExchange({
+          ...exchange.toJSON(),
+          secretKey: this.decrypt(exchange.secretKey),
+          publicKey: this.decrypt(exchange.publicKey),
+        });
+      });
+    });
+  }
 
   encrypt = (msg: string) => {
     return CryptoJS.AES.encrypt(msg, secret).toString();
@@ -44,7 +57,7 @@ export class AppService {
     );
   }
 
-  public addExchange(exchange: any) {
+  public addExchange(exchange: Exchange) {
     this.exchanges[exchange._id] = new ccxt[exchange.exchange]({
       enableRateLimit: true,
       timeout: 30000,
@@ -124,6 +137,11 @@ export class AppService {
       ),
     );
     return markets;
+  }
+
+  public async getMarketByExchangeId(exchangeId: string) {
+    const exchange = this.exchanges[exchangeId];
+    return exchange.fetchMarkets();
   }
 
   public async getBalances(exchangesToGet: { _id: string }[]) {

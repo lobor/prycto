@@ -26,6 +26,42 @@ export type Exchange = {
 };
 
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  addExchange: Exchange;
+  removeExchange: Scalars['Boolean'];
+  removePosition: Scalars['Boolean'];
+  addPosition: Position;
+};
+
+
+export type MutationAddExchangeArgs = {
+  name: Scalars['String'];
+  exchange: Scalars['String'];
+  publicKey: Scalars['String'];
+  secretKey: Scalars['String'];
+};
+
+
+export type MutationRemoveExchangeArgs = {
+  _id: Scalars['String'];
+};
+
+
+export type MutationRemovePositionArgs = {
+  _id: Scalars['String'];
+};
+
+
+export type MutationAddPositionArgs = {
+  symbol: Scalars['String'];
+};
+
+export type Pair = {
+  __typename?: 'Pair';
+  symbol: Scalars['String'];
+};
+
 export type Position = {
   __typename?: 'Position';
   _id: Scalars['ID'];
@@ -41,16 +77,45 @@ export type Query = {
   __typename?: 'Query';
   exchangeById: Exchange;
   exchanges: Array<Exchange>;
-  checkHeader: Scalars['Boolean'];
   hasInit1: Scalars['Boolean'];
   positions: Array<Position>;
   getMarkets: Scalars['JSON'];
+  getPairs: Array<Pair>;
 };
 
 
 export type QueryExchangeByIdArgs = {
   _id: Scalars['String'];
 };
+
+export type AddExchangeMutationVariables = Exact<{
+  name: Scalars['String'];
+  exchange: Scalars['String'];
+  publicKey: Scalars['String'];
+  secretKey: Scalars['String'];
+}>;
+
+
+export type AddExchangeMutation = (
+  { __typename?: 'Mutation' }
+  & { addExchange: (
+    { __typename?: 'Exchange' }
+    & Pick<Exchange, 'name' | 'exchange' | 'publicKey' | 'secretKey' | '_id'>
+  ) }
+);
+
+export type AddPositionMutationVariables = Exact<{
+  symbol: Scalars['String'];
+}>;
+
+
+export type AddPositionMutation = (
+  { __typename?: 'Mutation' }
+  & { addPosition: (
+    { __typename?: 'Position' }
+    & Pick<Position, '_id' | 'pair' | 'investment' | 'objectif'>
+  ) }
+);
 
 export type ExchangeByIdQueryVariables = Exact<{
   _id: Scalars['String'];
@@ -84,6 +149,17 @@ export type GetMarketsQuery = (
   & Pick<Query, 'getMarkets'>
 );
 
+export type GetPairsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPairsQuery = (
+  { __typename?: 'Query' }
+  & { getPairs: Array<(
+    { __typename?: 'Pair' }
+    & Pick<Pair, 'symbol'>
+  )> }
+);
+
 export type PositionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -95,7 +171,59 @@ export type PositionsQuery = (
   )> }
 );
 
+export type RemoveExchangeMutationVariables = Exact<{
+  _id: Scalars['String'];
+}>;
 
+
+export type RemoveExchangeMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'removeExchange'>
+);
+
+export type RemovePositionMutationVariables = Exact<{
+  _id: Scalars['String'];
+}>;
+
+
+export type RemovePositionMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'removePosition'>
+);
+
+
+export const AddExchangeDocument = gql`
+    mutation addExchange($name: String!, $exchange: String!, $publicKey: String!, $secretKey: String!) {
+  addExchange(
+    name: $name
+    exchange: $exchange
+    publicKey: $publicKey
+    secretKey: $secretKey
+  ) {
+    name
+    exchange
+    publicKey
+    secretKey
+    _id
+  }
+}
+    `;
+export type AddExchangeMutationFn = Apollo.MutationFunction<AddExchangeMutation, AddExchangeMutationVariables>;
+export type AddExchangeMutationResult = Apollo.MutationResult<AddExchangeMutation>;
+export type AddExchangeMutationOptions = Apollo.BaseMutationOptions<AddExchangeMutation, AddExchangeMutationVariables>;
+export const AddPositionDocument = gql`
+    mutation addPosition($symbol: String!) {
+  addPosition(symbol: $symbol) {
+    _id
+    pair
+    investment
+    objectif
+  }
+}
+    `;
+export type AddPositionMutationFn = Apollo.MutationFunction<AddPositionMutation, AddPositionMutationVariables>;
+export type AddPositionMutationResult = Apollo.MutationResult<AddPositionMutation>;
+export type AddPositionMutationOptions = Apollo.BaseMutationOptions<AddPositionMutation, AddPositionMutationVariables>;
 export const ExchangeByIdDocument = gql`
     query exchangeById($_id: String!) {
   exchangeById(_id: $_id) {
@@ -120,6 +248,14 @@ export const GetMarketsDocument = gql`
 }
     `;
 export type GetMarketsQueryResult = Apollo.QueryResult<GetMarketsQuery, GetMarketsQueryVariables>;
+export const GetPairsDocument = gql`
+    query getPairs {
+  getPairs {
+    symbol
+  }
+}
+    `;
+export type GetPairsQueryResult = Apollo.QueryResult<GetPairsQuery, GetPairsQueryVariables>;
 export const PositionsDocument = gql`
     query positions {
   positions {
@@ -134,3 +270,19 @@ export const PositionsDocument = gql`
 }
     `;
 export type PositionsQueryResult = Apollo.QueryResult<PositionsQuery, PositionsQueryVariables>;
+export const RemoveExchangeDocument = gql`
+    mutation removeExchange($_id: String!) {
+  removeExchange(_id: $_id)
+}
+    `;
+export type RemoveExchangeMutationFn = Apollo.MutationFunction<RemoveExchangeMutation, RemoveExchangeMutationVariables>;
+export type RemoveExchangeMutationResult = Apollo.MutationResult<RemoveExchangeMutation>;
+export type RemoveExchangeMutationOptions = Apollo.BaseMutationOptions<RemoveExchangeMutation, RemoveExchangeMutationVariables>;
+export const RemovePositionDocument = gql`
+    mutation removePosition($_id: String!) {
+  removePosition(_id: $_id)
+}
+    `;
+export type RemovePositionMutationFn = Apollo.MutationFunction<RemovePositionMutation, RemovePositionMutationVariables>;
+export type RemovePositionMutationResult = Apollo.MutationResult<RemovePositionMutation>;
+export type RemovePositionMutationOptions = Apollo.BaseMutationOptions<RemovePositionMutation, RemovePositionMutationVariables>;

@@ -1,0 +1,3 @@
+mutation removePosition($_id: String!) {
+  removePosition(_id: $_id)
+}

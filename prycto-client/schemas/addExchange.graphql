@@ -1,0 +1,19 @@
+mutation addExchange(
+  $name: String!
+  $exchange: String!
+  $publicKey: String!
+  $secretKey: String!
+) {
+  addExchange(
+    name: $name
+    exchange: $exchange
+    publicKey: $publicKey
+    secretKey: $secretKey
+  ) {
+    name
+    exchange
+    publicKey
+    secretKey
+    _id
+  }
+}

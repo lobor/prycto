@@ -26,11 +26,22 @@ type Position {
   locked: Float
 }
 
+type Pair {
+  symbol: String!
+}
+
 type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
-  checkHeader: Boolean!
   hasInit1: Boolean!
   positions: [Position!]!
   getMarkets: JSON!
+  getPairs: [Pair!]!
+}
+
+type Mutation {
+  addExchange(name: String!, exchange: String!, publicKey: String!, secretKey: String!): Exchange!
+  removeExchange(_id: String!): Boolean!
+  removePosition(_id: String!): Boolean!
+  addPosition(symbol: String!): Position!
 }

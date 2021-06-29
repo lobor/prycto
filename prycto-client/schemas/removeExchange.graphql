@@ -1,0 +1,3 @@
+mutation removeExchange($_id: String!) {
+  removeExchange(_id: $_id)
+}

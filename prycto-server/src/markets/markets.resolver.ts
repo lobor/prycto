@@ -18,17 +18,9 @@ export class MarketsResolver {
   @UseGuards(EchangeIdGuard)
   @Query(() => JSON)
   async getMarkets(@Context() ctx: { exchangeId: string }): Promise<Market> {
-    const exchange = (
-      await this.exchangeService.findById(ctx.exchangeId)
-    ).toJSON();
     const positions = await this.positionsService.findByExchangeId(
       ctx.exchangeId,
     );
-    this.appService.addExchange({
-      ...exchange,
-      secretKey: this.appService.decrypt(exchange.secretKey),
-      publicKey: this.appService.decrypt(exchange.publicKey),
-    });
     const [currencies] = await this.appService.getCurrencies({
       [ctx.exchangeId]: positions.map(({ pair }) => pair),
     });

@@ -8,6 +8,10 @@ import { InitModule } from './init/init.module';
 import { LoggingPlugin } from './app.plugin';
 import { PositionsModule } from './positions/positions.module';
 import { MarketsModule } from './markets/markets.module';
+import { PairsModule } from './pairs/pairs.module';
+import { AppService } from './app.service';
+import { ExchangeService } from './exchanges/service';
+import { ExchangeImport } from './exchanges/exchange.schema';
 
 @Module({
   imports: [
@@ -23,8 +27,10 @@ import { MarketsModule } from './markets/markets.module';
     InitModule,
     PositionsModule,
     MarketsModule,
+    PairsModule,
+    ExchangeImport,
   ],
   controllers: [],
-  providers: [LoggingPlugin],
+  providers: [LoggingPlugin, AppService, ExchangeService],
 })
 export class AppModule {}

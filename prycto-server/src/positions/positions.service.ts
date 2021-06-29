@@ -17,4 +17,21 @@ export class PositionsService {
   async findByExchangeId(exchangeId: string): Promise<PositionDocument[]> {
     return this.positionModel.find({ exchangeId });
   }
+
+  async findByPair(
+    exchangeId: string,
+    pair: string,
+  ): Promise<PositionDocument> {
+    return this.positionModel.findOne({ exchangeId, pair }).exec();
+  }
+
+  async deleteOne(_id: string): Promise<void> {
+    await this.positionModel.deleteOne({ _id });
+  }
+
+  async insertOne(position: Omit<Position, '_id'>): Promise<Position> {
+    const positionSaved = new this.positionModel(position);
+    await positionSaved.save();
+    return positionSaved.toJSON();
+  }
 }

@@ -9,8 +9,15 @@ import { AddPositionParams, GetPositionResponse } from "../../type";
 import ItemPosition, { Position } from "../components/ItemPosition";
 import { ContextMarkets, useMarket } from "../context/market";
 import { round } from "lodash";
-import { gql, useQuery } from "@apollo/client";
-import { PositionsDocument, PositionsQuery } from "../generated/graphql";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import {
+  AddPositionDocument,
+  AddPositionMutation,
+  AddPositionMutationVariables,
+  PositionsDocument,
+  PositionsQuery,
+} from "../generated/graphql";
+import { useExchange } from "../context/exchange";
 
 const sortFunction =
   (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
@@ -30,16 +37,28 @@ const sortFunction =
   };
 
 const Positions = () => {
+  const { exchangeId } = useExchange();
   const [positions, setPositions] = useState<GetPositionResponse[]>([]);
   const [sort, setSort] = useState({ sort: "asc", key: "pair" });
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   // const [editPositionShowing, setEditPositionShowing] = useState<any>();
 
-  const [addPosition] = useEmit<AddPositionParams>("addPosition");
+  const { data, loading, refetch } = useQuery<PositionsQuery>(PositionsDocument, {
+    skip: !exchangeId,
+  });
+
+  const [addPosition] = useMutation<
+    AddPositionMutation,
+    AddPositionMutationVariables
+  >(AddPositionDocument, {
+    onCompleted: () => {
+      setAddPositionShowing(false);
+      refetch()
+    },
+  });
   // const [editPosition] = useEmit<EditPositionParams>("editPosition");
   const { markets } = useMarket() as ContextMarkets;
 
-  const { data, loading } = useQuery<PositionsQuery>(PositionsDocument);
   const positionsOriginal = useMemo(() => {
     return ((data && data.positions) || []).map((position) => {
       const { available, locked } = position;
@@ -145,11 +164,10 @@ const Positions = () => {
         {addPosisitonShowing && (
           <AddPosition
             onSubmit={(e) => {
-              addPosition(e);
-              setAddPositionShowing(false);
+              addPosition({ variables: e });
             }}
             onCancel={() => {
-              setAddPositionShowing(false);
+              // setAddPositionShowing(false);
             }}
           />
         )}

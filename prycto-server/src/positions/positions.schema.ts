@@ -7,7 +7,7 @@ export type PositionDocument = Position & Document;
   collection: 'position',
 })
 export class Position {
-  @Prop({ type: SchemaMongoose.Types.ObjectId })
+  @Prop({ type: SchemaMongoose.Types.ObjectId, auto: true })
   _id: string;
 
   @Prop({ required: true })

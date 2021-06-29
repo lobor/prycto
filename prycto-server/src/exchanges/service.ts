@@ -14,7 +14,20 @@ export class ExchangeService {
     return this.exchangeModel.findById(Types.ObjectId(_id));
   }
 
-  async findAll(): Promise<Exchange[]> {
+  async findAll(): Promise<ExchangeDocument[]> {
     return this.exchangeModel.find().exec();
+  }
+
+  async insertOne(
+    exchange: Omit<Exchange, '_id' | 'balance'>,
+  ): Promise<Exchange> {
+    const exchangeModel = new this.exchangeModel(exchange);
+    await exchangeModel.save();
+    return exchangeModel.toJSON();
+  }
+
+  async removeOne(_id: string): Promise<boolean> {
+    await this.exchangeModel.deleteOne({ _id });
+    return true;
   }
 }

@@ -2,6 +2,7 @@ import { useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { GetMarketsDocument, GetMarketsQuery } from "../generated/graphql";
 import useSocket from "../hooks/useSocket";
+import { useExchange } from "./exchange";
 
 export interface ContextMarkets {
   markets: Record<string, number>;
@@ -12,8 +13,9 @@ const MarketsContext = React.createContext<ContextMarkets>({
 });
 
 const MarketsProvider: React.FC = ({ children }) => {
+  const { exchangeId } = useExchange();
   const [priceMarket, setPriceMarket] = useState<Record<string, number>>({});
-  const { data, subscribeToMore } = useQuery<GetMarketsQuery>(GetMarketsDocument)
+  const { data, subscribeToMore } = useQuery<GetMarketsQuery>(GetMarketsDocument, { skip: !exchangeId })
 
   const { data: markets } = useSocket<ContextMarkets["markets"]>("getMarkets");
   useEffect(() => {

@@ -1,20 +1,18 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-// import { useEmit, useSocket } from "socketio-hooks";
-import useSocket from "../hooks/useSocket";
-import useEmit from "../hooks/useEmit";
 import { filter } from "fuzzy";
 import { classnames } from "tailwindcss-classnames";
 import List from "react-virtualized/dist/commonjs/List";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Input from "./Input";
-import { GetAllPairsResponse } from '../../type';
+import { useQuery } from "@apollo/client";
+import { GetPairsDocument, GetPairsQuery, Pair } from "../generated/graphql";
 
 interface AutocompleteMarketProps {
   icon?: boolean;
   placeholder?: string;
   type?: string;
-  value?: GetAllPairsResponse;
-  onSelect?: (key: GetAllPairsResponse) => void;
+  value?: Pair;
+  onSelect?: (key: Pair) => void;
 }
 const AutocompleteMarket = ({
   icon,
@@ -23,25 +21,15 @@ const AutocompleteMarket = ({
   onSelect,
   value,
 }: AutocompleteMarketProps) => {
-  const originalPairs = useRef<GetAllPairsResponse[]>();
-  const [pairs, setPairs] = useState<GetAllPairsResponse[]>([]);
+  const [pairs, setPairs] = useState<Pair[]>([]);
   const [show, setShow] = useState<boolean>(false);
-  const [getAllPairs, { data }] = useEmit("getAllPairs");
-
-  // useSocket("getAllPairs:response", (msg) => {
-  //   originalPairs.current = msg;
-  //   setPairs(msg);
-  // });
-
-  useEffect(() => {
-    originalPairs.current = data;
-  }, [data])
+  const { data } = useQuery<GetPairsQuery>(GetPairsDocument)
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.currentTarget;
-    if (originalPairs.current) {
+    if (data) {
       setPairs(
-        filter(value, originalPairs.current, {
+        filter(value, data.getPairs, {
           extract: function (el) {
             return el.symbol;
           },
@@ -51,27 +39,18 @@ const AutocompleteMarket = ({
   };
 
   useEffect(() => {
-    if (
-      show &&
-      (!originalPairs.current || originalPairs.current.length === 0)
-    ) {
-      getAllPairs();
-    }
-  }, [show]);
-
-  useEffect(() => {
     return () => {
       if (
-        originalPairs.current &&
-        Array.isArray(originalPairs.current) &&
-        originalPairs.current.length > 0
+        data &&
+        Array.isArray(data.getPairs) &&
+        data.getPairs.length > 0
       ) {
-        localStorage.setItem("allPairs", JSON.stringify(originalPairs.current));
+        localStorage.setItem("allPairs", JSON.stringify(data.getPairs));
       }
     };
   }, []);
 
-  const handleSelect = (params: GetAllPairsResponse) => () => {
+  const handleSelect = (params: Pair) => () => {
     if (onSelect) {
       onSelect(params);
     }
@@ -87,12 +66,14 @@ const AutocompleteMarket = ({
         }}
         onBlur={(e) => {
           e.currentTarget.value = "";
-          setTimeout(() => {
-            if (originalPairs.current) {
-              setPairs(originalPairs.current);
-            }
-            setShow(false);
-          }, 200);
+          if (data) {
+            setTimeout(() => {
+              if (data.getPairs) {
+                setPairs(data.getPairs);
+              }
+              setShow(false);
+            }, 200);
+          }
         }}
         value={value && value.symbol}
         type={type || "text"}
@@ -125,7 +106,7 @@ const AutocompleteMarket = ({
                 rowCount={pairs.length}
                 rowHeight={32}
                 rowRenderer={({ index, key, style }) => {
-                  const { exchange, symbol } = pairs[index];
+                  const { symbol } = pairs[index];
                   return (
                     <button
                       key={key}
@@ -134,12 +115,6 @@ const AutocompleteMarket = ({
                       onClick={handleSelect(pairs[index])}
                       type="button"
                     >
-                      <img
-                        src={`${exchange}.ico`}
-                        alt={exchange}
-                        className="inline mr-1 align-text-top "
-                        style={{ height: "16px" }}
-                      />
                       {symbol}
                     </button>
                   );

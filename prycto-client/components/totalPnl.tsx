@@ -11,14 +11,13 @@ const TotalPnl = () => {
   const { globalInvestment, globalProfit } = (positions || []).reduce(
     (acc, position) => {
       const market = markets[position.pair] || 0;
-      const profit = market * (position.available + (position.locked || 0));
+      const profit = market * ((position.available || 0) + (position.locked || 0));
       acc.globalProfit += profit;
       acc.globalInvestment += position.investment;
       return acc;
     },
     { globalInvestment: 0, globalProfit: 0 }
   );
-
   return (
     <div className="flex justify-between mt-6 mr-6 text-gray-200">
       <span className="ml-6">
@@ -66,7 +65,7 @@ const TotalPnl = () => {
             "text-green-500": globalProfit - globalInvestment >= 0,
           })}
         >
-          {round(((globalProfit - globalInvestment) * 100) / globalInvestment)}%
+          {round(((globalProfit - globalInvestment) * 100) / (globalInvestment || 1))}%
         </span>
         )
       </span>

@@ -10,8 +10,15 @@ import HideShow from "./HideShow";
 import { useCallback, useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useQuery } from "@apollo/client";
-import { ExchangeByIdDocument, ExchangeByIdQuery } from "../generated/graphql";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import {
+  ExchangeByIdDocument,
+  ExchangeByIdQuery,
+  PositionsDocument,
+  RemovePositionDocument,
+  RemovePositionMutation,
+  RemovePositionMutationVariables,
+} from "../generated/graphql";
 
 export interface Position extends GetPositionResponse {
   profit: number;
@@ -44,7 +51,15 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   const router = useRouter();
   const [editPosition, { data, loading }] = useEmit("editPosition");
   const [updatePosition] = useEmit("syncPositions");
-  const [removePosition] = useEmit<RemovePositionParams>("removePosition");
+  const [getPositions] = useLazyQuery(PositionsDocument, { fetchPolicy: 'network-only' });
+  const [removePosition] = useMutation<
+    RemovePositionMutation,
+    RemovePositionMutationVariables
+  >(RemovePositionDocument, {
+    onCompleted: () => {
+      getPositions();
+    },
+  });
   const { addTab, selectTab } = useTabsContext();
   const handleEditObjectif = useCallback(() => {
     setEditObjectif(!isEditObjectif);
@@ -139,7 +154,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       <div className="py-2 px-6 text-center w-60 hidden md:block">
         <Button
           onClick={() => {
-            removePosition(_id);
+            removePosition({ variables: { _id } });
           }}
         >
           &#x1F5D1;

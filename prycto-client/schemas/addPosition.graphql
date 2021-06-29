@@ -1,0 +1,8 @@
+mutation addPosition($symbol: String!) {
+  addPosition(symbol: $symbol) {
+    _id
+    pair
+    investment
+    objectif
+  }
+}

@@ -7,7 +7,7 @@ export type ExchangeDocument = Exchange & Document;
   collection: 'exchange',
 })
 export class Exchange {
-  @Prop((type) => SchemaMongoose.Types.ObjectId)
+  @Prop({ type: SchemaMongoose.Types.ObjectId, auto: true })
   _id: string;
 
   @Prop()
