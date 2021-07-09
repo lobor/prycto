@@ -24,10 +24,23 @@ type Position {
   objectif: Float
   available: Float
   locked: Float
+  balance: JSON!
 }
 
 type Pair {
   symbol: String!
+}
+
+type Cours {
+  _id: ID!
+  symbol: String!
+  exchangeId: String!
+  timestamp: Float!
+  open: Float!
+  hight: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
 }
 
 type Query {
@@ -35,13 +48,21 @@ type Query {
   exchanges: [Exchange!]!
   hasInit1: Boolean!
   positions: [Position!]!
+  position(_id: String!): Position!
   getMarkets: JSON!
   getPairs: [Pair!]!
+  getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
 }
 
 type Mutation {
   addExchange(name: String!, exchange: String!, publicKey: String!, secretKey: String!): Exchange!
   removeExchange(_id: String!): Boolean!
   removePosition(_id: String!): Boolean!
+  editPosition(objectif: Float!, _id: String!): Position!
+  syncPositions(_id: String!): Position!
   addPosition(symbol: String!): Position!
+}
+
+type Subscription {
+  marketHit: JSON!
 }

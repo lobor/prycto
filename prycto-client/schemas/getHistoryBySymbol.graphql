@@ -1,0 +1,7 @@
+query getHistoryBySymbol($symbol: String!, $limit: Int) {
+  getHistoryBySymbol(symbol: $symbol, limit: $limit) {
+    _id
+    timestamp
+    close
+  }
+}

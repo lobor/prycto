@@ -17,6 +17,9 @@ body {
 } */
 
 @layer components {
+  .select-container, .select-container .select__control{
+    @apply h-full;
+  }
   .select-container .select__control {
     @apply bg-gray-900 border-0 text-gray-200;
   }

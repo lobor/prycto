@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, UpdateQuery } from 'mongoose';
 import { Exchange, ExchangeDocument } from './exchange.schema';
 
 @Injectable()
@@ -24,6 +24,16 @@ export class ExchangeService {
     const exchangeModel = new this.exchangeModel(exchange);
     await exchangeModel.save();
     return exchangeModel.toJSON();
+  }
+
+  async updateOneById(
+    _id: string,
+    exchange: UpdateQuery<ExchangeDocument>,
+  ): Promise<Exchange> {
+    const exchangeSaved = await this.exchangeModel
+      .findByIdAndUpdate({ _id }, { $set: exchange }, { new: true })
+      .exec();
+    return exchangeSaved.toJSON();
   }
 
   async removeOne(_id: string): Promise<boolean> {

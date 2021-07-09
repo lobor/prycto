@@ -8,29 +8,21 @@ import { useRouter } from "next/dist/client/router";
 import { useHideShow } from "../context/hideShow";
 import { ExchangesDocument, ExchangesQuery } from "../generated/graphql";
 import { useEffect, useState } from "react";
+import { useExchange } from "../context/exchange";
 
 const Nav = () => {
   const client = useApolloClient()
+  const { exchangeId, setExchangeId, name } = useExchange();
   const { isHide, setHide } = useHideShow();
   const router = useRouter();
   const { addTab, selectTab } = useTabsContext();
   const { data, loading } = useQuery<ExchangesQuery>(ExchangesDocument);
-  const [exchangeId, setExchangeId] = useState<string | null>();
 
   useEffect(() => {
     if (exchangeId) {
       client.reFetchObservableQueries()
     }
   }, [exchangeId])
-  useEffect(() => {
-    const exchangeIdStorage = localStorage.getItem("exchangeId");
-    if (!exchangeId && exchangeIdStorage) {
-      setExchangeId(exchangeIdStorage);
-    }
-    if (exchangeId && exchangeIdStorage !== exchangeId) {
-      localStorage.setItem("exchangeId", exchangeId);
-    }
-  }, [exchangeId, data]);
   return (
     <nav className="bg-gray-800 pt-2 md:pt-1 pb-1 px-1 w-full">
       <div className="flex flex-wrap items-center">
@@ -40,16 +32,17 @@ const Nav = () => {
             type="search"
             placeholder="Search pairs"
             onSelect={(key) => {
-              const { exchange, symbol } = key;
+              const { symbol } = key;
+              const pathname = `/tradingview/?pair=${symbol}`;
               addTab({
                 key: `${symbol.toLowerCase()}`,
                 label: symbol,
                 canClose: true,
-                exchange,
-                href: "/tradingview",
+                exchange: name,
+                href: pathname,
               });
               selectTab(symbol.toLowerCase());
-              router.push(`/tradingview?pair=${symbol}`);
+              router.push(pathname);
             }}
           />
         </div>
@@ -57,7 +50,7 @@ const Nav = () => {
           <Tabs />
         </div>
         <Boutton
-          className="hidden md:block"
+          className="hidden md:block mr-1 self-stretch"
           onClick={() => {
             setHide(!isHide);
           }}
@@ -65,7 +58,7 @@ const Nav = () => {
           &#x1f441;
         </Boutton>
         <Boutton
-          className="hidden md:block"
+          className="hidden md:block mr-1 self-stretch"
           onClick={() => {
             addTab({
               key: `exchange`,
@@ -79,7 +72,7 @@ const Nav = () => {
         >
           ⚙️
         </Boutton>
-        <div className="inline-blok w-64">
+        <div className="inline-blok w-64 self-stretch">
           <Select
             value={
               data &&

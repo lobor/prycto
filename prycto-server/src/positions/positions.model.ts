@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import JSON from 'graphql-type-json';
 
 @ObjectType()
 export class Position {
@@ -22,4 +23,7 @@ export class Position {
 
   @Field({ nullable: true })
   locked?: number;
+
+  @Field(() => JSON)
+  balance?: Record<string, number>;
 }

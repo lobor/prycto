@@ -21,6 +21,7 @@ services:
       - ./prycto-server/.env
     depends_on:
       - mongo-prycto
+      - redis-prycto
     ports:
       - '3002:3000'
     user: node
@@ -35,5 +36,13 @@ services:
       - '27019:27017'
     volumes:
       - 'mongo-data-prycto:/data/db'
+
+  redis-prycto:
+    container_name: redis-prycto
+    image: redis
+    restart: always
+    ports:
+      - 6377:6379
+
 volumes:
   mongo-data-prycto: {}

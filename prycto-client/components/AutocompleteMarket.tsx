@@ -23,7 +23,7 @@ const AutocompleteMarket = ({
 }: AutocompleteMarketProps) => {
   const [pairs, setPairs] = useState<Pair[]>([]);
   const [show, setShow] = useState<boolean>(false);
-  const { data } = useQuery<GetPairsQuery>(GetPairsDocument)
+  const { data } = useQuery<GetPairsQuery>(GetPairsDocument);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.currentTarget;
@@ -38,23 +38,17 @@ const AutocompleteMarket = ({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (
-        data &&
-        Array.isArray(data.getPairs) &&
-        data.getPairs.length > 0
-      ) {
-        localStorage.setItem("allPairs", JSON.stringify(data.getPairs));
-      }
-    };
-  }, []);
-
   const handleSelect = (params: Pair) => () => {
     if (onSelect) {
       onSelect(params);
     }
   };
+
+  useEffect(() => {
+    if (data && data.getPairs) {
+      setPairs(data.getPairs);
+    }
+  }, [data]);
 
   return (
     <span className="relative w-full">

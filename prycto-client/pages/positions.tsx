@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import useSocket from "../hooks/useSocket";
-import useEmit from "../hooks/useEmit";
 import Button from "../components/Button";
 import AddPosition from "../components/AddPosition";
 import HideShow from "../components/HideShow";
 import TotalPnl from "../components/totalPnl";
-import { AddPositionParams, GetPositionResponse } from "../../type";
-import ItemPosition, { Position } from "../components/ItemPosition";
+import ItemPosition from "../components/ItemPosition";
 import { ContextMarkets, useMarket } from "../context/market";
 import { round } from "lodash";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   AddPositionDocument,
   AddPositionMutation,
   AddPositionMutationVariables,
   PositionsDocument,
   PositionsQuery,
+  Position,
 } from "../generated/graphql";
 import { useExchange } from "../context/exchange";
 
@@ -38,14 +36,19 @@ const sortFunction =
 
 const Positions = () => {
   const { exchangeId } = useExchange();
-  const [positions, setPositions] = useState<GetPositionResponse[]>([]);
+  const [positions, setPositions] = useState<
+    (Position & { market: number; profit: number; profitPercent: number, total: number; })[]
+  >([]);
   const [sort, setSort] = useState({ sort: "asc", key: "pair" });
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   // const [editPositionShowing, setEditPositionShowing] = useState<any>();
 
-  const { data, loading, refetch } = useQuery<PositionsQuery>(PositionsDocument, {
-    skip: !exchangeId,
-  });
+  const { data, loading, refetch } = useQuery<PositionsQuery>(
+    PositionsDocument,
+    {
+      skip: !exchangeId,
+    }
+  );
 
   const [addPosition] = useMutation<
     AddPositionMutation,
@@ -53,7 +56,7 @@ const Positions = () => {
   >(AddPositionDocument, {
     onCompleted: () => {
       setAddPositionShowing(false);
-      refetch()
+      refetch();
     },
   });
   // const [editPosition] = useEmit<EditPositionParams>("editPosition");
@@ -62,13 +65,18 @@ const Positions = () => {
   const positionsOriginal = useMemo(() => {
     return ((data && data.positions) || []).map((position) => {
       const { available, locked } = position;
+      const market = (markets && markets[position.pair]) || 0;
       const total = Number(available || 0) + (Number(locked || 0) || 0);
+      const profit = market * total - position.investment;
       return {
         ...position,
+        market,
+        profitPercent: (profit * 100) / (position.investment || 1),
+        profit,
         total,
       };
     });
-  }, [data]);
+  }, [data, markets]);
 
   const handleSort = (key: string) => () => {
     if (positionsOriginal) {
@@ -78,20 +86,7 @@ const Positions = () => {
         key,
       };
       setSort(sortTmp);
-      setPositions(
-        sortFunction(sort)(
-          positionsOriginal.map((position) => {
-            const market = (markets && markets[position.pair]) || 0;
-            const profit = market * position.total - position.investment;
-            return {
-              ...position,
-              profit,
-              profitPercent: (profit * 100) / (position.investment || 1),
-              market: (markets && markets[position.pair]) || 0,
-            };
-          })
-        )
-      );
+      setPositions(sortFunction(sortTmp)(positionsOriginal));
     }
   };
 
@@ -112,20 +107,7 @@ const Positions = () => {
 
   useEffect(() => {
     if (positionsOriginal) {
-      setPositions(
-        sortFunction(sort)(
-          positionsOriginal.map((position) => {
-            const market = (markets && markets[position.pair]) || 0;
-            const profit = market * position.total - position.investment;
-            return {
-              ...position,
-              profit,
-              profitPercent: (profit * 100) / (position.investment || 1),
-              market: (markets && markets[position.pair]) || 0,
-            };
-          })
-        )
-      );
+      setPositions(sortFunction(sort)(positionsOriginal));
     }
   }, [markets, sort]);
 
@@ -141,12 +123,7 @@ const Positions = () => {
         {positions && (
           <div>
             {positions.map((position) => {
-              return (
-                <ItemPosition
-                  key={position.pair}
-                  position={position as Position}
-                />
-              );
+              return <ItemPosition key={position.pair} position={position} />;
             })}
           </div>
         )}
@@ -155,7 +132,7 @@ const Positions = () => {
         )}
       </>
     );
-  }, [positions, loading]);
+  }, [sort, positions, loading]);
 
   return useMemo(
     () => (
@@ -199,6 +176,7 @@ const Positions = () => {
                 {sort.key === "pair" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
+              <div className="hidden md:block " style={{ width: '80px'}}></div>
               <div
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
                 onClick={handleSort("amount")}

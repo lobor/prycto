@@ -6,6 +6,7 @@ import { PositionsService } from 'src/positions/positions.service';
 import { AppService } from 'src/app.service';
 import { ExchangeService } from 'src/exchanges/service';
 import { ExchangeImport } from 'src/exchanges/exchange.schema';
+import { PubSubService } from 'src/pub-sub/pub-sub.service';
 
 @Module({
   imports: [PositionImport, ExchangeImport],
@@ -15,6 +16,7 @@ import { ExchangeImport } from 'src/exchanges/exchange.schema';
     PositionsService,
     MarketsService,
     MarketsResolver,
+    PubSubService,
   ],
 })
 export class MarketsModule {}

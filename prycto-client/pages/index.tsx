@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Snackbar from "../components/Snackbar";
 import Loading from "../components/Loading";
-import useSocket from "../hooks/useSocket";
 import { useEffect } from "react";
 import { useRouter } from "next/dist/client/router";
 

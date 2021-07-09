@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, UpdateQuery } from 'mongoose';
 import { Position, PositionDocument } from './positions.schema';
 
 @Injectable()
@@ -23,6 +23,19 @@ export class PositionsService {
     pair: string,
   ): Promise<PositionDocument> {
     return this.positionModel.findOne({ exchangeId, pair }).exec();
+  }
+
+  async findById(_id: string): Promise<Position> {
+    return (await this.positionModel.findOne({ _id }).exec()).toJSON();
+  }
+
+  async updateOne(
+    _id: string,
+    doc: UpdateQuery<Position>,
+  ): Promise<PositionDocument> {
+    return this.positionModel
+      .findOneAndUpdate({ _id }, { $set: doc }, { new: true })
+      .exec();
   }
 
   async deleteOne(_id: string): Promise<void> {

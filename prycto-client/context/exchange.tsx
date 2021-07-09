@@ -1,23 +1,32 @@
+import { useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
+import { ExchangeByIdDocument, Exchange } from "../generated/graphql";
 
-interface ExchangeContext {
+interface ExchangeContext extends Partial<Exchange> {
   exchangeId: string;
-  setExchangeId: (params: string) => void
+  setExchangeId: (params: string) => void;
 }
-const ExchangeContext = React.createContext<ExchangeContext>({ exchangeId: '', setExchangeId: () => {} });
+const ExchangeContext = React.createContext<ExchangeContext>({
+  exchangeId: "",
+  setExchangeId: () => {},
+});
 
 const ExchangeProvider: React.FC = ({ children }) => {
-  const [exchangeId, setExchangeId] = useState<string>('');
+  const [exchangeId, setExchangeId] = useState<string>("");
+  const { data } = useQuery(ExchangeByIdDocument, {
+    variables: { _id: exchangeId },
+    skip: !exchangeId,
+  });
 
   useEffect(() => {
-    const exchange = localStorage.getItem("exchangeId")
+    const exchange = localStorage.getItem("exchangeId");
     if (!exchangeId && exchange) {
-      setExchangeId(exchange)
+      setExchangeId(exchange);
     }
-  }, [exchangeId])
-  
+  }, [exchangeId]);
+
   return (
-    <ExchangeContext.Provider value={{ exchangeId, setExchangeId }}>
+    <ExchangeContext.Provider value={{ exchangeId, setExchangeId, ...(data || {}).exchangeById }}>
       {children}
     </ExchangeContext.Provider>
   );

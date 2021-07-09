@@ -1,17 +1,21 @@
 import classnames from "tailwindcss-classnames";
 import { useMarket, ContextMarkets } from "../context/market";
-import useSocket from "../hooks/useSocket";
-import { GetPositionResponse } from "../../type";
 import round from "../utils/round";
 import HideShow from "./HideShow";
+import { useQuery } from "@apollo/client";
+import { PositionsDocument, PositionsQuery } from "../generated/graphql";
 
 const TotalPnl = () => {
-  const { data: positions } = useSocket<GetPositionResponse[]>("getPositions");
+  const { data: positions } = useQuery<PositionsQuery>(PositionsDocument);
   const { markets } = useMarket() as ContextMarkets;
-  const { globalInvestment, globalProfit } = (positions || []).reduce(
+  const { globalInvestment, globalProfit } = (
+    (positions && positions.positions) ||
+    []
+  ).reduce(
     (acc, position) => {
       const market = markets[position.pair] || 0;
-      const profit = market * ((position.available || 0) + (position.locked || 0));
+      const profit =
+        market * ((position.available || 0) + (position.locked || 0));
       acc.globalProfit += profit;
       acc.globalInvestment += position.investment;
       return acc;
@@ -56,7 +60,8 @@ const TotalPnl = () => {
             "text-green-500": globalProfit - globalInvestment >= 0,
           })}
         >
-          <HideShow>{round((globalProfit - globalInvestment) * 0.82)}</HideShow>€
+          <HideShow>{round((globalProfit - globalInvestment) * 0.82)}</HideShow>
+          €
         </span>{" "}
         (
         <span
@@ -65,7 +70,10 @@ const TotalPnl = () => {
             "text-green-500": globalProfit - globalInvestment >= 0,
           })}
         >
-          {round(((globalProfit - globalInvestment) * 100) / (globalInvestment || 1))}%
+          {round(
+            ((globalProfit - globalInvestment) * 100) / (globalInvestment || 1)
+          )}
+          %
         </span>
         )
       </span>

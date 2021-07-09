@@ -1,0 +1,5 @@
+mutation syncPositions($_id: String!) {
+  syncPositions(_id: $_id) {
+    _id
+  }
+}

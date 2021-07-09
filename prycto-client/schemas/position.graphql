@@ -1,0 +1,12 @@
+query position($_id: String!) {
+  position(_id: $_id) {
+    _id
+    pair
+    exchangeId
+    available
+    locked
+    investment
+    objectif
+    balance
+  }
+}

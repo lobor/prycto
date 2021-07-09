@@ -4,7 +4,6 @@ import { useTabsContext } from "../context/tabs";
 
 const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
-
   return (
     <div className="bg-gray-800 bottom-0 w-full">
       <div className="content-center md:content-start text-left">

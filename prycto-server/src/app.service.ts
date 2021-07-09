@@ -177,4 +177,23 @@ export class AppService {
     });
     return balancesValidate;
   }
+
+  public async getBalancesByExchangeId(exchangeId) {
+    const balances = await this.exchanges[exchangeId].fetchBalance({
+      recvWindow: 60000,
+    });
+    const balancesValidate: Record<
+      string,
+      { available: number; locked: number }
+    > = {};
+    Object.keys(balances.total).forEach((key) => {
+      if ((balances.total as unknown as any)[key] > 0) {
+        balancesValidate[key] = {
+          available: (balances.total as unknown as any)[key],
+          locked: 0,
+        };
+      }
+    });
+    return balancesValidate;
+  }
 }

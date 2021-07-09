@@ -38,6 +38,10 @@ export class EchangeResolver {
       secretKey: this.appService.decrypt(secretKey),
       publicKey: this.appService.decrypt(publicKey),
     });
+    const balance = await this.appService.getBalancesByExchangeId(
+      exchangeSaved._id,
+    );
+    await this.exchangeService.updateOneById(exchangeSaved._id, { balance });
     return exchangeSaved;
   }
 
