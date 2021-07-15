@@ -80,15 +80,18 @@ export class AppService {
     pairs: string[];
   }) {
     const exchange = this.exchanges[params.exchangeId];
-    const orders = flatten(
-      await Promise.all(
-        params.pairs.map(async (symbol) => {
-          return exchange.fetchOrders(symbol, undefined, undefined, {
-            recvWindow: 60000,
-          });
-        }),
-      ),
-    );
+    let orders = [];
+    if (exchange.has.fetchOrders) {
+      orders = flatten(
+        await Promise.all(
+          params.pairs.map(async (symbol) => {
+            return exchange.fetchOrders(symbol, undefined, undefined, {
+              recvWindow: 60000,
+            });
+          }),
+        ),
+      );
+    }
     return orders;
   }
 
@@ -97,17 +100,19 @@ export class AppService {
     Object.keys(params).forEach(async (idExchange) => {
       const exchange = this.exchanges[idExchange];
       const pairs = params[idExchange];
-      callPromise.push(
-        (async () => {
-          const pairsTickers = Object.values(
-            await exchange.fetchTickers(pairs),
-          );
-          return {
-            idExchange,
-            pairs: pairsTickers,
-          };
-        })(),
-      );
+      if (exchange && pairs && pairs.length > 0) {
+        callPromise.push(
+          (async () => {
+            const pairsTickers = Object.values(
+              await exchange.fetchTickers(pairs),
+            );
+            return {
+              idExchange,
+              pairs: pairsTickers,
+            };
+          })(),
+        );
+      }
     });
     const currencies = await Promise.all(callPromise);
     return currencies;

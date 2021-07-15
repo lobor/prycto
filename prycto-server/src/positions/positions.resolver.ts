@@ -13,10 +13,13 @@ import { PositionsService } from './positions.service';
 import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
 import { ExchangeService } from 'src/exchanges/service';
 import { AppService } from 'src/app.service';
+import { SocketExchangeService } from 'src/socketExchange/socketExchange.service';
+import { AuthGuard } from 'src/user/guards/auth.guard';
 
 @Resolver(() => Position)
 export class PositionsResolver {
   constructor(
+    private readonly socketExchange: SocketExchangeService,
     private readonly positionService: PositionsService,
     private readonly exchangeService: ExchangeService,
     private readonly appService: AppService,
@@ -24,6 +27,7 @@ export class PositionsResolver {
 
   @Query(() => [Position])
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async positions(@Context() ctx: { exchangeId: string }): Promise<Position[]> {
     const exchange = await this.exchangeService.findById(ctx.exchangeId);
     if (!exchange) {
@@ -60,6 +64,7 @@ export class PositionsResolver {
 
   @Query(() => Position)
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async position(
     @Context() ctx: { exchangeId: string },
     @Args('_id') _id: string,
@@ -81,6 +86,7 @@ export class PositionsResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async removePosition(
     @Context() ctx: { exchangeId: string },
     @Args('_id') _id: string,
@@ -91,6 +97,7 @@ export class PositionsResolver {
 
   @Mutation(() => Position)
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async editPosition(
     @Context() ctx: { exchangeId: string },
     @Args('_id') _id: string,
@@ -105,6 +112,7 @@ export class PositionsResolver {
 
   @Mutation(() => Position)
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async syncPositions(
     @Context() ctx: { exchangeId: string },
     @Args('_id') _id: string,
@@ -120,6 +128,29 @@ export class PositionsResolver {
     const balance = await this.appService.getBalancesByExchangeId(
       ctx.exchangeId,
     );
+
+    const histories = await this.appService.getHistoryByExchangeId({
+      exchangeId: ctx.exchangeId,
+      pairs: [position.pair],
+    });
+    const historiesOnPosition = histories.filter(
+      (history) => history.symbol === position.pair,
+    );
+    let investment = 0;
+    historiesOnPosition.forEach((order) => {
+      if (order.status === 'closed') {
+        if (order.side === 'buy') {
+          investment += Number(order.cost);
+        }
+        if (order.side === 'sell') {
+          investment -= Number(order.cost);
+        }
+      }
+    });
+    investment = investment < 0 ? 0 : investment;
+    await this.positionService.updateOne(position._id, {
+      investment,
+    });
 
     Object.keys(balance).forEach((position) => {
       if (exchange.balance[position]) {
@@ -137,10 +168,15 @@ export class PositionsResolver {
 
   @Mutation(() => Position)
   @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
   async addPosition(
     @Context() ctx: { exchangeId: string },
     @Args('symbol') symbol: string,
   ): Promise<Position> {
+    const exchange = await this.exchangeService.findById(ctx.exchangeId);
+    if (!exchange) {
+      throw new Error('exchange not found');
+    }
     const pair = await this.positionService.findByPair(ctx.exchangeId, symbol);
     if (pair) {
       throw new Error('pair already exist');
@@ -170,6 +206,10 @@ export class PositionsResolver {
         }
       }
     });
+    await this.socketExchange.subscribeByExchange(
+      exchange.exchange as 'ftx' | 'binance',
+      [symbol],
+    );
     positionTmp.investment = investment < 0 ? 0 : investment;
     const position = await this.positionService.insertOne(positionTmp);
     return position;

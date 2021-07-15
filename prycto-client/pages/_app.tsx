@@ -11,6 +11,7 @@ import {
   gql,
   split,
 } from "@apollo/client";
+import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 import { HttpLink } from "@apollo/client/link/http";
 import Nav from "../components/Nav";
@@ -19,10 +20,24 @@ import { MarketsProvider } from "../context/market";
 import { HideShowProvider } from "../context/hideShow";
 import { ExchangeProvider } from "../context/exchange";
 import { WebSocketLink } from "apollo-link-ws";
+import { useRouter } from "next/dist/client/router";
 
 const setAuthorizationLink = setContext((request, previousContext) => ({
-  headers: { exchangeId: localStorage.getItem("exchangeId") },
+  headers: { exchangeId: localStorage.getItem("exchangeId"), Authorization: `Bearer ${localStorage.getItem('token')}` },
 }));
+
+const errorLink = onError((args) => {
+  if (args.graphQLErrors) {
+    const error = args.graphQLErrors[0] as { message?: { id?: string } };
+    console.log(error)
+    if (error.message === 'notLogin') {
+      localStorage.clear();
+      window.location.href = '/login';
+      return;
+    }
+  }
+  args.forward(args.operation);
+})
 
 const wsLink = process.browser
   ? new WebSocketLink({
@@ -54,7 +69,7 @@ const transportLink =
       )
     : httpGatewayLink;
 
-const link = ApolloLink.from([setAuthorizationLink, transportLink]);
+const link = ApolloLink.from([errorLink, setAuthorizationLink, transportLink]);
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -62,6 +77,8 @@ const client = new ApolloClient({
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter()
+  const showLayout = !['/login', '/register'].includes(router.asPath);
   return (
     <ApolloProvider client={client}>
       <ExchangeProvider>
@@ -81,7 +98,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 selected: "positions",
               }}
             >
-              <Nav />
+              {showLayout && <Nav />}
               <div className="flex flex-col flex-1">
                 <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
                   <Component {...pageProps} />

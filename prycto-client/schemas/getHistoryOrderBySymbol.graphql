@@ -1,0 +1,12 @@
+query getHistoryOrderBySymbol($symbol: String!) {
+  getHistoryOrderBySymbol(symbol: $symbol) {
+    amount
+    side
+    status
+    symbol
+    type
+    timestamp
+    cost
+    price
+  }
+}

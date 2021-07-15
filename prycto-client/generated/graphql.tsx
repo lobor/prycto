@@ -38,6 +38,22 @@ export type Exchange = {
   balance: Scalars['JSON'];
 };
 
+export type History = {
+  __typename?: 'History';
+  symbol: Scalars['String'];
+  exchangeId: Scalars['String'];
+  timestamp: Scalars['Float'];
+  type: Scalars['String'];
+  side: Scalars['String'];
+  price: Scalars['Float'];
+  amount: Scalars['Float'];
+  cost: Scalars['Float'];
+  average: Scalars['Float'];
+  filled: Scalars['Float'];
+  remaining: Scalars['Float'];
+  status: Scalars['String'];
+};
+
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -47,6 +63,8 @@ export type Mutation = {
   editPosition: Position;
   syncPositions: Position;
   addPosition: Position;
+  login: Scalars['String'];
+  register: Scalars['Boolean'];
 };
 
 
@@ -83,6 +101,19 @@ export type MutationAddPositionArgs = {
   symbol: Scalars['String'];
 };
 
+
+export type MutationLoginArgs = {
+  password: Scalars['String'];
+  email: Scalars['String'];
+};
+
+
+export type MutationRegisterArgs = {
+  confirmPassword: Scalars['String'];
+  password: Scalars['String'];
+  email: Scalars['String'];
+};
+
 export type Pair = {
   __typename?: 'Pair';
   symbol: Scalars['String'];
@@ -108,8 +139,10 @@ export type Query = {
   positions: Array<Position>;
   position: Position;
   getMarkets: Scalars['JSON'];
+  unsubscribe: Scalars['Boolean'];
   getPairs: Array<Pair>;
   getHistoryBySymbol: Array<Cours>;
+  getHistoryOrderBySymbol: Array<History>;
 };
 
 
@@ -128,9 +161,19 @@ export type QueryGetHistoryBySymbolArgs = {
   symbol: Scalars['String'];
 };
 
+
+export type QueryGetHistoryOrderBySymbolArgs = {
+  symbol: Scalars['String'];
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   marketHit: Scalars['JSON'];
+};
+
+
+export type SubscriptionMarketHitArgs = {
+  exchangeId: Scalars['String'];
 };
 
 export type AddExchangeMutationVariables = Exact<{
@@ -214,6 +257,19 @@ export type GetHistoryBySymbolQuery = (
   )> }
 );
 
+export type GetHistoryOrderBySymbolQueryVariables = Exact<{
+  symbol: Scalars['String'];
+}>;
+
+
+export type GetHistoryOrderBySymbolQuery = (
+  { __typename?: 'Query' }
+  & { getHistoryOrderBySymbol: Array<(
+    { __typename?: 'History' }
+    & Pick<History, 'amount' | 'side' | 'status' | 'symbol' | 'type' | 'timestamp' | 'cost' | 'price'>
+  )> }
+);
+
 export type GetMarketsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -233,7 +289,20 @@ export type GetPairsQuery = (
   )> }
 );
 
-export type MarketHitSubscriptionVariables = Exact<{ [key: string]: never; }>;
+export type LoginMutationVariables = Exact<{
+  email: Scalars['String'];
+  password: Scalars['String'];
+}>;
+
+
+export type LoginMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'login'>
+);
+
+export type MarketHitSubscriptionVariables = Exact<{
+  exchangeId: Scalars['String'];
+}>;
 
 
 export type MarketHitSubscription = (
@@ -263,6 +332,18 @@ export type PositionsQuery = (
     { __typename?: 'Position' }
     & Pick<Position, '_id' | 'pair' | 'exchangeId' | 'available' | 'locked' | 'investment' | 'objectif'>
   )> }
+);
+
+export type RegisterMutationVariables = Exact<{
+  email: Scalars['String'];
+  password: Scalars['String'];
+  confirmPassword: Scalars['String'];
+}>;
+
+
+export type RegisterMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'register'>
 );
 
 export type RemoveExchangeMutationVariables = Exact<{
@@ -370,6 +451,21 @@ export const GetHistoryBySymbolDocument = gql`
 }
     `;
 export type GetHistoryBySymbolQueryResult = Apollo.QueryResult<GetHistoryBySymbolQuery, GetHistoryBySymbolQueryVariables>;
+export const GetHistoryOrderBySymbolDocument = gql`
+    query getHistoryOrderBySymbol($symbol: String!) {
+  getHistoryOrderBySymbol(symbol: $symbol) {
+    amount
+    side
+    status
+    symbol
+    type
+    timestamp
+    cost
+    price
+  }
+}
+    `;
+export type GetHistoryOrderBySymbolQueryResult = Apollo.QueryResult<GetHistoryOrderBySymbolQuery, GetHistoryOrderBySymbolQueryVariables>;
 export const GetMarketsDocument = gql`
     query getMarkets {
   getMarkets
@@ -384,9 +480,17 @@ export const GetPairsDocument = gql`
 }
     `;
 export type GetPairsQueryResult = Apollo.QueryResult<GetPairsQuery, GetPairsQueryVariables>;
+export const LoginDocument = gql`
+    mutation login($email: String!, $password: String!) {
+  login(email: $email, password: $password)
+}
+    `;
+export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const MarketHitDocument = gql`
-    subscription marketHit {
-  marketHit
+    subscription marketHit($exchangeId: String!) {
+  marketHit(exchangeId: $exchangeId)
 }
     `;
 export type MarketHitSubscriptionResult = Apollo.SubscriptionResult<MarketHitSubscription>;
@@ -419,6 +523,14 @@ export const PositionsDocument = gql`
 }
     `;
 export type PositionsQueryResult = Apollo.QueryResult<PositionsQuery, PositionsQueryVariables>;
+export const RegisterDocument = gql`
+    mutation register($email: String!, $password: String!, $confirmPassword: String!) {
+  register(email: $email, password: $password, confirmPassword: $confirmPassword)
+}
+    `;
+export type RegisterMutationFn = Apollo.MutationFunction<RegisterMutation, RegisterMutationVariables>;
+export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
+export type RegisterMutationOptions = Apollo.BaseMutationOptions<RegisterMutation, RegisterMutationVariables>;
 export const RemoveExchangeDocument = gql`
     mutation removeExchange($_id: String!) {
   removeExchange(_id: $_id)

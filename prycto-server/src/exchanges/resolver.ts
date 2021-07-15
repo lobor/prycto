@@ -2,6 +2,8 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Exchange } from './model';
 import { ExchangeService } from './service';
 import { AppService } from 'src/app.service';
+import { AuthGuard } from 'src/user/guards/auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Exchange)
 export class EchangeResolver {
@@ -11,16 +13,19 @@ export class EchangeResolver {
   ) {}
 
   @Query(() => Exchange)
+  @UseGuards(AuthGuard)
   async exchangeById(@Args('_id') _id: string): Promise<Exchange> {
     return this.exchangeService.findById(_id);
   }
 
   @Query(() => [Exchange])
+  @UseGuards(AuthGuard)
   async exchanges(): Promise<Exchange[]> {
     return this.exchangeService.findAll();
   }
 
   @Mutation(() => Exchange)
+  @UseGuards(AuthGuard)
   async addExchange(
     @Args('secretKey') secretKey: string,
     @Args('publicKey') publicKey: string,
@@ -35,8 +40,8 @@ export class EchangeResolver {
     });
     this.appService.addExchange({
       ...exchangeSaved,
-      secretKey: this.appService.decrypt(secretKey),
-      publicKey: this.appService.decrypt(publicKey),
+      secretKey: secretKey,
+      publicKey: publicKey,
     });
     const balance = await this.appService.getBalancesByExchangeId(
       exchangeSaved._id,

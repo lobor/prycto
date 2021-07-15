@@ -43,6 +43,21 @@ type Cours {
   volume: Float!
 }
 
+type History {
+  symbol: String!
+  exchangeId: String!
+  timestamp: Float!
+  type: String!
+  side: String!
+  price: Float!
+  amount: Float!
+  cost: Float!
+  average: Float!
+  filled: Float!
+  remaining: Float!
+  status: String!
+}
+
 type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
@@ -52,6 +67,7 @@ type Query {
   getMarkets: JSON!
   getPairs: [Pair!]!
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
+  getHistoryOrderBySymbol(symbol: String!): [History!]!
 }
 
 type Mutation {
@@ -61,8 +77,11 @@ type Mutation {
   editPosition(objectif: Float!, _id: String!): Position!
   syncPositions(_id: String!): Position!
   addPosition(symbol: String!): Position!
+  login(password: String!, email: String!): String!
+  register(confirmPassword: String!, password: String!, email: String!): Boolean!
+  logout(confirmPassword: String!, password: String!, email: String!): Boolean!
 }
 
 type Subscription {
-  marketHit: JSON!
+  marketHit(exchangeId: String!): JSON!
 }

@@ -226,8 +226,8 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
           "text-red-600": profit < 0,
         })}
       >
-        <HideShow>{round(profit)}</HideShow> (
-        {investment !== 0 ? round((profit * 100) / investment) : 0}
+        <HideShow>{round(profit)}</HideShow> <div className="block md:hidden" />(
+        {round((profit * 100) / (investment || 1))}
         %)
       </div>
       <div

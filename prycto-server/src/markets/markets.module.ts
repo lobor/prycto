@@ -7,9 +7,12 @@ import { AppService } from 'src/app.service';
 import { ExchangeService } from 'src/exchanges/service';
 import { ExchangeImport } from 'src/exchanges/exchange.schema';
 import { PubSubService } from 'src/pub-sub/pub-sub.service';
+import { SocketExchangeService } from 'src/socketExchange/socketExchange.service';
+import { UserService } from 'src/user/user.service';
+import { UserImport } from 'src/user/user.schema';
 
 @Module({
-  imports: [PositionImport, ExchangeImport],
+  imports: [PositionImport, ExchangeImport, UserImport],
   providers: [
     AppService,
     ExchangeService,
@@ -17,6 +20,8 @@ import { PubSubService } from 'src/pub-sub/pub-sub.service';
     MarketsService,
     MarketsResolver,
     PubSubService,
+    SocketExchangeService,
+    UserService,
   ],
 })
 export class MarketsModule {}

@@ -17,16 +17,20 @@ interface AddPositionProps {
 const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
   const formik = useFormik({
     initialValues: {
-      exchange: '',
-      name: '',
-      publicKey: '',
-      secretKey: '',
+      exchange: "",
+      name: "",
+      publicKey: "",
+      secretKey: "",
     },
     onSubmit: (values) => {
       onSubmit(values);
     },
   });
-  const optionsExchange = [{ label: 'Binance', value: 'binance'}]
+  const optionsExchange = [
+    { label: "Binance", value: "binance" },
+    { label: "FTX", value: "ftx" },
+    { label: "Kraken", value: "kraken" },
+  ];
   return (
     <div className="h-screen absolute w-full flex flex-col items-center justify-center font-sans top-0 z-10">
       <div className="absolute top-0 bottom-0 left-0 right-0 bg-gray-800 opacity-90"></div>
@@ -41,22 +45,20 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
                 <Select
                   id="exchange"
                   name="exchange"
-                  value={optionsExchange.find(({ value }) => formik.values.exchange)}
+                  value={optionsExchange.find(
+                    ({ value }) => value === formik.values.exchange
+                  )}
                   options={optionsExchange}
                   onChange={(e) => {
                     if (e) {
-                      formik.setFieldValue('exchange', e.value);
-                      formik.setFieldTouched('exchange', true);
+                      formik.setFieldValue("exchange", e.value);
+                      formik.setFieldTouched("exchange", true);
                     }
                   }}
                 />
               </Label>
               <Label htmlFor="name" label="Name of connection">
-                <Input
-                  id="name"
-                  name="name"
-                  onChange={formik.handleChange}
-                />
+                <Input id="name" name="name" onChange={formik.handleChange} />
               </Label>
               <Label htmlFor="publicKey" label="Public key">
                 <Input

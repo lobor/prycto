@@ -25,8 +25,19 @@ const ExchangeProvider: React.FC = ({ children }) => {
     }
   }, [exchangeId]);
 
+  const handleSetExchange = (exchange: string) => {
+    setExchangeId(exchange);
+    localStorage.setItem("exchangeId", exchange);
+  };
+
   return (
-    <ExchangeContext.Provider value={{ exchangeId, setExchangeId, ...(data || {}).exchangeById }}>
+    <ExchangeContext.Provider
+      value={{
+        exchangeId,
+        setExchangeId: handleSetExchange,
+        ...(data || {}).exchangeById,
+      }}
+    >
       {children}
     </ExchangeContext.Provider>
   );

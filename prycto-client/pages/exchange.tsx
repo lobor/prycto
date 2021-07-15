@@ -53,7 +53,7 @@ export default function Exchange() {
           }}
         />
       )}
-      <div className="shadow-md mt-6 hidden md:block">
+      <div className="shadow-md mt-6 block">
         <table className="table-auto text-left w-full border-collapse">
           <thead>
             <tr className="bg-gray-900 text-gray-200">

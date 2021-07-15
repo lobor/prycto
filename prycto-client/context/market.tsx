@@ -1,5 +1,8 @@
-import { useQuery, useSubscription } from "@apollo/client";
-import React, { useEffect, useState } from "react";
+import {
+  useQuery,
+  useSubscription,
+} from "@apollo/client";
+import React, { useEffect, useRef, useState } from "react";
 import {
   GetMarketsDocument,
   GetMarketsQuery,
@@ -24,7 +27,11 @@ const MarketsProvider: React.FC = ({ children }) => {
   const [skip, setSkip] = useState(false);
   const { data: dataMore } = useSubscription<MarketHitSubscription>(
     MarketHitDocument,
-    { fetchPolicy: "network-only", skip: !process.browser || skip }
+    {
+      fetchPolicy: "network-only",
+      skip: !process.browser || skip || !exchangeId,
+      variables: { exchangeId },
+    }
   );
 
   const { data } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
@@ -52,6 +59,8 @@ const MarketsProvider: React.FC = ({ children }) => {
 
 function useMarket(symbol?: string, { skip = false } = {}) {
   const context = React.useContext(MarketsContext);
+  const { exchangeId } = useExchange();
+  const oldExchangeId = useRef();
   if (context === undefined) {
     throw new Error("useMarket must be used within a MarketProvider");
   }
@@ -59,6 +68,12 @@ function useMarket(symbol?: string, { skip = false } = {}) {
   useEffect(() => {
     context.setSkip(skip);
   }, [skip]);
+
+  useEffect(() => {
+    if (!oldExchangeId.current || oldExchangeId.current !== exchangeId) {
+      oldExchangeId.current === exchangeId
+    }
+  }, [exchangeId])
 
   if (skip) {
     return 0;

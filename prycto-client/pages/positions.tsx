@@ -17,27 +17,33 @@ import {
 } from "../generated/graphql";
 import { useExchange } from "../context/exchange";
 
-const sortFunction =
-  (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
-    return positionsOriginal.sort((a: any, b: any) => {
-      let valueA = a[sort.key];
-      let valueB = b[sort.key];
-      if (sort.key === "amount") {
-        valueA = a.locked + a.available;
-        valueB = b.locked + b.available;
-      }
-      if (sort.sort === "asc") {
-        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
-      } else {
-        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
-      }
-    });
-  };
+const sortFunction = (sort: { sort: string; key: string }) => (
+  positionsOriginal: any[]
+) => {
+  return positionsOriginal.sort((a: any, b: any) => {
+    let valueA = a[sort.key];
+    let valueB = b[sort.key];
+    if (sort.key === "amount") {
+      valueA = a.locked + a.available;
+      valueB = b.locked + b.available;
+    }
+    if (sort.sort === "asc") {
+      return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+    } else {
+      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+    }
+  });
+};
 
 const Positions = () => {
   const { exchangeId } = useExchange();
   const [positions, setPositions] = useState<
-    (Position & { market: number; profit: number; profitPercent: number, total: number; })[]
+    (Position & {
+      market: number;
+      profit: number;
+      profitPercent: number;
+      total: number;
+    })[]
   >([]);
   const [sort, setSort] = useState({ sort: "asc", key: "pair" });
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
@@ -100,10 +106,9 @@ const Positions = () => {
     }
   }, []);
 
-  useEffect(
-    () => () => localStorage.setItem("sort", JSON.stringify(sort)),
-    [sort]
-  );
+  useEffect(() => () => localStorage.setItem("sort", JSON.stringify(sort)), [
+    sort,
+  ]);
 
   useEffect(() => {
     if (positionsOriginal) {
@@ -127,12 +132,9 @@ const Positions = () => {
             })}
           </div>
         )}
-        {loading && positions && (
-          <div className="flex-1 text-center text-gray-200">Loading...</div>
-        )}
       </>
     );
-  }, [sort, positions, loading]);
+  }, [sort, positions]);
 
   return useMemo(
     () => (
@@ -144,7 +146,7 @@ const Positions = () => {
               addPosition({ variables: e });
             }}
             onCancel={() => {
-              // setAddPositionShowing(false);
+              setAddPositionShowing(false);
             }}
           />
         )}
@@ -166,7 +168,7 @@ const Positions = () => {
           />
         )} */}
         <div className="shadow-md mt-6">
-          <div className="w-full hidden md:flex">
+          <div className="w-full">
             <div className="w-full bg-gray-900 text-gray-200 flex flex-row items-center">
               <div
                 onClick={handleSort("pair")}
@@ -176,20 +178,20 @@ const Positions = () => {
                 {sort.key === "pair" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
-              <div className="hidden md:block " style={{ width: '80px'}}></div>
+              <div className="" style={{ width: "80px" }}></div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("amount")}
               >
                 Amount
                 {sort.key === "amount" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
-              <div className="flex-1 py-4 px-6 font-bold uppercase text-sm">
+              <div className="flex-1 py-4 px-6 font-bold uppercase text-sm hidden md:flex">
                 Price bought
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("market")}
               >
                 Market
@@ -197,7 +199,7 @@ const Positions = () => {
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("investment")}
               >
                 Investment
@@ -213,7 +215,7 @@ const Positions = () => {
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("objectif")}
               >
                 Objectif (
@@ -229,7 +231,7 @@ const Positions = () => {
                 {sort.key === "objectif" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
-              <div className="py-4 px-6 font-bold uppercase text-sm text-center w-60">
+              <div className="py-4 px-6 font-bold uppercase text-sm text-center w-60 hidden md:flex justify-center">
                 <Button
                   variant="validate"
                   onClick={() => {
@@ -241,7 +243,10 @@ const Positions = () => {
               </div>
             </div>
           </div>
-          {positionsRender}
+          {!loading && positionsRender}
+          {loading && (
+            <div className="flex-1 text-center text-gray-200">Loading...</div>
+          )}
         </div>
       </>
     ),

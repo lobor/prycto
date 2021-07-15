@@ -14,6 +14,8 @@ npm install
 yarn install
 ```
 
+copy and paste `prycto-client/.env.dist` to `prycto-client/.env`  
+
 Then, run development container:
 
 ```bash

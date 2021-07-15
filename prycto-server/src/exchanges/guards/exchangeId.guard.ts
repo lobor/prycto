@@ -10,7 +10,6 @@ export class EchangeIdGuard implements CanActivate {
     if (!ctx.exchangeId) {
       return false;
     }
-
     const exchange = await this.exchangeService.findById(ctx.exchangeId);
     if (!exchange) {
       return false;

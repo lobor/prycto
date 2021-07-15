@@ -30,17 +30,17 @@ const Tabs = () => {
                   )}
                 >
                   <div
-                    className="block py-1 md:py-3 pl-1 pr-1 align-middle text-white no-underline"
+                    className="py-5 md:py-5 pl-1 pr-1 text-white no-underline flex items-center"
                     onClick={() => {
                       selectTab(key);
                     }}
                   >
-                    <span className="pb-1 md:pb-0 text-xs md:text-base text-white md:text-white block md:inline-block">
+                    <span className="text-xs md:text-base text-white md:text-white block md:inline-block">
                       {label}
                     </span>
                     {canClose && (
                       <button
-                        className="ml-1 hover:bg-gray-500 p-1 inline-block leading-none"
+                        className="ml-1 hover:bg-gray-500 inline-block leading-none text-xs"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();

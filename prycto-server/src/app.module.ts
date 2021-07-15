@@ -12,11 +12,13 @@ import { AppService } from './app.service';
 import { ExchangeService } from './exchanges/service';
 import { ExchangeImport } from './exchanges/exchange.schema';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { SocketBinanceService } from './socket-binance/socket-binance.service';
+import { SocketExchangeService } from './socketExchange/socketExchange.service';
 import { PositionsService } from './positions/positions.service';
 import { PositionImport } from './positions/positions.schema';
 import { PubSubService } from './pub-sub/pub-sub.service';
 import { CoursModule } from './cours/cours.module';
+import { HistoryModule } from './history/history.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { CoursModule } from './cours/cours.module';
       context: ({ req }) => {
         return {
           exchangeId: ((req && req.headers) || {}).exchangeid,
+          token: ((req && req.headers) || {}).authorization,
         };
       },
     }),
@@ -43,6 +46,8 @@ import { CoursModule } from './cours/cours.module';
     ExchangeImport,
     PositionImport,
     CoursModule,
+    HistoryModule,
+    UserModule,
   ],
   controllers: [],
   providers: [
@@ -50,7 +55,7 @@ import { CoursModule } from './cours/cours.module';
     AppService,
     ExchangeService,
     PositionsService,
-    SocketBinanceService,
+    SocketExchangeService,
     PubSubService,
   ],
 })

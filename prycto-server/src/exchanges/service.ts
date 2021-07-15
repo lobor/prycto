@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, UpdateQuery } from 'mongoose';
+import { FilterQuery, Model, Types, UpdateQuery } from 'mongoose';
 import { Exchange, ExchangeDocument } from './exchange.schema';
 
 @Injectable()
@@ -16,6 +16,12 @@ export class ExchangeService {
 
   async findAll(): Promise<ExchangeDocument[]> {
     return this.exchangeModel.find().exec();
+  }
+
+  async find(
+    query: FilterQuery<ExchangeDocument>,
+  ): Promise<ExchangeDocument[]> {
+    return this.exchangeModel.find(query).exec();
   }
 
   async insertOne(
