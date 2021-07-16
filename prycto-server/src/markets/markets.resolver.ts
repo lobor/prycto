@@ -20,15 +20,12 @@ export class MarketsResolver {
     private readonly socketExchange: SocketExchangeService,
   ) {}
 
-  @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
   @Query(() => JSON)
-  async getMarkets(@Context() ctx: { exchangeId: string }): Promise<Market> {
-    const positions = await this.positionsService.findByExchangeId(
-      ctx.exchangeId,
-    );
+  async getMarkets(@Args('exchangeId') exchangeId: string): Promise<Market> {
+    const positions = await this.positionsService.findByExchangeId(exchangeId);
     const [currencies] = await this.appService.getCurrencies({
-      [ctx.exchangeId]: positions.map(({ pair }) => pair),
+      [exchangeId]: positions.map(({ pair }) => pair),
     });
     if (currencies) {
       return currencies.pairs.reduce((acc: any, currency: any) => {

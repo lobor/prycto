@@ -1,7 +1,4 @@
-import {
-  useQuery,
-  useSubscription,
-} from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import React, { useEffect, useRef, useState } from "react";
 import {
   GetMarketsDocument,
@@ -37,6 +34,7 @@ const MarketsProvider: React.FC = ({ children }) => {
   const { data } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
     skip: !exchangeId || !process.browser,
     fetchPolicy: "network-only",
+    variables: { exchangeId },
   });
 
   useEffect(() => {
@@ -71,9 +69,9 @@ function useMarket(symbol?: string, { skip = false } = {}) {
 
   useEffect(() => {
     if (!oldExchangeId.current || oldExchangeId.current !== exchangeId) {
-      oldExchangeId.current === exchangeId
+      oldExchangeId.current === exchangeId;
     }
-  }, [exchangeId])
+  }, [exchangeId]);
 
   if (skip) {
     return 0;

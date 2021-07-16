@@ -168,6 +168,11 @@ export type QueryPositionArgs = {
 };
 
 
+export type QueryGetMarketsArgs = {
+  exchangeId: Scalars['String'];
+};
+
+
 export type QueryGetHistoryBySymbolArgs = {
   limit?: Maybe<Scalars['Int']>;
   symbol: Scalars['String'];
@@ -284,7 +289,9 @@ export type GetHistoryOrderBySymbolQuery = (
   )> }
 );
 
-export type GetMarketsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetMarketsQueryVariables = Exact<{
+  exchangeId: Scalars['String'];
+}>;
 
 
 export type GetMarketsQuery = (
@@ -484,8 +491,8 @@ export const GetHistoryOrderBySymbolDocument = gql`
     `;
 export type GetHistoryOrderBySymbolQueryResult = Apollo.QueryResult<GetHistoryOrderBySymbolQuery, GetHistoryOrderBySymbolQueryVariables>;
 export const GetMarketsDocument = gql`
-    query getMarkets {
-  getMarkets
+    query getMarkets($exchangeId: String!) {
+  getMarkets(exchangeId: $exchangeId)
 }
     `;
 export type GetMarketsQueryResult = Apollo.QueryResult<GetMarketsQuery, GetMarketsQueryVariables>;

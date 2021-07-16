@@ -64,7 +64,7 @@ type Query {
   hasInit1: Boolean!
   positions(exchangeId: ID!): [Position!]!
   position(_id: String!): Position!
-  getMarkets: JSON!
+  getMarkets(exchangeId: String!): JSON!
   getPairs: [Pair!]!
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
   getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
