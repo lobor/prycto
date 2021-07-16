@@ -7,6 +7,7 @@ import {
   Args,
   ResolveField,
   Parent,
+  ID,
 } from '@nestjs/graphql';
 import { Position } from './positions.model';
 import { PositionsService } from './positions.service';
@@ -26,16 +27,15 @@ export class PositionsResolver {
   ) {}
 
   @Query(() => [Position])
-  @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
-  async positions(@Context() ctx: { exchangeId: string }): Promise<Position[]> {
-    const exchange = await this.exchangeService.findById(ctx.exchangeId);
+  async positions(
+    @Args('exchangeId', { type: () => ID }) exchangeId: string,
+  ): Promise<Position[]> {
+    const exchange = await this.exchangeService.findById(exchangeId);
     if (!exchange) {
       new NotFoundException();
     }
-    const positions = await this.positionService.findByExchangeId(
-      ctx.exchangeId,
-    );
+    const positions = await this.positionService.findByExchangeId(exchangeId);
     return positions.map((position) => {
       const { pair } = position;
       const [asset1] = pair.split('/');
@@ -55,32 +55,29 @@ export class PositionsResolver {
       new NotFoundException();
     }
     return pair.split('/').reduce((acc, symbol) => {
-      acc[symbol] = exchange.balance[symbol]
-        ? exchange.balance[symbol].available + exchange.balance[symbol].locked
-        : 0;
+      acc[symbol] =
+        exchange.balance && exchange.balance[symbol]
+          ? exchange.balance[symbol].available + exchange.balance[symbol].locked
+          : 0;
       return acc;
     }, {});
   }
 
   @Query(() => Position)
-  @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
-  async position(
-    @Context() ctx: { exchangeId: string },
-    @Args('_id') _id: string,
-  ): Promise<Position> {
-    const exchange = await this.exchangeService.findById(ctx.exchangeId);
-    if (!exchange) {
-      new NotFoundException();
-    }
+  async position(@Args('_id') _id: string): Promise<Position> {
     const position = await this.positionService.findById(_id);
     if (!position) {
+      new NotFoundException();
+    }
+    const exchange = await this.exchangeService.findById(position.exchangeId);
+    if (!exchange) {
       new NotFoundException();
     }
     const [asset1] = position.pair.split('/');
     return {
       ...position,
-      ...((exchange.balance && exchange.balance[asset1]) || {}),
+      ...((exchange.balance && asset1 && exchange.balance[asset1]) || {}),
     };
   }
 

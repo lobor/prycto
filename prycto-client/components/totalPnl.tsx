@@ -4,9 +4,14 @@ import round from "../utils/round";
 import HideShow from "./HideShow";
 import { useQuery } from "@apollo/client";
 import { PositionsDocument, PositionsQuery } from "../generated/graphql";
+import { useExchange } from "../context/exchange";
 
 const TotalPnl = () => {
-  const { data: positions } = useQuery<PositionsQuery>(PositionsDocument);
+  const { exchangeId, loading } = useExchange();
+  const { data: positions } = useQuery<PositionsQuery>(PositionsDocument, {
+    variables: { exchangeId },
+    skip: !exchangeId || loading
+  });
   const { markets } = useMarket() as ContextMarkets;
   const { globalInvestment, globalProfit } = (
     (positions && positions.positions) ||

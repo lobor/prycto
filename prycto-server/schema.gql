@@ -62,12 +62,12 @@ type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
   hasInit1: Boolean!
-  positions: [Position!]!
+  positions(exchangeId: ID!): [Position!]!
   position(_id: String!): Position!
   getMarkets: JSON!
   getPairs: [Pair!]!
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
-  getHistoryOrderBySymbol(symbol: String!): [History!]!
+  getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
 }
 
 type Mutation {

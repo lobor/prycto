@@ -2,10 +2,11 @@ import Label from "./Label";
 import AutocompleteMarket from "./AutocompleteMarket";
 import Button from "./Button";
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 
 interface AddPositionProps {
   onSubmit: (params: any) => void;
-  onCancel: () => void
+  onCancel: () => void;
 }
 const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
   const [value, setValue] = useState<any>();
@@ -15,7 +16,9 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
       <div className="h-screen w-full absolute flex items-center justify-center top-0">
         <div className="bg-gray-800 text-gray-200 rounded shadow p-8 m-4 max-w-xs max-h-full text-center ">
           <div className="mb-4">
-            <h1>Add position</h1>
+            <h1>
+              <FormattedMessage id="addPosition" />
+            </h1>
           </div>
           <form
             onSubmit={(e) => {
@@ -27,21 +30,21 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
             }}
           >
             <div className="mb-8">
-              <Label htmlFor="pair" label="Pair">
+              <Label htmlFor="pair" label={<FormattedMessage id="pair" />}>
                 <AutocompleteMarket
                   value={value}
                   onSelect={(e) => {
-                    setValue(e)
+                    setValue(e);
                   }}
                 />
               </Label>
             </div>
             <div className="flex justify-center">
               <Button onClick={onCancel}>
-                Cancel
+                <FormattedMessage id="cancel" />
               </Button>
               <Button type="submit" variant="validate" className="ml-2">
-                Add
+                <FormattedMessage id="add" />
               </Button>
             </div>
           </form>

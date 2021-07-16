@@ -7,10 +7,10 @@ import {
   InMemoryCache,
   ApolloProvider,
   ApolloLink,
-  useQuery,
-  gql,
   split,
 } from "@apollo/client";
+import { IntlProvider } from "react-intl";
+
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 import { HttpLink } from "@apollo/client/link/http";
@@ -21,23 +21,27 @@ import { HideShowProvider } from "../context/hideShow";
 import { ExchangeProvider } from "../context/exchange";
 import { WebSocketLink } from "apollo-link-ws";
 import { useRouter } from "next/dist/client/router";
+import * as trad from "../traductions";
 
 const setAuthorizationLink = setContext((request, previousContext) => ({
-  headers: { exchangeId: localStorage.getItem("exchangeId"), Authorization: `Bearer ${localStorage.getItem('token')}` },
+  headers: {
+    exchangeId: localStorage.getItem("exchangeId"),
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
 }));
 
 const errorLink = onError((args) => {
   if (args.graphQLErrors) {
     const error = args.graphQLErrors[0] as { message?: { id?: string } };
-    console.log(error)
-    if (error.message === 'notLogin') {
+    console.log(error);
+    if (error.message === "notLogin") {
       localStorage.clear();
-      window.location.href = '/login';
+      window.location.href = "/login";
       return;
     }
   }
   args.forward(args.operation);
-})
+});
 
 const wsLink = process.browser
   ? new WebSocketLink({
@@ -77,38 +81,47 @@ const client = new ApolloClient({
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const router = useRouter()
-  const showLayout = !['/login', '/register'].includes(router.asPath);
+  const router = useRouter();
+  const showLayout = !["/login", "/register"].includes(router.asPath);
+  console.log(router);
   return (
-    <ApolloProvider client={client}>
-      <ExchangeProvider>
-        <MarketsProvider>
-          <HideShowProvider>
-            <TabsProvider
-              value={{
-                tabs: [
-                  // { label: "Dashboard", key: "dashboard", canClose: false, href: "/dashboard" },
-                  {
-                    label: "Positions",
-                    key: "positions",
-                    canClose: false,
-                    href: "/positions",
-                  },
-                ],
-                selected: "positions",
-              }}
-            >
-              {showLayout && <Nav />}
-              <div className="flex flex-col flex-1">
-                <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
-                  <Component {...pageProps} />
+    <IntlProvider
+      messages={
+        (trad as unknown as Record<string, Record<string, string>>)[router.locale || "en"] || {}
+      }
+      locale={router.locale || "en"}
+      defaultLocale={router.defaultLocale || "en"}
+    >
+      <ApolloProvider client={client}>
+        <ExchangeProvider>
+          <MarketsProvider>
+            <HideShowProvider>
+              <TabsProvider
+                value={{
+                  tabs: [
+                    // { label: "Dashboard", key: "dashboard", canClose: false, href: "/dashboard" },
+                    {
+                      label: "Positions",
+                      key: "positions",
+                      canClose: false,
+                      href: "/positions",
+                    },
+                  ],
+                  selected: "positions",
+                }}
+              >
+                {showLayout && <Nav />}
+                <div className="flex flex-col flex-1">
+                  <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
+                    <Component {...pageProps} />
+                  </div>
                 </div>
-              </div>
-            </TabsProvider>
-          </HideShowProvider>
-        </MarketsProvider>
-      </ExchangeProvider>
-    </ApolloProvider>
+              </TabsProvider>
+            </HideShowProvider>
+          </MarketsProvider>
+        </ExchangeProvider>
+      </ApolloProvider>
+    </IntlProvider>
   );
 }
 export default MyApp;

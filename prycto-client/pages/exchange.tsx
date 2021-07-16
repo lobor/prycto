@@ -13,6 +13,8 @@ import {
   RemoveExchangeMutation,
   RemoveExchangeMutationVariables,
 } from "../generated/graphql";
+import { FormattedMessage } from "react-intl";
+import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 
 export default function Exchange() {
   const [addExchangeShowing, setAddExchangeShowing] = useState(false);
@@ -57,7 +59,9 @@ export default function Exchange() {
         <table className="table-auto text-left w-full border-collapse">
           <thead>
             <tr className="bg-gray-900 text-gray-200">
-              <th className="py-4 px-6 font-bold uppercase text-sm">Echange</th>
+              <th className="py-4 px-6 font-bold uppercase text-sm">
+                <FormattedMessage id="exchanges" />
+              </th>
               <th className="w-1/12 py-4 px-6 font-bold uppercase text-sm">
                 <Button
                   variant="validate"
@@ -65,7 +69,7 @@ export default function Exchange() {
                     setAddExchangeShowing(true);
                   }}
                 >
-                  Add
+                  <AiOutlinePlus />
                 </Button>
               </th>
             </tr>
@@ -85,7 +89,7 @@ export default function Exchange() {
                           removeExchanges({ variables: { _id: exchange._id } });
                         }}
                       >
-                        Remove
+                        <AiOutlineDelete />
                       </Button>
                     </td>
                   </tr>

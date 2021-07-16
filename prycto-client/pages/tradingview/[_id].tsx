@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
 import { format } from "date-fns";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMarket } from "../../context/market";
 import { useTabsContext, Tab } from "../../context/tabs";
 import HideShow from "../../components/HideShow";
@@ -14,6 +14,7 @@ import {
   PositionQuery,
 } from "../../generated/graphql";
 import round from "../../utils/round";
+import { AiOutlineDown, AiOutlineExpandAlt, AiOutlineUp } from "react-icons/ai";
 
 declare global {
   interface Window {
@@ -31,7 +32,7 @@ export default function Trade() {
     .filter(({ key }) => key.toLowerCase() !== "positions")
     .find(({ key }) => key.toUpperCase() === selected.toUpperCase()) as Tab;
   const { _id } = router.query;
-  const market = useMarket(pair && pair.label, {
+  const market = useMarket(pair && (pair.label as string), {
     skip: !_id || !pair,
   }) as number;
   const { data } = useQuery<PositionQuery>(PositionDocument, {
@@ -39,12 +40,17 @@ export default function Trade() {
     skip: !_id,
   });
 
+  const [showHistory, setShowHistory] = useState(false);
+
   const { data: historyOrder } = useQuery<
     GetHistoryOrderBySymbolQuery,
     GetHistoryOrderBySymbolQueryVariables
   >(GetHistoryOrderBySymbolDocument, {
-    variables: { symbol: pair && pair.label },
-    skip: !pair,
+    variables: {
+      symbol: pair && (pair.label as string),
+      positionId: _id as string,
+    },
+    skip: !pair || !_id,
   });
 
   useEffect(() => {
@@ -59,7 +65,7 @@ export default function Trade() {
           container_id: `container-${pair.label}`,
           // width: 600,
           // height: 600,
-          symbol: `${pair.exchange.toUpperCase()}:${pair.label
+          symbol: `${pair.exchange.toUpperCase()}:${(pair.label as string)
             .replace("/", "")
             .toUpperCase()}`,
           interval: "D",
@@ -80,7 +86,9 @@ export default function Trade() {
           popup_height: "600",
         });
       } else if (pair) {
-        div.current.options.symbol = `${pair.exchange.toUpperCase()}:${pair.label
+        div.current.options.symbol = `${pair.exchange.toUpperCase()}:${(
+          pair.label as string
+        )
           .replace("/", "")
           .toUpperCase()}`;
         div.current.reload();
@@ -88,7 +96,7 @@ export default function Trade() {
     }
   }, [pair, process.browser]);
 
-  const [quote] = ((pair && pair.label) || "").split("/");
+  const [quote] = ((pair && (pair.label as string)) || "").split("/");
   const profit =
     (data &&
       market * (data.position.balance[quote] || 0) -
@@ -103,7 +111,7 @@ export default function Trade() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex flex-1 flex-col h-full overflow-auto">
-        <div className="flex flex-row h-4/6 ">
+        <div className={`flex flex-row ${showHistory ? "h-4/6" : "h-full"}`}>
           {pair && process.browser && (
             <div className="flex flex-1 flex-row h-full">
               <div className="flex-1" id={`container-${pair.label}`} />
@@ -158,55 +166,67 @@ export default function Trade() {
             </div>
           )}
         </div>
-        <div className="h-2/6">
+        <div className={`${showHistory && "h-2/6"}`}>
           <div className="h-full flex flex-col">
-            <div className="bg-gray-900 text-gray-200 p-1">History order</div>
-            <div className="flex flex-row bg-gray-900 text-gray-200 p-2">
-              <div className="flex-1">Date</div>
-              <div className="flex-1">Symbol</div>
-              <div className="flex-1">Price</div>
-              <div className="flex-1">Amount</div>
-              <div className="flex-1">Cost</div>
-              <div className="flex-1">Type</div>
-              <div className="flex-1">Side</div>
-              <div className="flex-1">Status</div>
+            <div className="bg-gray-900 text-gray-200 p-1 flex justify-between items-center">
+              <span>History order</span>
+              <button
+                className="hover:bg-gray-800 border border-gray-800 p-2 focus:outline-none rounded-md"
+                onClick={() => setShowHistory(!showHistory)}
+              >
+                <AiOutlineExpandAlt />
+              </button>
             </div>
-            <div className="overflow-auto flex-1">
-              {historyOrder?.getHistoryOrderBySymbol
-                .slice()
-                .sort((a, b) => b.timestamp - a.timestamp)
-                .map((order) => {
-                  return (
-                    <div
-                      key={order.symbol}
-                      className="flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center p-1"
-                    >
-                      <div className="flex-1">
-                        {format(order.timestamp, "MM/dd/yyyy HH:mm:ss")}
-                      </div>
-                      <div className="flex-1">{order.symbol}</div>
-                      <div className="flex-1">{order.price}</div>
-                      <div className="flex-1">
-                        <HideShow>{order.amount}</HideShow>
-                      </div>
-                      <div className="flex-1">
-                        <HideShow>{order.cost}</HideShow>
-                      </div>
-                      <div className="flex-1">{order.type}</div>
-                      <div
-                        className={`flex-1 ${
-                          order.side === "sell"
-                            ? "text-red-600"
-                            : "text-green-500"
-                        }`}
-                      >
-                        {order.side}
-                      </div>
-                      <div className="flex-1">{order.status}</div>
-                    </div>
-                  );
-                })}
-            </div>
+            {showHistory && (
+              <>
+                <div className="flex flex-row bg-gray-900 text-gray-200 p-2">
+                  <div className="flex-1">Date</div>
+                  <div className="flex-1">Symbol</div>
+                  <div className="flex-1">Price</div>
+                  <div className="flex-1">Amount</div>
+                  <div className="flex-1">Cost</div>
+                  <div className="flex-1">Type</div>
+                  <div className="flex-1">Side</div>
+                  <div className="flex-1">Status</div>
+                </div>
+                <div className="overflow-auto flex-1">
+                  {historyOrder?.getHistoryOrderBySymbol
+                    .slice()
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .map((order) => {
+                      return (
+                        <div
+                          key={`symbol${order.timestamp}`}
+                          className="flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center p-1"
+                        >
+                          <div className="flex-1">
+                            {format(order.timestamp, "MM/dd/yyyy HH:mm:ss")}
+                          </div>
+                          <div className="flex-1">{order.symbol}</div>
+                          <div className="flex-1">{order.price}</div>
+                          <div className="flex-1">
+                            <HideShow>{order.amount}</HideShow>
+                          </div>
+                          <div className="flex-1">
+                            <HideShow>{order.cost}</HideShow>
+                          </div>
+                          <div className="flex-1">{order.type}</div>
+                          <div
+                            className={`flex-1 ${
+                              order.side === "sell"
+                                ? "text-red-600"
+                                : "text-green-500"
+                            }`}
+                          >
+                            {order.side}
+                          </div>
+                          <div className="flex-1">{order.status}</div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

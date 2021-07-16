@@ -13,7 +13,7 @@ import { useExchange } from "./exchange";
 
 export interface ContextMarkets {
   markets: Record<string, number>;
-  setSkip: React.Dispatch<React.SetStateAction<boolean>>;
+  setSkip: any;
 }
 
 const MarketsContext = React.createContext<ContextMarkets>({
@@ -22,9 +22,9 @@ const MarketsContext = React.createContext<ContextMarkets>({
 });
 
 const MarketsProvider: React.FC = ({ children }) => {
-  const { exchangeId } = useExchange();
+  const { exchangeId, loading } = useExchange();
   const [priceMarket, setPriceMarket] = useState<Record<string, number>>({});
-  const [skip, setSkip] = useState(false);
+  const [skip, setSkip] = useState(loading);
   const { data: dataMore } = useSubscription<MarketHitSubscription>(
     MarketHitDocument,
     {

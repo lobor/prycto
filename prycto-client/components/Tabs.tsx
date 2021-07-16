@@ -1,6 +1,7 @@
 import classNames, { TArg } from "tailwindcss-classnames";
 import Link from 'next/link';
 import { useTabsContext } from "../context/tabs";
+import { AiOutlineClose } from "react-icons/ai";
 
 const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
@@ -35,19 +36,25 @@ const Tabs = () => {
                       selectTab(key);
                     }}
                   >
+                    {exchange && <img
+                      src={`/${exchange}.ico`}
+                      className="inline-block mr-2"
+                      width="20"
+                      alt={exchange}
+                    />}
                     <span className="text-xs md:text-base text-white md:text-white block md:inline-block">
                       {label}
                     </span>
                     {canClose && (
                       <button
-                        className="ml-1 hover:bg-gray-500 inline-block leading-none text-xs"
+                        className="ml-1 hover:bg-gray-900 inline-block leading-none text-xs rounded-full p-1"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           removeTab(key);
                         }}
                       >
-                        X
+                        <AiOutlineClose />
                       </button>
                     )}
                   </div>

@@ -1,5 +1,5 @@
-query getHistoryOrderBySymbol($symbol: String!) {
-  getHistoryOrderBySymbol(symbol: $symbol) {
+query getHistoryOrderBySymbol($symbol: String!, $positionId: String!) {
+  getHistoryOrderBySymbol(symbol: $symbol, positionId: $positionId) {
     amount
     side
     status

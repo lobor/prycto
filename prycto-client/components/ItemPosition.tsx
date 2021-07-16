@@ -42,6 +42,8 @@ import {
 } from "recharts";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import { useMarket } from "../context/market";
+import { useExchange } from "../context/exchange";
+import { AiOutlineDelete, AiOutlineReload } from "react-icons/ai";
 
 export interface ItemPositionProps {
   position: Position & {
@@ -68,6 +70,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     objectif,
     total,
   } = position;
+  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
     ExchangeByIdDocument,
     { variables: { _id: position.exchangeId } }
@@ -84,7 +87,9 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   });
   const [updatePosition] = useMutation(SyncPositionsDocument, {
     onCompleted: () => {
-      getPositions();
+      if (!loadingExchange && exchangeId) {
+        getPositions({ variables: { exchangeId } });
+      }
     },
   });
 
@@ -124,7 +129,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         key: symbol,
         label: symbol,
         canClose: true,
-        exchange: exchangeData.exchangeById.name,
+        exchange: exchangeData.exchangeById.exchange,
         href: pathname,
       });
       router.push(pathname);
@@ -194,10 +199,16 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   }, [dataHistory, market]);
   return (
     <div
-      key={symbol}
+      key={`itemPosition${symbol}`}
       className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center"
     >
-      <div className="py-2 px-6 flex-1">
+      <div className="py-2 px-6 flex-1 flex items-center">
+        <img
+          src={`/${exchange}.ico`}
+          className="inline-block mr-2"
+          width="20"
+          alt={exchange}
+        />
         <Button
           variant="link"
           className="inline-block"
@@ -226,8 +237,8 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
           "text-red-600": profit < 0,
         })}
       >
-        <HideShow>{round(profit)}</HideShow> <div className="block md:hidden" />(
-        {round((profit * 100) / (investment || 1))}
+        <HideShow>{round(profit)}</HideShow> <div className="block md:hidden" />
+        ({round((profit * 100) / (investment || 1))}
         %)
       </div>
       <div
@@ -262,7 +273,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
             removePosition({ variables: { _id } });
           }}
         >
-          &#x1F5D1;
+          <AiOutlineDelete />
         </Button>
         {/* <Button
           className="ml-2"
@@ -282,7 +293,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
             });
           }}
         >
-          &#8635;
+          <AiOutlineReload />
         </Button>
       </div>
     </div>

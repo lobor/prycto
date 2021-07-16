@@ -1,5 +1,5 @@
-query positions {
-  positions {
+query positions($exchangeId: ID!) {
+  positions(exchangeId: $exchangeId) {
     _id
     pair
     exchangeId

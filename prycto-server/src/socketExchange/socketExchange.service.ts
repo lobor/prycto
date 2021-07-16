@@ -130,9 +130,6 @@ export class SocketExchangeService {
           name.charAt(0).toUpperCase() + name.slice(1)
         ]();
         exchangeByName[exchange.exchange].on('trade', async (trade: any) => {
-          if (exchange === 'kraken') {
-            console.log(exchange);
-          }
           await this.pubSub.publish('marketHit', {
             exchange,
             pair: {
@@ -160,9 +157,6 @@ export class SocketExchangeService {
 
   private event(exchange) {
     return async (trade: any) => {
-      if (exchange === 'kraken') {
-        console.log(exchange);
-      }
       await this.pubSub.publish('marketHit', {
         exchange,
         pair: {

@@ -65,6 +65,7 @@ export type Mutation = {
   addPosition: Position;
   login: Scalars['String'];
   register: Scalars['Boolean'];
+  logout: Scalars['Boolean'];
 };
 
 
@@ -114,6 +115,13 @@ export type MutationRegisterArgs = {
   email: Scalars['String'];
 };
 
+
+export type MutationLogoutArgs = {
+  confirmPassword: Scalars['String'];
+  password: Scalars['String'];
+  email: Scalars['String'];
+};
+
 export type Pair = {
   __typename?: 'Pair';
   symbol: Scalars['String'];
@@ -139,7 +147,6 @@ export type Query = {
   positions: Array<Position>;
   position: Position;
   getMarkets: Scalars['JSON'];
-  unsubscribe: Scalars['Boolean'];
   getPairs: Array<Pair>;
   getHistoryBySymbol: Array<Cours>;
   getHistoryOrderBySymbol: Array<History>;
@@ -148,6 +155,11 @@ export type Query = {
 
 export type QueryExchangeByIdArgs = {
   _id: Scalars['String'];
+};
+
+
+export type QueryPositionsArgs = {
+  exchangeId: Scalars['ID'];
 };
 
 
@@ -163,6 +175,7 @@ export type QueryGetHistoryBySymbolArgs = {
 
 
 export type QueryGetHistoryOrderBySymbolArgs = {
+  positionId: Scalars['String'];
   symbol: Scalars['String'];
 };
 
@@ -228,7 +241,7 @@ export type ExchangeByIdQuery = (
   { __typename?: 'Query' }
   & { exchangeById: (
     { __typename?: 'Exchange' }
-    & Pick<Exchange, 'name' | '_id'>
+    & Pick<Exchange, 'name' | '_id' | 'exchange'>
   ) }
 );
 
@@ -259,6 +272,7 @@ export type GetHistoryBySymbolQuery = (
 
 export type GetHistoryOrderBySymbolQueryVariables = Exact<{
   symbol: Scalars['String'];
+  positionId: Scalars['String'];
 }>;
 
 
@@ -323,7 +337,9 @@ export type PositionQuery = (
   ) }
 );
 
-export type PositionsQueryVariables = Exact<{ [key: string]: never; }>;
+export type PositionsQueryVariables = Exact<{
+  exchangeId: Scalars['ID'];
+}>;
 
 
 export type PositionsQuery = (
@@ -428,6 +444,7 @@ export const ExchangeByIdDocument = gql`
   exchangeById(_id: $_id) {
     name
     _id
+    exchange
   }
 }
     `;
@@ -452,8 +469,8 @@ export const GetHistoryBySymbolDocument = gql`
     `;
 export type GetHistoryBySymbolQueryResult = Apollo.QueryResult<GetHistoryBySymbolQuery, GetHistoryBySymbolQueryVariables>;
 export const GetHistoryOrderBySymbolDocument = gql`
-    query getHistoryOrderBySymbol($symbol: String!) {
-  getHistoryOrderBySymbol(symbol: $symbol) {
+    query getHistoryOrderBySymbol($symbol: String!, $positionId: String!) {
+  getHistoryOrderBySymbol(symbol: $symbol, positionId: $positionId) {
     amount
     side
     status
@@ -510,8 +527,8 @@ export const PositionDocument = gql`
     `;
 export type PositionQueryResult = Apollo.QueryResult<PositionQuery, PositionQueryVariables>;
 export const PositionsDocument = gql`
-    query positions {
-  positions {
+    query positions($exchangeId: ID!) {
+  positions(exchangeId: $exchangeId) {
     _id
     pair
     exchangeId

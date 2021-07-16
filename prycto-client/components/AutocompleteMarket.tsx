@@ -105,7 +105,7 @@ const AutocompleteMarket = ({
                     <button
                       key={key}
                       style={style}
-                      className="text-left px-2 py-1 hover:bg-gray-800 cursor-pointer block w-full"
+                      className="text-left px-2 py-1 hover:bg-gray-800 cursor-pointer block w-full text-blue-500"
                       onClick={handleSelect(pairs[index])}
                       type="button"
                     >

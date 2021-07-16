@@ -3,6 +3,7 @@ import Label from "./Label";
 import Button from "./Button";
 import Input from "./Input";
 import Select from "./Select";
+import { FormattedMessage } from "react-intl";
 
 interface FormValues {
   name: string;
@@ -37,11 +38,16 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
       <div className="h-screen w-full absolute flex items-center justify-center top-0">
         <div className="bg-gray-800 text-gray-200 rounded shadow p-8 m-4 max-w-xs max-h-full text-center ">
           <div className="mb-4">
-            <h1>Add position</h1>
+            <h1>
+              <FormattedMessage id="addExchange" />
+            </h1>
           </div>
           <form onSubmit={formik.handleSubmit}>
             <div className="mb-8">
-              <Label htmlFor="exchange" label="Exchange">
+              <Label
+                htmlFor="exchange"
+                label={<FormattedMessage id="exchange" />}
+              >
                 <Select
                   id="exchange"
                   name="exchange"
@@ -57,17 +63,26 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
                   }}
                 />
               </Label>
-              <Label htmlFor="name" label="Name of connection">
+              <Label
+                htmlFor="name"
+                label={<FormattedMessage id="exchangeName" />}
+              >
                 <Input id="name" name="name" onChange={formik.handleChange} />
               </Label>
-              <Label htmlFor="publicKey" label="Public key">
+              <Label
+                htmlFor="publicKey"
+                label={<FormattedMessage id="publicKey" />}
+              >
                 <Input
                   id="publicKey"
                   name="publicKey"
                   onChange={formik.handleChange}
                 />
               </Label>
-              <Label htmlFor="secretKey" label="Secret key">
+              <Label
+                htmlFor="secretKey"
+                label={<FormattedMessage id="secretKey" />}
+              >
                 <Input
                   id="secretKey"
                   name="secretKey"
@@ -76,9 +91,11 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
               </Label>
             </div>
             <div className="flex justify-center">
-              <Button onClick={onCancel}>Cancel</Button>
+              <Button onClick={onCancel}>
+                <FormattedMessage id="cancel" />
+              </Button>
               <Button type="submit" variant="validate" className="ml-2">
-                Add
+                <FormattedMessage id="add" />
               </Button>
             </div>
           </form>

@@ -1,10 +1,10 @@
 import { useRouter } from "next/dist/client/router";
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { boolean } from "yup";
 
 export interface Tab {
   key: string;
-  label: string;
+  label: ReactNode;
   canClose: boolean;
   exchange?: string;
   href: string;

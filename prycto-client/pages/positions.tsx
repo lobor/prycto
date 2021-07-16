@@ -16,27 +16,28 @@ import {
   Position,
 } from "../generated/graphql";
 import { useExchange } from "../context/exchange";
+import { FormattedMessage } from "react-intl";
+import { AiOutlinePlus } from "react-icons/ai";
 
-const sortFunction = (sort: { sort: string; key: string }) => (
-  positionsOriginal: any[]
-) => {
-  return positionsOriginal.sort((a: any, b: any) => {
-    let valueA = a[sort.key];
-    let valueB = b[sort.key];
-    if (sort.key === "amount") {
-      valueA = a.locked + a.available;
-      valueB = b.locked + b.available;
-    }
-    if (sort.sort === "asc") {
-      return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
-    } else {
-      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
-    }
-  });
-};
+const sortFunction =
+  (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
+    return positionsOriginal.sort((a: any, b: any) => {
+      let valueA = a[sort.key];
+      let valueB = b[sort.key];
+      if (sort.key === "amount") {
+        valueA = a.locked + a.available;
+        valueB = b.locked + b.available;
+      }
+      if (sort.sort === "asc") {
+        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+      } else {
+        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+      }
+    });
+  };
 
 const Positions = () => {
-  const { exchangeId } = useExchange();
+  const { exchangeId, loading: loadingExchange } = useExchange();
   const [positions, setPositions] = useState<
     (Position & {
       market: number;
@@ -52,7 +53,8 @@ const Positions = () => {
   const { data, loading, refetch } = useQuery<PositionsQuery>(
     PositionsDocument,
     {
-      skip: !exchangeId,
+      variables: { exchangeId },
+      skip: loadingExchange || !exchangeId,
     }
   );
 
@@ -106,9 +108,10 @@ const Positions = () => {
     }
   }, []);
 
-  useEffect(() => () => localStorage.setItem("sort", JSON.stringify(sort)), [
-    sort,
-  ]);
+  useEffect(
+    () => () => localStorage.setItem("sort", JSON.stringify(sort)),
+    [sort]
+  );
 
   useEffect(() => {
     if (positionsOriginal) {
@@ -174,7 +177,7 @@ const Positions = () => {
                 onClick={handleSort("pair")}
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
               >
-                Paires
+                <FormattedMessage id="pairs" />
                 {sort.key === "pair" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
@@ -183,18 +186,18 @@ const Positions = () => {
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("amount")}
               >
-                Amount
+                <FormattedMessage id="amount" />
                 {sort.key === "amount" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div className="flex-1 py-4 px-6 font-bold uppercase text-sm hidden md:flex">
-                Price bought
+                <FormattedMessage id="averagePrice" />
               </div>
               <div
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("market")}
               >
-                Market
+                <FormattedMessage id="market" />
                 {sort.key === "market" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
@@ -202,7 +205,7 @@ const Positions = () => {
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("investment")}
               >
-                Investment
+                <FormattedMessage id="investment" />
                 {sort.key === "investment" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
@@ -210,7 +213,7 @@ const Positions = () => {
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
                 onClick={handleSort("profitPercent")}
               >
-                Profit
+                <FormattedMessage id="profit" />
                 {sort.key === "profitPercent" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
@@ -218,7 +221,7 @@ const Positions = () => {
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("objectif")}
               >
-                Objectif (
+                <FormattedMessage id="goal" /> (
                 <HideShow>
                   {round(
                     positions.reduce((acc, { objectif, total }) => {
@@ -238,14 +241,14 @@ const Positions = () => {
                     setAddPositionShowing(true);
                   }}
                 >
-                  &#10010;
+                  <AiOutlinePlus />
                 </Button>
               </div>
             </div>
           </div>
           {!loading && positionsRender}
           {loading && (
-            <div className="flex-1 text-center text-gray-200">Loading...</div>
+            <div className="flex-1 text-center text-gray-200"><FormattedMessage id="loading" /></div>
           )}
         </div>
       </>
