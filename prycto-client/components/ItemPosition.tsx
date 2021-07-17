@@ -84,6 +84,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   });
   const [getPositions] = useLazyQuery(PositionsDocument, {
     fetchPolicy: "network-only",
+    variables: { exchangeId },
   });
   const [updatePosition] = useMutation(SyncPositionsDocument, {
     onCompleted: () => {

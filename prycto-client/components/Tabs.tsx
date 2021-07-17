@@ -37,7 +37,7 @@ const Tabs = () => {
                     }}
                   >
                     {exchange && <img
-                      src={`/${exchange}.ico`}
+                      src={`/${exchange.toLowerCase()}.ico`}
                       className="inline-block mr-2"
                       width="20"
                       alt={exchange}

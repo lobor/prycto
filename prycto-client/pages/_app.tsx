@@ -83,7 +83,6 @@ const client = new ApolloClient({
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const showLayout = !["/login", "/register"].includes(router.asPath);
-  console.log(router);
   return (
     <IntlProvider
       messages={
