@@ -18,6 +18,7 @@ import {
 import { useExchange } from "../context/exchange";
 import { FormattedMessage } from "react-intl";
 import { AiOutlinePlus } from "react-icons/ai";
+import Head from "next/head";
 
 const sortFunction =
   (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
@@ -48,6 +49,7 @@ const Positions = () => {
   >([]);
   const [sort, setSort] = useState({ sort: "asc", key: "pair" });
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
+  const { markets, refetch: refetchMarkets } = useMarket() as ContextMarkets;
   // const [editPositionShowing, setEditPositionShowing] = useState<any>();
 
   const { data, loading, refetch } = useQuery<PositionsQuery>(
@@ -65,10 +67,10 @@ const Positions = () => {
     onCompleted: () => {
       setAddPositionShowing(false);
       refetch();
+      refetchMarkets();
     },
   });
   // const [editPosition] = useEmit<EditPositionParams>("editPosition");
-  const { markets } = useMarket() as ContextMarkets;
 
   const positionsOriginal = useMemo(() => {
     return ((data && data.positions) || []).map((position) => {
@@ -141,7 +143,12 @@ const Positions = () => {
 
   return useMemo(
     () => (
-      <>
+      <div>
+        <Head>
+          <title>Positions - Prycto</title>
+          <meta name="description" content="Positions - Prycto" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
         {totalPnlRender}
         {addPosisitonShowing && (
           <AddPosition
@@ -170,7 +177,7 @@ const Positions = () => {
             }}
           />
         )} */}
-        <div className="shadow-md mt-6">
+        <div className="shadow-md mt-6 flex-1">
           <div className="w-full">
             <div className="w-full bg-gray-900 text-gray-200 flex flex-row items-center">
               <div
@@ -251,7 +258,7 @@ const Positions = () => {
             <div className="flex-1 text-center text-gray-200"><FormattedMessage id="loading" /></div>
           )}
         </div>
-      </>
+      </div>
     ),
     [addPosisitonShowing, positions, sort]
   );

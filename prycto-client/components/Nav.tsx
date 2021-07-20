@@ -1,6 +1,6 @@
 import AutocompleteMarket from "./AutocompleteMarket";
 import { useTabsContext } from "../context/tabs";
-import { useQuery, gql, useApolloClient } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import Link from "next/link";
 import Select from "./Select";
 import Tabs from "./Tabs";
@@ -14,9 +14,13 @@ import {
   AiFillEyeInvisible,
   AiFillSetting,
   AiOutlineLogout,
+  AiOutlineSetting,
   AiOutlineWallet,
 } from "react-icons/ai";
+import { GiTwoCoins } from "react-icons/gi";
 import { FormattedMessage, useIntl } from "react-intl";
+import SelectLang from "./SelectLang";
+import PryctoLogo from "./PryctoLogo";
 
 const Nav = () => {
   const { exchangeId, setExchangeId, name, loading } = useExchange();
@@ -27,16 +31,20 @@ const Nav = () => {
     skip: loading,
   });
 
-  const intl = useIntl()
-
+  const intl = useIntl();
   return (
     <nav className="bg-gray-800 pt-2 md:pt-1 pb-1 px-1 w-full">
       <div className="flex flex-1 flex-wrap items-baseline md:items-center">
+        <Link href="/positions">
+          <a title="Prycto">
+            <PryctoLogo className="max-h-12 w-auto ml-1 mr-2" />
+          </a>
+        </Link>
         <div className="flex md:max-w-lg justify-center md:justify-start text-white flex-1 mr-1 md:mr-0">
           <AutocompleteMarket
             icon
             type="search"
-            placeholder={intl.formatMessage({ id: 'searchPairs' })}
+            placeholder={intl.formatMessage({ id: "searchPairs" })}
             onSelect={(key) => {
               const { symbol } = key;
               const pathname = `/tradingview/?pair=${symbol}`;
@@ -94,30 +102,37 @@ const Nav = () => {
             />
           </div>
           <div className="mr-3">
-
-          <Dropdown
-            label={"lang"}
-            menu={[
-              {
-                component: (
-                  <Link href={router.asPath} locale="fr">
-                    <a className="px-4 py-2 text-sm hover:bg-gray-800 flex items-center">fr</a>
-                  </Link>
-                ),
-              },
-              {
-                component: (
-                  <Link href={router.asPath} locale="en">
-                    <a className="px-4 py-2 text-sm hover:bg-gray-800 flex items-center">en</a>
-                  </Link>
-                ),
-              },
-            ]}
-          />
+            <SelectLang />
           </div>
           <Dropdown
             label={<AiFillSetting />}
             menu={[
+              {
+                disabled: false,
+                component: (
+                  <Link href="/balances">
+                    <a
+                      className="px-4 py-2 text-sm hover:bg-gray-800 flex items-center"
+                      role="menuitem"
+                      id="menu-item-2"
+                      onClick={() => {
+                        addTab({
+                          key: "balances",
+                          label: intl.formatMessage({ id: "balances" }),
+                          canClose: true,
+                          href: "/balances",
+                        });
+                        selectTab("exchange");
+                      }}
+                    >
+                      <GiTwoCoins />
+                      <span className="ml-1">
+                        <FormattedMessage id="balances" />
+                      </span>
+                    </a>
+                  </Link>
+                ),
+              },
               {
                 disabled: false,
                 component: (
@@ -129,7 +144,7 @@ const Nav = () => {
                       onClick={() => {
                         addTab({
                           key: "exchange",
-                          label: intl.formatMessage({ id: 'exchanges' }),
+                          label: intl.formatMessage({ id: "exchanges" }),
                           canClose: true,
                           href: "/exchange",
                         });
@@ -139,6 +154,32 @@ const Nav = () => {
                       <AiOutlineWallet />
                       <span className="ml-1">
                         <FormattedMessage id="exchanges" />
+                      </span>
+                    </a>
+                  </Link>
+                ),
+              },
+              {
+                disabled: false,
+                component: (
+                  <Link href="/settings">
+                    <a
+                      className="px-4 py-2 text-sm hover:bg-gray-800 flex items-center"
+                      role="menuitem"
+                      id="menu-item-2"
+                      onClick={() => {
+                        addTab({
+                          key: "settings",
+                          label: intl.formatMessage({ id: "settings" }),
+                          canClose: true,
+                          href: "/settings",
+                        });
+                        selectTab("settings");
+                      }}
+                    >
+                      <AiOutlineSetting />
+                      <span className="ml-1">
+                        <FormattedMessage id="settings" />
                       </span>
                     </a>
                   </Link>

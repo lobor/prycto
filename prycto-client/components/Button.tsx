@@ -5,7 +5,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "danger" | "validate" | "link" | "default";
   size?: "default" | "small";
 }
-const Boutton = (props: ButtonProps) => {
+const Button = (props: ButtonProps) => {
   const { children, className, size, variant, ...otherProps } = props;
 
   let sizeClassName = "px-4 py-2";
@@ -13,7 +13,7 @@ const Boutton = (props: ButtonProps) => {
     sizeClassName = "px-2 py-1";
   }
 
-  let classNameVariant = `${sizeClassName} text-xs font-semibold bg-gray-900 tracking-wider text-gray-200 hover:text-white rounded hover:bg-gray-700 disabled:opacity-50`;
+  let classNameVariant = `${sizeClassName} text-xs font-semibold bg-gray-900 tracking-wider text-gray-200 hover:text-white rounded hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50`;
   if (variant === "validate") {
     classNameVariant = `bg-green-900 ${sizeClassName} text-xs font-semibold tracking-wider text-gray-200 rounded hover:bg-green-800 disabled:opacity-50`;
   } else if (variant === "danger") {
@@ -35,4 +35,4 @@ const Boutton = (props: ButtonProps) => {
   );
 };
 
-export default Boutton;
+export default Button;

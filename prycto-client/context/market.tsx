@@ -1,4 +1,9 @@
-import { useQuery, useSubscription } from "@apollo/client";
+import {
+  ApolloQueryResult,
+  OperationVariables,
+  useQuery,
+  useSubscription,
+} from "@apollo/client";
 import React, { useEffect, useRef, useState } from "react";
 import {
   GetMarketsDocument,
@@ -11,11 +16,17 @@ import { useExchange } from "./exchange";
 export interface ContextMarkets {
   markets: Record<string, number>;
   setSkip: any;
+  refetch: (
+    variables?: Partial<OperationVariables> | undefined
+  ) => Promise<ApolloQueryResult<GetMarketsQuery>>;
 }
 
 const MarketsContext = React.createContext<ContextMarkets>({
   markets: {},
   setSkip: () => {},
+  refetch: async () => {
+    return null as any;
+  },
 });
 
 const MarketsProvider: React.FC = ({ children }) => {
@@ -31,7 +42,7 @@ const MarketsProvider: React.FC = ({ children }) => {
     }
   );
 
-  const { data } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
+  const { data, refetch } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
     skip: !exchangeId || !process.browser,
     fetchPolicy: "network-only",
     variables: { exchangeId },
@@ -49,7 +60,9 @@ const MarketsProvider: React.FC = ({ children }) => {
   }, [dataMore]);
 
   return (
-    <MarketsContext.Provider value={{ markets: priceMarket || {}, setSkip }}>
+    <MarketsContext.Provider
+      value={{ markets: priceMarket || {}, setSkip, refetch }}
+    >
       {children}
     </MarketsContext.Provider>
   );

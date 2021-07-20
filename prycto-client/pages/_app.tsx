@@ -82,11 +82,13 @@ const client = new ApolloClient({
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const showLayout = !["/login", "/register"].includes(router.asPath);
+  const showLayout = !["/login", "/register", "/"].includes(router.asPath);
   return (
     <IntlProvider
       messages={
-        (trad as unknown as Record<string, Record<string, string>>)[router.locale || "en"] || {}
+        (trad as unknown as Record<string, Record<string, string>>)[
+          router.locale || "en"
+        ] || {}
       }
       locale={router.locale || "en"}
       defaultLocale={router.defaultLocale || "en"}
@@ -110,7 +112,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 }}
               >
                 {showLayout && <Nav />}
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 h-full">
                   <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
                     <Component {...pageProps} />
                   </div>

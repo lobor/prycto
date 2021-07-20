@@ -150,6 +150,7 @@ export type Query = {
   getPairs: Array<Pair>;
   getHistoryBySymbol: Array<Cours>;
   getHistoryOrderBySymbol: Array<History>;
+  user: User;
 };
 
 
@@ -194,6 +195,15 @@ export type SubscriptionMarketHitArgs = {
   exchangeId: Scalars['String'];
 };
 
+export type User = {
+  __typename?: 'User';
+  _id: Scalars['ID'];
+  email: Scalars['String'];
+  tokens: Array<Scalars['String']>;
+  password: Scalars['String'];
+  createdAt: Scalars['Float'];
+};
+
 export type AddExchangeMutationVariables = Exact<{
   name: Scalars['String'];
   exchange: Scalars['String'];
@@ -220,6 +230,19 @@ export type AddPositionMutation = (
   & { addPosition: (
     { __typename?: 'Position' }
     & Pick<Position, '_id' | 'pair' | 'investment' | 'objectif'>
+  ) }
+);
+
+export type BalancesByExchangeIdQueryVariables = Exact<{
+  _id: Scalars['String'];
+}>;
+
+
+export type BalancesByExchangeIdQuery = (
+  { __typename?: 'Query' }
+  & { exchangeById: (
+    { __typename?: 'Exchange' }
+    & Pick<Exchange, '_id' | 'balance'>
   ) }
 );
 
@@ -402,6 +425,17 @@ export type SyncPositionsMutation = (
   ) }
 );
 
+export type UserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserQuery = (
+  { __typename?: 'Query' }
+  & { user: (
+    { __typename?: 'User' }
+    & Pick<User, '_id' | 'email'>
+  ) }
+);
+
 
 export const AddExchangeDocument = gql`
     mutation addExchange($name: String!, $exchange: String!, $publicKey: String!, $secretKey: String!) {
@@ -435,6 +469,15 @@ export const AddPositionDocument = gql`
 export type AddPositionMutationFn = Apollo.MutationFunction<AddPositionMutation, AddPositionMutationVariables>;
 export type AddPositionMutationResult = Apollo.MutationResult<AddPositionMutation>;
 export type AddPositionMutationOptions = Apollo.BaseMutationOptions<AddPositionMutation, AddPositionMutationVariables>;
+export const BalancesByExchangeIdDocument = gql`
+    query balancesByExchangeId($_id: String!) {
+  exchangeById(_id: $_id) {
+    _id
+    balance
+  }
+}
+    `;
+export type BalancesByExchangeIdQueryResult = Apollo.QueryResult<BalancesByExchangeIdQuery, BalancesByExchangeIdQueryVariables>;
 export const EditPositionDocument = gql`
     mutation editPosition($_id: String!, $objectif: Float!) {
   editPosition(_id: $_id, objectif: $objectif) {
@@ -581,3 +624,12 @@ export const SyncPositionsDocument = gql`
 export type SyncPositionsMutationFn = Apollo.MutationFunction<SyncPositionsMutation, SyncPositionsMutationVariables>;
 export type SyncPositionsMutationResult = Apollo.MutationResult<SyncPositionsMutation>;
 export type SyncPositionsMutationOptions = Apollo.BaseMutationOptions<SyncPositionsMutation, SyncPositionsMutationVariables>;
+export const UserDocument = gql`
+    query user {
+  user {
+    _id
+    email
+  }
+}
+    `;
+export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;

@@ -1,0 +1,6 @@
+query balancesByExchangeId($_id: String!) {
+  exchangeById(_id: $_id) {
+    _id
+    balance
+  }
+}

@@ -152,8 +152,22 @@ export class PositionsResolver {
     Object.keys(balance).forEach((position) => {
       if (exchange.balance[position]) {
         exchange.balance[position].available = balance[position].available;
+        if (
+          balance[`LD${position}`] &&
+          balance[`LD${position}`].available >= 0
+        ) {
+          exchange.balance[position].locked =
+            balance[`LD${position}`].available;
+        }
       } else {
         exchange.balance[position] = balance[position];
+        if (
+          balance[`LD${position}`] &&
+          balance[`LD${position}`].available >= 0
+        ) {
+          exchange.balance[position].locked =
+            balance[`LD${position}`].available;
+        }
       }
     });
     await this.exchangeService.updateOneById(ctx.exchangeId, {

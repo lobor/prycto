@@ -58,6 +58,14 @@ type History {
   status: String!
 }
 
+type User {
+  _id: ID!
+  email: String!
+  tokens: [String!]!
+  password: String!
+  createdAt: Float!
+}
+
 type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
@@ -68,6 +76,7 @@ type Query {
   getPairs: [Pair!]!
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
   getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
+  user: User!
 }
 
 type Mutation {

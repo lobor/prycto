@@ -1,7 +1,7 @@
 import { InputHTMLAttributes } from "react";
 import { classnames, TArg } from "tailwindcss-classnames";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  error?: string | false;
+  error?: string | undefined | false;
 }
 const Input = (props: InputProps) => {
   const { className, error, ...otherProps } = props;

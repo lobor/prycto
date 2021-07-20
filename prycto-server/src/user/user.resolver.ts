@@ -1,7 +1,9 @@
 import { UseGuards } from '@nestjs/common';
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { UseUser } from './decorators/user.decorator';
 import { AuthGuard } from './guards/auth.guard';
 import { User } from './user.model';
+import { User as UserSchema } from './user.schema';
 import { UserService } from './user.service';
 
 @Resolver(() => User)
@@ -24,6 +26,12 @@ export class UserResolver {
   ): Promise<boolean> {
     await this.userService.register(email, password, confirmPassword);
     return true;
+  }
+
+  @Query(() => User)
+  @UseGuards(AuthGuard)
+  async user(@UseUser() user: UserSchema): Promise<User> {
+    return user;
   }
 
   @Mutation(() => Boolean)

@@ -19,6 +19,7 @@ copy and paste `prycto-client/.env.dist` to `prycto-client/.env`
 Then, run development container:
 
 ```bash
+npx lerna exec --scope prycto-client -- npm run build
 docker-compose up
 ```
 

@@ -1,17 +1,24 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserService } from '../user.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private userService: UserService) {}
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(
+    context: ExecutionContext & { user: any },
+  ): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context).getContext();
     if (!ctx.token) {
       throw new UnauthorizedException('notLogin');
     }
 
-    var decoded = this.userService.verifyToken(ctx.token)
+    const decoded = this.userService.verifyToken(ctx.token);
 
     if (!decoded) {
       throw new UnauthorizedException('notLogin');
@@ -21,6 +28,8 @@ export class AuthGuard implements CanActivate {
     if (!user) {
       throw new UnauthorizedException('notLogin');
     }
+    ctx.user = user;
+    // console.log(ctx)
     return true;
   }
 }

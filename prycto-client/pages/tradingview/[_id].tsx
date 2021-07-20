@@ -106,8 +106,8 @@ export default function Trade() {
   return (
     <>
       <Head>
-        <title>Trade</title>
-        <meta name="description" content="Trade from Binance" />
+        <title>Trade - Prycto</title>
+        <meta name="description" content="Trade - Prycto" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex flex-1 flex-col h-full overflow-auto">
