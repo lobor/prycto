@@ -12,9 +12,15 @@ import {
   GetHistoryOrderBySymbolQueryVariables,
   PositionDocument,
   PositionQuery,
+  PositionsDocument,
+  PositionsQuery,
 } from "../../generated/graphql";
 import round from "../../utils/round";
 import { AiOutlineDown, AiOutlineExpandAlt, AiOutlineUp } from "react-icons/ai";
+import { useExchange } from "../../context/exchange";
+import Loading from "../../components/Loading";
+import ItemPosition from "../../components/ItemPosition";
+import Button from "../../components/Button";
 
 declare global {
   interface Window {
@@ -25,20 +31,26 @@ declare global {
 const view: Record<string, any> = {};
 
 export default function Trade() {
-  const { selected, tabs } = useTabsContext();
+  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
+  const { selected, tabs, addTab, selectTab } = useTabsContext();
   const router = useRouter();
   const div = useRef<any>(null);
   const pair = tabs
     .filter(({ key }) => key.toLowerCase() !== "positions")
     .find(({ key }) => key.toUpperCase() === selected.toUpperCase()) as Tab;
   const { _id } = router.query;
-  const market = useMarket(pair && (pair.label as string), {
-    skip: !_id || !pair,
-  }) as number;
+
+  const market = useMarket(pair && (pair.label as string));
   const { data } = useQuery<PositionQuery>(PositionDocument, {
     variables: { _id },
     skip: !_id,
   });
+
+  const { data: dataPositions, loading: loadingPosition } =
+    useQuery<PositionsQuery>(PositionsDocument, {
+      variables: { exchangeId },
+      skip: loadingExchange || !exchangeId,
+    });
 
   const [showHistory, setShowHistory] = useState(false);
 
@@ -98,7 +110,7 @@ export default function Trade() {
 
   const [quote] = ((pair && (pair.label as string)) || "").split("/");
   const profit =
-    (data &&
+    (data && typeof market === 'number' &&
       market * (data.position.balance[quote] || 0) -
         (data.position.investment || 0)) ||
     0;
@@ -112,6 +124,49 @@ export default function Trade() {
       </Head>
       <div className="flex flex-1 flex-col h-full overflow-auto">
         <div className={`flex flex-row ${showHistory ? "h-4/6" : "h-full"}`}>
+          <div className="hidden md:block">
+            {loadingPosition && (
+              <div className="flex items-center justify-center h-full">
+                <Loading />
+              </div>
+            )}
+            {!loadingPosition &&
+              dataPositions &&
+              dataPositions.positions.map((position) => {
+                const {
+                  _id,
+                  pair: symbol,
+                } = position;
+                return (
+                  <div className="py-2 px-6 flex-1 flex items-center">
+                    <img
+                      src={`/${exchange}.ico`}
+                      className="inline-block mr-2"
+                      width="20"
+                      alt={exchange}
+                    />
+                    <Button
+                      variant="link"
+                      className="inline-block"
+                      onClick={() => {
+                        const pathname = `/tradingview/${_id}?pair=${symbol}`;
+                        addTab({
+                          key: symbol,
+                          label: symbol,
+                          canClose: true,
+                          exchange,
+                          href: pathname,
+                        });
+                        router.push(pathname);
+                        selectTab(symbol);
+                      }}
+                    >
+                      {symbol}
+                    </Button>
+                  </div>
+                );
+              })}
+          </div>
           {pair && process.browser && (
             <div className="flex flex-1 flex-row h-full">
               <div className="flex-1" id={`container-${pair.label}`} />
@@ -160,7 +215,7 @@ export default function Trade() {
                 </div>
                 <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex">
                   <div className="flex-1">Market:</div>
-                  <div className="text-gray-200">{market}</div>
+                  <div className="text-gray-200">{Number(market) && market}</div>
                 </div>
               </div>
             </div>

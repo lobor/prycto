@@ -15,7 +15,7 @@ import { useExchange } from "./exchange";
 
 export interface ContextMarkets {
   markets: Record<string, number>;
-  setSkip: any;
+  loading: boolean;
   refetch: (
     variables?: Partial<OperationVariables> | undefined
   ) => Promise<ApolloQueryResult<GetMarketsQuery>>;
@@ -23,28 +23,50 @@ export interface ContextMarkets {
 
 const MarketsContext = React.createContext<ContextMarkets>({
   markets: {},
-  setSkip: () => {},
+  loading: true,
   refetch: async () => {
     return null as any;
   },
 });
 
 const MarketsProvider: React.FC = ({ children }) => {
+  return (
+    <MarketsContext.Provider
+      value={{
+        markets: {},
+        loading: true,
+        refetch: async () => {
+          return null as any;
+        },
+      }}
+    >
+      {children}
+    </MarketsContext.Provider>
+  );
+};
+
+function useMarket(symbol?: string) {
+  const context = React.useContext(MarketsContext);
   const { exchangeId, loading } = useExchange();
+  const oldExchangeId = useRef();
+  if (context === undefined) {
+    throw new Error("useMarket must be used within a MarketProvider");
+  }
+
   const [priceMarket, setPriceMarket] = useState<Record<string, number>>({});
-  const [skip, setSkip] = useState(loading);
+  // const [skipState, setSkip] = useState(loading);
   const { data: dataMore } = useSubscription<MarketHitSubscription>(
     MarketHitDocument,
     {
-      fetchPolicy: "network-only",
-      skip: !process.browser || skip || !exchangeId,
+      // fetchPolicy: "network-only",
+      skip: !process.browser || !exchangeId,
       variables: { exchangeId },
     }
   );
 
-  const { data, refetch } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
+  const { data, refetch, loading: loadingMarket } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
     skip: !exchangeId || !process.browser,
-    fetchPolicy: "network-only",
+    // fetchPolicy: "network-only",
     variables: { exchangeId },
   });
 
@@ -59,42 +81,17 @@ const MarketsProvider: React.FC = ({ children }) => {
     }
   }, [dataMore]);
 
-  return (
-    <MarketsContext.Provider
-      value={{ markets: priceMarket || {}, setSkip, refetch }}
-    >
-      {children}
-    </MarketsContext.Provider>
-  );
-};
-
-function useMarket(symbol?: string, { skip = false } = {}) {
-  const context = React.useContext(MarketsContext);
-  const { exchangeId } = useExchange();
-  const oldExchangeId = useRef();
-  if (context === undefined) {
-    throw new Error("useMarket must be used within a MarketProvider");
-  }
-
-  useEffect(() => {
-    context.setSkip(skip);
-  }, [skip]);
-
   useEffect(() => {
     if (!oldExchangeId.current || oldExchangeId.current !== exchangeId) {
       oldExchangeId.current === exchangeId;
     }
   }, [exchangeId]);
 
-  if (skip) {
-    return 0;
-  }
-
   if (symbol) {
-    return context.markets[symbol] || 0;
+    return priceMarket[symbol] || 0;
   }
 
-  return context;
+  return { ...context, markets: priceMarket, refetch, loading: loadingMarket };
 }
 
 export { MarketsProvider, useMarket };

@@ -44,6 +44,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import { useMarket } from "../context/market";
 import { useExchange } from "../context/exchange";
 import { AiOutlineDelete, AiOutlineReload } from "react-icons/ai";
+import WithMarket from "./WithMarket";
 
 export interface ItemPositionProps {
   position: Position & {
@@ -65,16 +66,19 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     _id,
     pair: symbol,
     investment,
-    profit = 0,
-    market,
+    // profit = 0,
     objectif,
-    total,
+    available,
+    locked,
+    // total,
   } = position;
   const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
     ExchangeByIdDocument,
     { variables: { _id: position.exchangeId } }
   );
+  const market = 0;
+  // const market = useMarket(symbol) as number;
   const [isEditObjectif, setEditObjectif] = useState(false);
   const router = useRouter();
   const [editPosition, { data, loading }] = useMutation(EditPositionDocument, {
@@ -93,6 +97,10 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       }
     },
   });
+
+  const total = Number(available || 0) + (Number(locked || 0) || 0);
+  const profit = 0;
+  // const profit = market * total - position.investment;
 
   const { data: dataHistory } = useQuery<GetHistoryBySymbolQuery>(
     GetHistoryBySymbolDocument,
@@ -155,128 +163,150 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
 
   const chart = useMemo(() => {
     return (
-      <>
-        <VictoryChart
-          width={1}
-          height={50}
-          style={{
-            parent: { width: "80px", height: "40px" },
-          }}
-          // scale={{ x: "time" }}
-          // domainPadding={{ x: 0, y: 0 }}
-          minDomain={{ y: min }}
-        >
-          <VictoryArea
-            style={{
-              data: { stroke: "rgb(59, 130, 246)" },
-            }}
-            data={[
-              ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
-              { timestamp: Date.now(), close: market },
-            ]}
-            x="timestamp"
-            y="close"
-          />
-          <VictoryAxis
-            invertAxis
-            tickFormat={() => ""}
-            style={{
-              axisLabel: { color: "transparent" },
-              axis: { stroke: "none" },
-            }}
-          />
-          <VictoryAxis
-            dependentAxis
-            invertAxis
-            tickFormat={() => ""}
-            style={{
-              axisLabel: { color: "transparent" },
-              axis: { stroke: "none" },
-            }}
-          />
-        </VictoryChart>
-      </>
-    );
-  }, [dataHistory, market]);
-  return (
-    <div
-      key={`itemPosition${symbol}`}
-      className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center"
-    >
-      <div className="py-2 px-6 flex-1 flex items-center">
-        <img
-          src={`/${exchange}.ico`}
-          className="inline-block mr-2"
-          width="20"
-          alt={exchange}
-        />
-        <Button
-          variant="link"
-          className="inline-block"
-          onClick={handleTrendingview}
-        >
-          {symbol}
-        </Button>
-      </div>
-      {chart}
-      <div className="py-2 px-6 hidden md:block flex-1">
-        <HideShow>{total}</HideShow>
-      </div>
-      <div className="py-2 px-6 hidden md:block flex-1">
-        <HideShow>{round(total === 0 ? 0 : investment / total, 8)}</HideShow>
-      </div>
-      <div className="py-2 px-6 hidden md:block flex-1">{market}</div>
-      <div className="py-2 px-6 hidden md:block flex-1">
-        <HideShow>{round(investment)}</HideShow> /{" "}
-        <span className="text-gray-400">
-          <HideShow>{round(market * total)}</HideShow>
-        </span>
-      </div>
-      <div
-        className={classnames("py-2", "px-6", "flex-1", {
-          "text-green-500": profit >= 0,
-          "text-red-600": profit < 0,
-        })}
-      >
-        <HideShow>{round(profit)}</HideShow> <div className="block md:hidden" />
-        ({round((profit * 100) / (investment || 1))}
-        %)
-      </div>
-      <div
-        className="py-2 px-6 hidden md:block flex-1 cursor-pointer"
-        onClick={handleEditObjectif}
-      >
-        {isEditObjectif ? (
-          <form onSubmit={formik.handleSubmit}>
-            <Input
-              autoFocus
-              type="text"
-              name="objectif"
-              onBlur={handleEditObjectif}
-              value={formik.values.objectif}
-              onChange={(e) => {
-                formik.setFieldValue("objectif", Number(e.currentTarget.value));
-                formik.setFieldTouched("objectif", true);
-              }}
-              error={formik.errors.objectif}
-            />
-          </form>
-        ) : (
+      <WithMarket symbol={symbol}>
+        {({ market }) => (
           <>
-            {objectif || 0} /{" "}
-            <HideShow>{round(total * (objectif || 0))}</HideShow>
+            <VictoryChart
+              width={1}
+              height={50}
+              style={{
+                parent: { width: "80px", height: "40px" },
+              }}
+              // scale={{ x: "time" }}
+              // domainPadding={{ x: 0, y: 0 }}
+              minDomain={{ y: min }}
+            >
+              <VictoryArea
+                style={{
+                  data: { stroke: "rgb(59, 130, 246)" },
+                }}
+                data={[
+                  ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
+                  { timestamp: Date.now(), close: market },
+                ]}
+                x="timestamp"
+                y="close"
+              />
+              <VictoryAxis
+                invertAxis
+                tickFormat={() => ""}
+                style={{
+                  axisLabel: { color: "transparent" },
+                  axis: { stroke: "none" },
+                }}
+              />
+              <VictoryAxis
+                dependentAxis
+                invertAxis
+                tickFormat={() => ""}
+                style={{
+                  axisLabel: { color: "transparent" },
+                  axis: { stroke: "none" },
+                }}
+              />
+            </VictoryChart>
           </>
         )}
-      </div>
-      <div className="py-2 px-6 text-center w-60 hidden md:block">
-        <Button
-          onClick={() => {
-            removePosition({ variables: { _id } });
+      </WithMarket>
+    );
+  }, [dataHistory, market]);
+  return useMemo(
+    () => (
+      <div
+        key={`itemPosition${symbol}`}
+        className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center"
+      >
+        <div className="py-2 px-6 flex-1 flex items-center">
+          <img
+            src={`/${exchange}.ico`}
+            className="inline-block mr-2"
+            width="20"
+            alt={exchange}
+          />
+          <Button
+            variant="link"
+            className="inline-block"
+            onClick={handleTrendingview}
+          >
+            {symbol}
+          </Button>
+        </div>
+        {chart}
+        <div className="py-2 px-6 hidden md:block flex-1">
+          <HideShow>{total}</HideShow>
+        </div>
+        <div className="py-2 px-6 hidden md:block flex-1">
+          <HideShow>{round(total === 0 ? 0 : investment / total, 8)}</HideShow>
+        </div>
+        <div className="py-2 px-6 hidden md:block flex-1">
+          <WithMarket symbol={symbol}>{({ market }) => market}</WithMarket>
+        </div>
+        <div className="py-2 px-6 hidden md:block flex-1">
+          <HideShow>{round(investment)}</HideShow> /{" "}
+          <span className="text-gray-400">
+            <HideShow>
+              <WithMarket symbol={symbol}>
+                {({ market }) => round(market * total)}
+              </WithMarket>
+            </HideShow>
+          </span>
+        </div>
+        <WithMarket symbol={symbol}>
+          {({ market }) => {
+            const profit = market * total - position.investment;
+            return (
+              <div
+                className={classnames("py-2", "px-6", "flex-1", {
+                  "text-green-500": profit >= 0,
+                  "text-red-600": profit < 0,
+                })}
+              >
+                <HideShow>{round(profit)}</HideShow>{" "}
+                <div className="block md:hidden" />(
+                {round((profit * 100) / (investment || 1))}
+                %)
+              </div>
+            );
           }}
+        </WithMarket>
+        <div
+          className="py-2 px-6 hidden md:block flex-1 cursor-pointer"
+          onClick={handleEditObjectif}
         >
-          <AiOutlineDelete />
-        </Button>
-        {/* <Button
+          {isEditObjectif ? (
+            <form onSubmit={formik.handleSubmit}>
+              <Input
+                autoFocus
+                type="text"
+                name="objectif"
+                onBlur={handleEditObjectif}
+                value={formik.values.objectif}
+                onChange={(e) => {
+                  formik.setFieldValue(
+                    "objectif",
+                    Number(e.currentTarget.value)
+                  );
+                  formik.setFieldTouched("objectif", true);
+                }}
+                error={formik.errors.objectif}
+              />
+            </form>
+          ) : (
+            <>
+              {objectif || 0} /{" "}
+              <HideShow>{round(total * (objectif || 0))}</HideShow>
+            </>
+          )}
+        </div>
+        <div className="py-2 px-6 text-center w-60 hidden md:block">
+          <Button
+            onClick={() => {
+              removePosition({ variables: { _id } });
+            }}
+          >
+            <AiOutlineDelete />
+          </Button>
+          {/* <Button
           className="ml-2"
           onClick={() => {
             // setEditPositionShowing(position);
@@ -284,20 +314,22 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           Edit
         </Button> */}
-        <Button
-          className="ml-2"
-          onClick={() => {
-            updatePosition({
-              variables: {
-                _id,
-              },
-            });
-          }}
-        >
-          <AiOutlineReload />
-        </Button>
+          <Button
+            className="ml-2"
+            onClick={() => {
+              updatePosition({
+                variables: {
+                  _id,
+                },
+              });
+            }}
+          >
+            <AiOutlineReload />
+          </Button>
+        </div>
       </div>
-    </div>
+    ),
+    [market]
   );
 };
 

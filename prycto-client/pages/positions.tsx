@@ -19,6 +19,7 @@ import { useExchange } from "../context/exchange";
 import { FormattedMessage } from "react-intl";
 import { AiOutlinePlus } from "react-icons/ai";
 import Head from "next/head";
+import { useRouter } from "next/dist/client/router";
 
 const sortFunction =
   (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
@@ -38,6 +39,7 @@ const sortFunction =
   };
 
 const Positions = () => {
+  const router = useRouter();
   const { exchangeId, loading: loadingExchange } = useExchange();
   const [positions, setPositions] = useState<
     (Position & {
@@ -47,9 +49,13 @@ const Positions = () => {
       total: number;
     })[]
   >([]);
-  const [sort, setSort] = useState({ sort: "asc", key: "pair" });
+  const [sort, setSort] = useState<{ sort: string; key: string } | null>(null);
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
-  const { markets, refetch: refetchMarkets } = useMarket() as ContextMarkets;
+  const {
+    markets,
+    refetch: refetchMarkets,
+    loading: loadingMarkets,
+  } = useMarket() as ContextMarkets;
   // const [editPositionShowing, setEditPositionShowing] = useState<any>();
 
   const { data, loading, refetch } = useQuery<PositionsQuery>(
@@ -75,6 +81,22 @@ const Positions = () => {
   const positionsOriginal = useMemo(() => {
     return ((data && data.positions) || []).map((position) => {
       const { available, locked } = position;
+      const market = 0;
+      const total = Number(available || 0) + (Number(locked || 0) || 0);
+      const profit = market * total - position.investment;
+      return {
+        ...position,
+        market,
+        profitPercent: (profit * 100) / (position.investment || 1),
+        profit,
+        total,
+      };
+    });
+  }, [data]);
+
+  const withMarket = (positionsOriginal: any[]) => {
+    return positionsOriginal.map((position) => {
+      const { available, locked } = position;
       const market = (markets && markets[position.pair]) || 0;
       const total = Number(available || 0) + (Number(locked || 0) || 0);
       const profit = market * total - position.investment;
@@ -86,61 +108,65 @@ const Positions = () => {
         total,
       };
     });
-  }, [data, markets]);
+  };
 
   const handleSort = (key: string) => () => {
     if (positionsOriginal) {
       const sortTmp = {
         ...sort,
-        sort: sort.sort === "asc" ? "desc" : "asc",
+        sort: sort && sort.sort === "asc" ? "desc" : "asc",
         key,
       };
+      localStorage.setItem("sort", JSON.stringify(sortTmp));
+      console.log("handleSort");
       setSort(sortTmp);
-      setPositions(sortFunction(sortTmp)(positionsOriginal));
+      // setPositions(sortFunction(sortTmp)(withMarket(positionsOriginal)));
     }
   };
 
   useEffect(() => {
     const sortStorageString = localStorage.getItem("sort");
-    if (sortStorageString) {
+    if (sortStorageString && !loadingMarkets) {
       try {
         const sortStorage = JSON.parse(sortStorageString);
         setSort(sortStorage);
-      } catch (e) {}
+      } catch (e) {
+        setSort({ sort: "asc", key: "pair" });
+      }
     }
-  }, []);
+  }, [loadingMarkets]);
 
-  useEffect(
-    () => () => localStorage.setItem("sort", JSON.stringify(sort)),
-    [sort]
-  );
+  // useEffect(() => {
+  //   if (sort && positionsOriginal) {
+  //     console.log('useEffect')
+  //     setPositions(sortFunction(sort)(withMarket(positionsOriginal)));
+  //   }
+  // }, [sort]);
 
-  useEffect(() => {
-    if (positionsOriginal) {
-      setPositions(sortFunction(sort)(positionsOriginal));
-    }
-  }, [markets, sort]);
-
-  useEffect(() => {
-    if (positionsOriginal && !loading) {
-      setPositions(sortFunction(sort)(positionsOriginal));
-    }
-  }, [positionsOriginal, loading]);
+  // useEffect(() => {
+  //   if (sort && positionsOriginal && !loading) {
+  //     console.log('useEffect 2')
+  //     setPositions(sortFunction(sort)(withMarket(positionsOriginal)));
+  //   }
+  // }, [sort, positionsOriginal, loading]);
   const totalPnlRender = useMemo(() => <TotalPnl />, []);
   const positionsRender = useMemo(() => {
+    console.log("renter positionsRender");
+    // console.log(sort, markets)
     return (
       <>
-        {positions && (
+        {sort && positionsOriginal && (
           <div>
-            {positions.map((position) => {
-              return <ItemPosition key={position.pair} position={position} />;
-            })}
+            {sortFunction(sort)(withMarket(positionsOriginal)).map(
+              (position) => (
+                <ItemPosition key={position.pair} position={position} />
+              )
+            )}
           </div>
         )}
       </>
     );
-  }, [sort, positions]);
-
+  }, [sort]);
   return useMemo(
     () => (
       <div>
@@ -185,7 +211,8 @@ const Positions = () => {
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
               >
                 <FormattedMessage id="pairs" />
-                {sort.key === "pair" &&
+                {sort &&
+                  sort.key === "pair" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div className="" style={{ width: "80px" }}></div>
@@ -194,7 +221,8 @@ const Positions = () => {
                 onClick={handleSort("amount")}
               >
                 <FormattedMessage id="amount" />
-                {sort.key === "amount" &&
+                {sort &&
+                  sort.key === "amount" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div className="flex-1 py-4 px-6 font-bold uppercase text-sm hidden md:flex">
@@ -205,7 +233,8 @@ const Positions = () => {
                 onClick={handleSort("market")}
               >
                 <FormattedMessage id="market" />
-                {sort.key === "market" &&
+                {sort &&
+                  sort.key === "market" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
@@ -213,7 +242,8 @@ const Positions = () => {
                 onClick={handleSort("investment")}
               >
                 <FormattedMessage id="investment" />
-                {sort.key === "investment" &&
+                {sort &&
+                  sort.key === "investment" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
@@ -221,7 +251,8 @@ const Positions = () => {
                 onClick={handleSort("profitPercent")}
               >
                 <FormattedMessage id="profit" />
-                {sort.key === "profitPercent" &&
+                {sort &&
+                  sort.key === "profitPercent" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
@@ -238,7 +269,8 @@ const Positions = () => {
                   )}
                 </HideShow>
                 )
-                {sort.key === "objectif" &&
+                {sort &&
+                  sort.key === "objectif" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div className="py-4 px-6 font-bold uppercase text-sm text-center w-60 hidden md:flex justify-center">
@@ -253,9 +285,11 @@ const Positions = () => {
               </div>
             </div>
           </div>
-          {!loading && positionsRender}
-          {loading && (
-            <div className="flex-1 text-center text-gray-200"><FormattedMessage id="loading" /></div>
+          {!loading && !loadingMarkets && sort && positionsRender}
+          {(loading || loadingMarkets || !sort) && (
+            <div className="flex-1 text-center text-gray-200">
+              <FormattedMessage id="loading" />
+            </div>
           )}
         </div>
       </div>

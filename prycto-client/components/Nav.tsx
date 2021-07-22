@@ -33,7 +33,7 @@ const Nav = () => {
 
   const intl = useIntl();
   return (
-    <nav className="bg-gray-800 pt-2 md:pt-1 pb-1 px-1 w-full">
+    <nav className="bg-gray-800 pt-2 md:pt-1 pb-1 px-1 w-full z-10">
       <div className="flex flex-1 flex-wrap items-baseline md:items-center">
         <Link href="/positions">
           <a title="Prycto">
@@ -60,7 +60,7 @@ const Nav = () => {
             }}
           />
         </div>
-        <div className="flex-1 order-last md:order-none">
+        <div className="flex-1 order-last md:order-none overflow-x-auto">
           <Tabs />
         </div>
         <div className="flex h-12 md:justify-end">
@@ -73,10 +73,9 @@ const Nav = () => {
             {!isHide && <AiFillEye />}
             {isHide && <AiFillEyeInvisible />}
           </button>
-          <div className="inline-blok mr-3 w-36">
+          <div className="inline-blok mr-3">
             <Select
-              menuPlacement="auto"
-              isSearchable={false}
+              placeholder={<FormattedMessage id="exchanges" />}
               value={
                 data &&
                 data.exchanges
@@ -88,7 +87,7 @@ const Nav = () => {
               }
               onChange={(value) => {
                 if (value) {
-                  setExchangeId(value.value);
+                  setExchangeId(value);
                 }
               }}
               options={

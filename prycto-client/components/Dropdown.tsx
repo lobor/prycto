@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
+import { AiOutlineDown } from "react-icons/ai";
 
 interface DropdownProps {
   menu: {
@@ -9,23 +10,17 @@ interface DropdownProps {
   label: React.ReactNode;
 }
 const Dropdown = ({ menu, label }: DropdownProps) => {
-  const [open, setOpen] = useState(false);
-  const handleClose = () => {
-    if (open) {
-      setTimeout(() => setOpen(false), 100);
-    }
-  };
+  // const [open, setOpen] = useState(false);
+  // const handleClose = () => {
+  //   if (open) {
+  //     setTimeout(() => setOpen(false), 100);
+  //   }
+  // };
   return (
-    <Menu
-      as="div"
-      className="relative inline-block text-left h-full"
-    >
-      <Menu.Button className="inline-flex items-center h-full justify-center w-full px-4 py-2 text-sm font-medium text-gray-200 bg-gray-900 rounded-md hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
+    <Menu as="div" className="relative inline-block text-left h-full">
+      <Menu.Button className="inline-flex items-center h-full justify-center w-full px-4 py-2 font-medium text-gray-200 bg-gray-900 rounded-md hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
         {label}
-        {/* <ChevronDownIcon
-            className="w-5 h-5 ml-2 -mr-1 text-violet-200 hover:text-violet-100"
-            aria-hidden="true"
-          /> */}
+        <AiOutlineDown className="w-5 h-3 ml-2 -mr-1" />
       </Menu.Button>
       <Transition
         as={Fragment}
@@ -40,8 +35,8 @@ const Dropdown = ({ menu, label }: DropdownProps) => {
           <div className="py-1 ">
             {menu.map((el, i) => {
               return (
-                <Menu.Item key={`menu-${i}`} disabled={el.disabled}>
-                  {({ active }) => el.component}
+                <Menu.Item key={`menu-${i}`}>
+                  {({ active }) => <span>{el.component}</span>}
                 </Menu.Item>
               );
             })}

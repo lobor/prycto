@@ -10,24 +10,6 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-/* @layer components {
-  .btn-select {
-    @apply cursor-default relative w-full rounded-md border border-gray-300 bg-white pl-3 pr-10 py-2 text-left  transition ease-in-out duration-150;
-  }
-} */
-
-@layer components {
-  .select-container, .select-container .select__control{
-    @apply h-full;
-  }
-  .select-container .select__control {
-    @apply bg-gray-900 border-0 text-gray-200;
-  }
-  .select-container .select__menu, .select-container .select__option, .select-container .select__single-value {
-    @apply bg-gray-900 border-0 text-gray-200;
-  }
-}
-
 html,
 body,
 #__next {

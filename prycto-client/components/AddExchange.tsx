@@ -49,15 +49,14 @@ const AddPosition = ({ onSubmit, onCancel }: AddPositionProps) => {
                 label={<FormattedMessage id="exchange" />}
               >
                 <Select
-                  id="exchange"
-                  name="exchange"
+                  placeholder={<FormattedMessage id="exchange" />}
                   value={optionsExchange.find(
                     ({ value }) => value === formik.values.exchange
                   )}
                   options={optionsExchange}
                   onChange={(e) => {
                     if (e) {
-                      formik.setFieldValue("exchange", e.value);
+                      formik.setFieldValue("exchange", e);
                       formik.setFieldTouched("exchange", true);
                     }
                   }}
