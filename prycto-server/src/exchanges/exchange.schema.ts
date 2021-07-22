@@ -24,6 +24,9 @@ export class Exchange {
 
   @Prop({ type: Object })
   balance: Record<string, { locked: number; available: number }>;
+
+  @Prop({ required: true })
+  userId: string;
 }
 
 export const ExchangeSchema = SchemaFactory.createForClass(Exchange);

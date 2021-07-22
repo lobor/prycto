@@ -24,7 +24,7 @@ export class HistoryResolver {
   ): Promise<History[]> {
     const position = await this.positionsService.findById(positionId);
     if (!position) {
-      new NotFoundException();
+      throw new NotFoundException();
     }
     return this.appService.getHistoryByExchangeId({
       exchangeId: position.exchangeId,

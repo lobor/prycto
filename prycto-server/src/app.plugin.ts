@@ -3,29 +3,26 @@ import {
   ApolloServerPlugin,
   GraphQLRequestListener,
 } from 'apollo-server-plugin-base';
+import { Logger } from '@nestjs/common';
 
 @Plugin()
 export class LoggingPlugin implements ApolloServerPlugin {
+  private readonly logger = new Logger('graphql');
   requestDidStart(ctx): GraphQLRequestListener {
     const start = Date.now();
     const nameOperation = ctx.request.operationName;
-    ctx.logger.info(`request:graphql:nameOperation:${nameOperation}`);
-    // ctx.logger.info({
-    //   side: 'request',
-    //   microservice: 'graphql',
-    //   controller: nameOperation,
-    // });
     return {
-      willSendResponse(ctxResponse) {
-        ctxResponse.logger.info(
-          `request:graphql:nameOperation:${nameOperation} - ${Date.now() - start}ms`,
+      willSendResponse: () => {
+        this.logger.log(
+          `response:graphql:${nameOperation} - ${Date.now() - start}ms`,
         );
-        // ctxResponse.logger.info({
-        //   side: 'response',
-        //   microservice: 'graphql',
-        //   controller: nameOperation,
-        //   executionTime: Date.now() - start,
-        // });
+      },
+      didEncounterErrors: (e) => {
+        // console.log(e);
+        this.logger.error(
+          `response:graphql:${nameOperation}`,
+          e.errors[0].message,
+        );
       },
     };
   }

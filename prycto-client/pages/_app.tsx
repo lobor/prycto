@@ -33,8 +33,7 @@ const setAuthorizationLink = setContext((request, previousContext) => ({
 const errorLink = onError((args) => {
   if (args.graphQLErrors) {
     const error = args.graphQLErrors[0] as { message?: { id?: string } };
-    console.log(error);
-    if (error.message === "notLogin") {
+    if (error.message === "notLogin" && !window.location.href.match(/(login|register)/i)) {
       localStorage.clear();
       window.location.href = "/login";
       return;

@@ -1,9 +1,10 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Exchange } from './model';
 import { ExchangeService } from './service';
 import { AppService } from 'src/app.service';
 import { AuthGuard } from 'src/user/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
+import { User } from 'src/user/user.schema';
 
 @Resolver(() => Exchange)
 export class EchangeResolver {
@@ -27,6 +28,7 @@ export class EchangeResolver {
   @Mutation(() => Exchange)
   @UseGuards(AuthGuard)
   async addExchange(
+    @Context() ctx: { user: User },
     @Args('secretKey') secretKey: string,
     @Args('publicKey') publicKey: string,
     @Args('exchange') exchange: string,
@@ -37,6 +39,7 @@ export class EchangeResolver {
       name,
       secretKey: this.appService.encrypt(secretKey),
       publicKey: this.appService.encrypt(publicKey),
+      userId: ctx.user._id,
     });
     this.appService.addExchange({
       ...exchangeSaved,

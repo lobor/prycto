@@ -19,6 +19,9 @@ export class Position {
   @Prop({ required: true })
   exchangeId: string;
 
+  @Prop({ required: true })
+  userId: string;
+
   @Prop({ type: Number })
   objectif: number;
 }

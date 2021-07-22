@@ -16,6 +16,7 @@ import { ExchangeService } from 'src/exchanges/service';
 import { AppService } from 'src/app.service';
 import { SocketExchangeService } from 'src/socketExchange/socketExchange.service';
 import { AuthGuard } from 'src/user/guards/auth.guard';
+import { User } from 'src/user/user.schema';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -29,11 +30,12 @@ export class PositionsResolver {
   @Query(() => [Position])
   @UseGuards(AuthGuard)
   async positions(
+    @Context() ctx: { user: User },
     @Args('exchangeId', { type: () => ID }) exchangeId: string,
   ): Promise<Position[]> {
     const exchange = await this.exchangeService.findById(exchangeId);
-    if (!exchange) {
-      new NotFoundException();
+    if (!exchange || ctx.user._id.toString() !== exchange.userId) {
+      throw new NotFoundException();
     }
     const positions = await this.positionService.findByExchangeId(exchangeId);
     return positions.map((position) => {
@@ -52,7 +54,7 @@ export class PositionsResolver {
     const { exchangeId, pair } = position;
     const exchange = (await this.exchangeService.findById(exchangeId)).toJSON();
     if (!exchange) {
-      new NotFoundException();
+      throw new NotFoundException();
     }
     return pair.split('/').reduce((acc, symbol) => {
       acc[symbol] =
@@ -65,14 +67,17 @@ export class PositionsResolver {
 
   @Query(() => Position)
   @UseGuards(AuthGuard)
-  async position(@Args('_id') _id: string): Promise<Position> {
+  async position(
+    @Context() ctx: { user: User },
+    @Args('_id') _id: string,
+  ): Promise<Position> {
     const position = await this.positionService.findById(_id);
-    if (!position) {
-      new NotFoundException();
+    if (!position || ctx.user._id.toString() !== position.userId) {
+      throw new NotFoundException();
     }
     const exchange = await this.exchangeService.findById(position.exchangeId);
     if (!exchange) {
-      new NotFoundException();
+      throw new NotFoundException();
     }
     const [asset1] = position.pair.split('/');
     return {
@@ -181,7 +186,7 @@ export class PositionsResolver {
   @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
   async addPosition(
-    @Context() ctx: { exchangeId: string },
+    @Context() ctx: { exchangeId: string; user: User },
     @Args('symbol') symbol: string,
   ): Promise<Position> {
     const exchange = await this.exchangeService.findById(ctx.exchangeId);
@@ -205,6 +210,7 @@ export class PositionsResolver {
       investment: 0,
       available: 0,
       objectif: 0,
+      userId: ctx.user._id,
     };
     let investment = 0;
     historiesOnPosition.forEach((order) => {
