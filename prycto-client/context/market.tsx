@@ -72,12 +72,12 @@ function useMarket(symbol?: string) {
 
   useEffect(() => {
     if (data) {
-      setPriceMarket({ ...priceMarket, ...data.getMarkets });
+      setPriceMarket((prev) => ({ ...prev, ...data.getMarkets }));
     }
   }, [data]);
   useEffect(() => {
     if (dataMore) {
-      setPriceMarket({ ...priceMarket, ...dataMore.marketHit });
+      setPriceMarket((prev) => ({ ...prev, ...dataMore.marketHit }));
     }
   }, [dataMore]);
 

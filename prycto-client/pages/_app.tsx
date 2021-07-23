@@ -1,6 +1,7 @@
 import "tailwindcss/tailwind.css";
 import "../styles/nav.css";
 import "../styles/globals.css";
+import 'simplebar/dist/simplebar.min.css';
 import type { AppProps } from "next/app";
 import {
   ApolloClient,
@@ -111,7 +112,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 }}
               >
                 {showLayout && <Nav />}
-                <div className="flex flex-col flex-1 h-full">
+                <div className="flex flex-col flex-1 overflow-hidden">
                   <div className="main-content flex-1 bg-gray-800 flex flex-wrap h-full w-full getDiv flex-col">
                     <Component {...pageProps} />
                   </div>

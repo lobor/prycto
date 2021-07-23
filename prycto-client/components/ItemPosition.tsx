@@ -5,7 +5,7 @@ import classnames from "tailwindcss-classnames";
 import { useTabsContext } from "../context/tabs";
 import round from "../utils/round";
 import HideShow from "./HideShow";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
@@ -22,29 +22,9 @@ import {
   GetHistoryBySymbolDocument,
   GetHistoryBySymbolQuery,
 } from "../generated/graphql";
-import {
-  VictoryChart,
-  VictoryLine,
-  VictoryAxis,
-  VictoryGroup,
-  VictoryArea,
-} from "victory";
-
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
-import { useMarket } from "../context/market";
+import { VictoryChart, VictoryAxis, VictoryArea } from "victory";
 import { useExchange } from "../context/exchange";
 import { AiOutlineDelete, AiOutlineReload } from "react-icons/ai";
-import WithMarket from "./WithMarket";
 
 export interface ItemPositionProps {
   position: Position & {
@@ -66,19 +46,16 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     _id,
     pair: symbol,
     investment,
-    // profit = 0,
+    profit = 0,
     objectif,
-    available,
-    locked,
-    // total,
+    market,
+    total,
   } = position;
   const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
     ExchangeByIdDocument,
     { variables: { _id: position.exchangeId } }
   );
-  const market = 0;
-  // const market = useMarket(symbol) as number;
   const [isEditObjectif, setEditObjectif] = useState(false);
   const router = useRouter();
   const [editPosition, { data, loading }] = useMutation(EditPositionDocument, {
@@ -98,10 +75,6 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     },
   });
 
-  const total = Number(available || 0) + (Number(locked || 0) || 0);
-  const profit = 0;
-  // const profit = market * total - position.investment;
-
   const { data: dataHistory } = useQuery<GetHistoryBySymbolQuery>(
     GetHistoryBySymbolDocument,
     { variables: { symbol, limit: 30 } }
@@ -115,9 +88,9 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     },
   });
   const { addTab, selectTab } = useTabsContext();
-  const handleEditObjectif = useCallback(() => {
+  const handleEditObjectif = () => {
     setEditObjectif(!isEditObjectif);
-  }, [isEditObjectif]);
+  };
 
   const formik = useFormik({
     validationSchema: Yup.object({
@@ -163,51 +136,45 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
 
   const chart = useMemo(() => {
     return (
-      <WithMarket symbol={symbol}>
-        {({ market }) => (
-          <>
-            <VictoryChart
-              width={1}
-              height={50}
-              style={{
-                parent: { width: "80px", height: "40px" },
-              }}
-              // scale={{ x: "time" }}
-              // domainPadding={{ x: 0, y: 0 }}
-              minDomain={{ y: min }}
-            >
-              <VictoryArea
-                style={{
-                  data: { stroke: "rgb(59, 130, 246)" },
-                }}
-                data={[
-                  ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
-                  { timestamp: Date.now(), close: market },
-                ]}
-                x="timestamp"
-                y="close"
-              />
-              <VictoryAxis
-                invertAxis
-                tickFormat={() => ""}
-                style={{
-                  axisLabel: { color: "transparent" },
-                  axis: { stroke: "none" },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                invertAxis
-                tickFormat={() => ""}
-                style={{
-                  axisLabel: { color: "transparent" },
-                  axis: { stroke: "none" },
-                }}
-              />
-            </VictoryChart>
-          </>
-        )}
-      </WithMarket>
+      <VictoryChart
+        width={1}
+        height={50}
+        style={{
+          parent: { width: "80px", height: "40px" },
+        }}
+        // scale={{ x: "time" }}
+        // domainPadding={{ x: 0, y: 0 }}
+        minDomain={{ y: min }}
+      >
+        <VictoryArea
+          style={{
+            data: { stroke: "rgb(59, 130, 246)" },
+          }}
+          data={[
+            ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
+            { timestamp: Date.now(), close: market },
+          ]}
+          x="timestamp"
+          y="close"
+        />
+        <VictoryAxis
+          invertAxis
+          tickFormat={() => ""}
+          style={{
+            axisLabel: { color: "transparent" },
+            axis: { stroke: "none" },
+          }}
+        />
+        <VictoryAxis
+          dependentAxis
+          invertAxis
+          tickFormat={() => ""}
+          style={{
+            axisLabel: { color: "transparent" },
+            axis: { stroke: "none" },
+          }}
+        />
+      </VictoryChart>
     );
   }, [dataHistory, market]);
   return useMemo(
@@ -238,37 +205,24 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         <div className="py-2 px-6 hidden md:block flex-1">
           <HideShow>{round(total === 0 ? 0 : investment / total, 8)}</HideShow>
         </div>
-        <div className="py-2 px-6 hidden md:block flex-1">
-          <WithMarket symbol={symbol}>{({ market }) => market}</WithMarket>
-        </div>
+        <div className="py-2 px-6 hidden md:block flex-1">{market}</div>
         <div className="py-2 px-6 hidden md:block flex-1">
           <HideShow>{round(investment)}</HideShow> /{" "}
           <span className="text-gray-400">
-            <HideShow>
-              <WithMarket symbol={symbol}>
-                {({ market }) => round(market * total)}
-              </WithMarket>
-            </HideShow>
+            <HideShow>{round(market * total)}</HideShow>
           </span>
         </div>
-        <WithMarket symbol={symbol}>
-          {({ market }) => {
-            const profit = market * total - position.investment;
-            return (
-              <div
-                className={classnames("py-2", "px-6", "flex-1", {
-                  "text-green-500": profit >= 0,
-                  "text-red-600": profit < 0,
-                })}
-              >
-                <HideShow>{round(profit)}</HideShow>{" "}
-                <div className="block md:hidden" />(
-                {round((profit * 100) / (investment || 1))}
-                %)
-              </div>
-            );
-          }}
-        </WithMarket>
+        <div
+          className={classnames("py-2", "px-6", "flex-1", {
+            "text-green-500": profit >= 0,
+            "text-red-600": profit < 0,
+          })}
+        >
+          <HideShow>{round(profit)}</HideShow>{" "}
+          <div className="block md:hidden" />(
+          {round((profit * 100) / (investment || 1))}
+          %)
+        </div>
         <div
           className="py-2 px-6 hidden md:block flex-1 cursor-pointer"
           onClick={handleEditObjectif}
@@ -329,7 +283,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         </div>
       </div>
     ),
-    [market]
+    [market, isEditObjectif, formik]
   );
 };
 

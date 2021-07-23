@@ -38,14 +38,6 @@ export default function Home() {
     }
   }, [dataUser, loadingUser]);
 
-  if (loadingUser) {
-    return (
-      <div className="m-auto flex justify-center w-full">
-        <Loading />
-      </div>
-    );
-  }
-
   const formik = useFormik({
     validationSchema: Yup.object({
       email: Yup.string().email().required(),
@@ -66,6 +58,15 @@ export default function Home() {
       register({ variables: values });
     },
   });
+
+  if (loadingUser) {
+    return (
+      <div className="m-auto flex justify-center w-full">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Head>

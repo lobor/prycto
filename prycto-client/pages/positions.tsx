@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import Button from "../components/Button";
 import AddPosition from "../components/AddPosition";
 import HideShow from "../components/HideShow";
-import TotalPnl from "../components/totalPnl";
-import ItemPosition from "../components/ItemPosition";
+// import TotalPnl from "../components/totalPnl";
+// import ItemPosition from "../components/ItemPosition";
 import { ContextMarkets, useMarket } from "../context/market";
 import { round } from "lodash";
 import { useMutation, useQuery } from "@apollo/client";
@@ -19,7 +19,9 @@ import { useExchange } from "../context/exchange";
 import { FormattedMessage } from "react-intl";
 import { AiOutlinePlus } from "react-icons/ai";
 import Head from "next/head";
-import { useRouter } from "next/dist/client/router";
+import ItemPosition from "../components/ItemPosition";
+import SimpleBarReact from "simplebar-react";
+import { AutoSizer } from "react-virtualized";
 
 const sortFunction =
   (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
@@ -39,16 +41,7 @@ const sortFunction =
   };
 
 const Positions = () => {
-  const router = useRouter();
   const { exchangeId, loading: loadingExchange } = useExchange();
-  const [positions, setPositions] = useState<
-    (Position & {
-      market: number;
-      profit: number;
-      profitPercent: number;
-      total: number;
-    })[]
-  >([]);
   const [sort, setSort] = useState<{ sort: string; key: string } | null>(null);
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   const {
@@ -81,22 +74,6 @@ const Positions = () => {
   const positionsOriginal = useMemo(() => {
     return ((data && data.positions) || []).map((position) => {
       const { available, locked } = position;
-      const market = 0;
-      const total = Number(available || 0) + (Number(locked || 0) || 0);
-      const profit = market * total - position.investment;
-      return {
-        ...position,
-        market,
-        profitPercent: (profit * 100) / (position.investment || 1),
-        profit,
-        total,
-      };
-    });
-  }, [data]);
-
-  const withMarket = (positionsOriginal: any[]) => {
-    return positionsOriginal.map((position) => {
-      const { available, locked } = position;
       const market = (markets && markets[position.pair]) || 0;
       const total = Number(available || 0) + (Number(locked || 0) || 0);
       const profit = market * total - position.investment;
@@ -108,7 +85,7 @@ const Positions = () => {
         total,
       };
     });
-  };
+  }, [data, markets]);
 
   const handleSort = (key: string) => () => {
     if (positionsOriginal) {
@@ -118,9 +95,7 @@ const Positions = () => {
         key,
       };
       localStorage.setItem("sort", JSON.stringify(sortTmp));
-      console.log("handleSort");
       setSort(sortTmp);
-      // setPositions(sortFunction(sortTmp)(withMarket(positionsOriginal)));
     }
   };
 
@@ -136,46 +111,38 @@ const Positions = () => {
     }
   }, [loadingMarkets]);
 
-  // useEffect(() => {
-  //   if (sort && positionsOriginal) {
-  //     console.log('useEffect')
-  //     setPositions(sortFunction(sort)(withMarket(positionsOriginal)));
-  //   }
-  // }, [sort]);
-
-  // useEffect(() => {
-  //   if (sort && positionsOriginal && !loading) {
-  //     console.log('useEffect 2')
-  //     setPositions(sortFunction(sort)(withMarket(positionsOriginal)));
-  //   }
-  // }, [sort, positionsOriginal, loading]);
-  const totalPnlRender = useMemo(() => <TotalPnl />, []);
+  // const totalPnlRender = useMemo(() => <TotalPnl />, []);
   const positionsRender = useMemo(() => {
-    console.log("renter positionsRender");
-    // console.log(sort, markets)
     return (
-      <>
-        {sort && positionsOriginal && (
-          <div>
-            {sortFunction(sort)(withMarket(positionsOriginal)).map(
-              (position) => (
-                <ItemPosition key={position.pair} position={position} />
-              )
+      <AutoSizer>
+        {({ height, width }) => (
+          <SimpleBarReact
+            className="flex-1"
+            style={{ height, width }}
+            forceVisible="y"
+            autoHide={false}
+          >
+            {sort && positionsOriginal && (
+              <div>
+                {sortFunction(sort)(positionsOriginal).map((position) => (
+                  <ItemPosition key={position.pair} position={position} />
+                ))}
+              </div>
             )}
-          </div>
+          </SimpleBarReact>
         )}
-      </>
+      </AutoSizer>
     );
-  }, [sort]);
+  }, [sort, positionsOriginal]);
   return useMemo(
     () => (
-      <div>
+      <div className="flex-1 flex flex-col h-full">
         <Head>
           <title>Positions - Prycto</title>
           <meta name="description" content="Positions - Prycto" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
-        {totalPnlRender}
+        {/* {totalPnlRender} */}
         {addPosisitonShowing && (
           <AddPosition
             onSubmit={(e) => {
@@ -203,7 +170,7 @@ const Positions = () => {
             }}
           />
         )} */}
-        <div className="shadow-md mt-6 flex-1">
+        <div className="shadow-md flex-1 flex flex-col">
           <div className="w-full">
             <div className="w-full bg-gray-900 text-gray-200 flex flex-row items-center">
               <div
@@ -262,7 +229,7 @@ const Positions = () => {
                 <FormattedMessage id="goal" /> (
                 <HideShow>
                   {round(
-                    positions.reduce((acc, { objectif, total }) => {
+                    positionsOriginal.reduce((acc, { objectif, total }) => {
                       acc += (objectif || 0) * total;
                       return acc;
                     }, 0)
@@ -285,7 +252,9 @@ const Positions = () => {
               </div>
             </div>
           </div>
-          {!loading && !loadingMarkets && sort && positionsRender}
+          <div className="flex-1 overflow-hidden">
+            {!loading && !loadingMarkets && sort && positionsRender}
+          </div>
           {(loading || loadingMarkets || !sort) && (
             <div className="flex-1 text-center text-gray-200">
               <FormattedMessage id="loading" />
@@ -294,7 +263,7 @@ const Positions = () => {
         </div>
       </div>
     ),
-    [addPosisitonShowing, positions, sort]
+    [addPosisitonShowing, positionsOriginal, sort]
   );
 };
 

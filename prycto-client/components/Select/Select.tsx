@@ -3,6 +3,7 @@ import { Fragment, ReactNode } from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
 interface SelectProps {
+  className?: string;
   error?: string | false;
   value?: {
     value: string;
@@ -16,6 +17,7 @@ interface SelectProps {
   placeholder?: ReactNode;
 }
 const Select = ({
+  className,
   error,
   value,
   options,
@@ -23,7 +25,7 @@ const Select = ({
   placeholder,
 }: SelectProps) => {
   return (
-    <Listbox as="div" value={value && value.value} onChange={onChange} className="relative h-full">
+    <Listbox as="div" value={value && value.value} onChange={onChange} className={`relative h-full ${className || ''}`}>
       <Listbox.Button className="bg-gray-900 border-0 text-gray-200 h-full focus:outline-none rounded-md px-4 py-2 flex justify-center items-center">
         {(value && value.label) || placeholder}
         <AiOutlineDown className="w-5 h-3 ml-2 -mr-1" />
