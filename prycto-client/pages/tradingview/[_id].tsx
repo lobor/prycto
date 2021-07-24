@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
 import { format } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMarket } from "../../context/market";
 import { useTabsContext, Tab } from "../../context/tabs";
 import HideShow from "../../components/HideShow";
@@ -16,12 +16,11 @@ import {
   PositionsQuery,
 } from "../../generated/graphql";
 import round from "../../utils/round";
-import { AiOutlineDown, AiOutlineExpandAlt, AiOutlineUp } from "react-icons/ai";
+import { AiOutlineExpandAlt, AiOutlineUp } from "react-icons/ai";
 import { useExchange } from "../../context/exchange";
-import Loading from "../../components/Loading";
-import Button from "../../components/Button";
 import SimpleBarReact from "simplebar-react";
 import { AutoSizer } from "react-virtualized";
+import QuickPositions from "../../components/QuickPositions";
 
 declare global {
   interface Window {
@@ -32,8 +31,7 @@ declare global {
 const view: Record<string, any> = {};
 
 export default function Trade() {
-  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
-  const { selected, tabs, addTab, selectTab } = useTabsContext();
+  const { selected, tabs } = useTabsContext();
   const router = useRouter();
   const div = useRef<any>(null);
   const pair = tabs
@@ -46,12 +44,6 @@ export default function Trade() {
     variables: { _id },
     skip: !_id,
   });
-
-  const { data: dataPositions, loading: loadingPosition } =
-    useQuery<PositionsQuery>(PositionsDocument, {
-      variables: { exchangeId },
-      skip: loadingExchange || !exchangeId,
-    });
 
   const [showHistory, setShowHistory] = useState(false);
 
@@ -117,6 +109,10 @@ export default function Trade() {
         (data.position.investment || 0)) ||
     0;
 
+  const quickPositionsRender = useMemo(() => {
+    return <QuickPositions />;
+  }, []);
+
   return (
     <>
       <Head>
@@ -126,51 +122,7 @@ export default function Trade() {
       </Head>
       <div className="flex flex-1 flex-col h-full">
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <SimpleBarReact
-            className="hidden md:flex flex-col w-50"
-            style={{ width: 200 }}
-            forceVisible="y"
-            autoHide={false}
-          >
-            {loadingPosition && (
-              <div className="flex flex-1 items-center justify-center">
-                <Loading />
-              </div>
-            )}
-            {!loadingPosition &&
-              dataPositions &&
-              dataPositions.positions.map((position) => {
-                const { _id, pair: symbol } = position;
-                return (
-                  <div className="py-2 px-6 flex-1 flex items-center">
-                    <img
-                      src={`/${exchange}.ico`}
-                      className="inline-block mr-2"
-                      width="20"
-                      alt={exchange}
-                    />
-                    <Button
-                      variant="link"
-                      className="inline-block"
-                      onClick={() => {
-                        const pathname = `/tradingview/${_id}?pair=${symbol}`;
-                        addTab({
-                          key: symbol,
-                          label: symbol,
-                          canClose: true,
-                          exchange,
-                          href: pathname,
-                        });
-                        router.push(pathname);
-                        selectTab(symbol);
-                      }}
-                    >
-                      {symbol}
-                    </Button>
-                  </div>
-                );
-              })}
-          </SimpleBarReact>
+          {quickPositionsRender}
           {pair && process.browser && (
             <div className="flex flex-1 flex-row">
               <div className="flex-1" id={`container-${pair.label}`} />
@@ -254,45 +206,48 @@ export default function Trade() {
                   <AutoSizer>
                     {({ width, height }) => (
                       <SimpleBarReact
-                      style={{ width, height }}
-                      forceVisible="y"
-                      autoHide={false}
-                    >
-                      {historyOrder?.getHistoryOrderBySymbol
-                        .slice()
-                        .sort((a, b) => b.timestamp - a.timestamp)
-                        .map((order) => {
-                          return (
-                            <div
-                              key={`symbol${order.timestamp}`}
-                              className="flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center p-1"
-                            >
-                              <div className="flex-1">
-                                {format(order.timestamp, "MM/dd/yyyy HH:mm:ss")}
-                              </div>
-                              <div className="flex-1">{order.symbol}</div>
-                              <div className="flex-1">{order.price}</div>
-                              <div className="flex-1">
-                                <HideShow>{order.amount}</HideShow>
-                              </div>
-                              <div className="flex-1">
-                                <HideShow>{order.cost}</HideShow>
-                              </div>
-                              <div className="flex-1">{order.type}</div>
+                        style={{ width, height }}
+                        forceVisible="y"
+                        autoHide={false}
+                      >
+                        {historyOrder?.getHistoryOrderBySymbol
+                          .slice()
+                          .sort((a, b) => b.timestamp - a.timestamp)
+                          .map((order) => {
+                            return (
                               <div
-                                className={`flex-1 ${
-                                  order.side === "sell"
-                                    ? "text-red-600"
-                                    : "text-green-500"
-                                }`}
+                                key={`symbol${order.timestamp}`}
+                                className="flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center p-1"
                               >
-                                {order.side}
+                                <div className="flex-1">
+                                  {format(
+                                    order.timestamp,
+                                    "MM/dd/yyyy HH:mm:ss"
+                                  )}
+                                </div>
+                                <div className="flex-1">{order.symbol}</div>
+                                <div className="flex-1">{order.price}</div>
+                                <div className="flex-1">
+                                  <HideShow>{order.amount}</HideShow>
+                                </div>
+                                <div className="flex-1">
+                                  <HideShow>{order.cost}</HideShow>
+                                </div>
+                                <div className="flex-1">{order.type}</div>
+                                <div
+                                  className={`flex-1 ${
+                                    order.side === "sell"
+                                      ? "text-red-600"
+                                      : "text-green-500"
+                                  }`}
+                                >
+                                  {order.side}
+                                </div>
+                                <div className="flex-1">{order.status}</div>
                               </div>
-                              <div className="flex-1">{order.status}</div>
-                            </div>
-                          );
-                        })}
-                    </SimpleBarReact>
+                            );
+                          })}
+                      </SimpleBarReact>
                     )}
                   </AutoSizer>
                 </div>

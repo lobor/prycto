@@ -8,6 +8,9 @@ import {
   BalancesByExchangeIdQueryVariables,
 } from "../generated/graphql";
 import HideShow from "../components/HideShow";
+import round from "../utils/round";
+import SimpleBarReact from "simplebar-react";
+import { AutoSizer } from "react-virtualized";
 
 const Balances = () => {
   const { exchangeId, loading: loadingExchange } = useExchange();
@@ -32,7 +35,7 @@ const Balances = () => {
   // };
 
   return (
-    <div>
+    <div className="flex-1 flex flex-col">
       <Head>
         <title>Balances - Prycto</title>
         <meta name="description" content="Balances - Prycto" />
@@ -73,22 +76,37 @@ const Balances = () => {
               </div>
             </div>
           </div>
-          {Object.keys(data.exchangeById.balance).map((quote) => {
-            const { locked, available } = data.exchangeById.balance[quote];
-            return (
-              <div key={quote} className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center">
-                <div className="py-2 px-6 hidden md:block flex-1">
-                  {quote}
-                </div>
-                <div className="py-2 px-6 hidden md:block flex-1">
-                  <HideShow>{available}</HideShow>
-                </div>
-                <div className="py-2 px-6 hidden md:block flex-1">
-                  <HideShow>{locked}</HideShow>
-                </div>
-              </div>
-            );
-          })}
+          <div className="flex-1">
+            <AutoSizer>
+              {({ width, height }) => (
+                <SimpleBarReact
+                  autoHide
+                  style={{ width, height }}
+                >
+                  {Object.keys(data.exchangeById.balance).map((quote) => {
+                    const { locked, available } =
+                      data.exchangeById.balance[quote];
+                    return (
+                      <div
+                        key={quote}
+                        className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center"
+                      >
+                        <div className="py-2 px-6 hidden md:block flex-1">
+                          {quote}
+                        </div>
+                        <div className="py-2 px-6 hidden md:block flex-1">
+                          <HideShow>{round(available, 7)}</HideShow>
+                        </div>
+                        <div className="py-2 px-6 hidden md:block flex-1">
+                          <HideShow>{locked}</HideShow>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </SimpleBarReact>
+              )}
+            </AutoSizer>
+          </div>
         </>
       )}
     </div>
