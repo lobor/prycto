@@ -13,6 +13,10 @@ export class PairsResolver {
   @UseGuards(AuthGuard)
   @Query(() => [Pair])
   async getPairs(@Context() ctx: { exchangeId: string }): Promise<Pair[]> {
-    return this.appService.getMarketByExchangeId(ctx.exchangeId);
+    try {
+      return this.appService.getMarketByExchangeId(ctx.exchangeId);
+    } catch (e) {
+      return [];
+    }
   }
 }

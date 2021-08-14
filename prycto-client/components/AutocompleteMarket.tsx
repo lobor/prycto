@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, Fragment, useState } from "react";
 import { filter } from "fuzzy";
 import { classnames } from "tailwindcss-classnames";
 import List from "react-virtualized/dist/commonjs/List";
@@ -6,6 +6,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Input from "./Input";
 import { useQuery } from "@apollo/client";
 import { GetPairsDocument, GetPairsQuery, Pair } from "../generated/graphql";
+import { Transition } from "@headlessui/react";
 
 interface AutocompleteMarketProps {
   icon?: boolean;
@@ -69,16 +70,17 @@ const AutocompleteMarket = ({
             }, 200);
           }
         }}
+        autoComplete="off"
         value={value && value.symbol}
         type={type || "text"}
         placeholder={placeholder}
-        className={`w-full bg-gray-900 text-white transition border border-transparent focus:outline-none focus:border-gray-400 rounded py-3 px-2 appearance-none leading-normal ${classnames(
+        className={`w-full bg-gray-900 text-white transition border border-transparent rounded py-3 px-2 appearance-none leading-normal ${classnames(
           { "pl-10": icon }
         )}`}
       />
       {icon && (
         <div
-          className="absolute search-icon"
+          className="absolute search-icon z-20"
           style={{ top: "1rem", left: ".8rem" }}
         >
           <svg
@@ -90,8 +92,19 @@ const AutocompleteMarket = ({
           </svg>
         </div>
       )}
-      {show && (
-        <div className="absolute z-10 bg-gray-900 w-full h-80 overflow-auto">
+      <Transition
+        appear
+        show={show}
+        as={Fragment}
+        enter="ease-out duration-300 transform"
+        enterFrom="h-0"
+        enterTo="h-80"
+        entered="h-80"
+        leave="ease-in duration-200 transform"
+        leaveFrom="h-80"
+        leaveTo="h-0"
+      >
+        <div className="absolute z-10 bg-gray-900 w-full overflow-auto rounded mt-1">
           <AutoSizer>
             {({ width, height }) => (
               <List
@@ -118,7 +131,7 @@ const AutocompleteMarket = ({
             )}
           </AutoSizer>
         </div>
-      )}
+      </Transition>
     </span>
   );
 };

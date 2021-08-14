@@ -21,8 +21,8 @@ export class EchangeResolver {
 
   @Query(() => [Exchange])
   @UseGuards(AuthGuard)
-  async exchanges(): Promise<Exchange[]> {
-    return this.exchangeService.findAll();
+  async exchanges(@Context() ctx: { user: User }): Promise<Exchange[]> {
+    return this.exchangeService.findByUserId(ctx.user._id);
   }
 
   @Mutation(() => Exchange)

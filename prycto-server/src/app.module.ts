@@ -19,9 +19,11 @@ import { PubSubService } from './pub-sub/pub-sub.service';
 import { CoursModule } from './cours/cours.module';
 import { HistoryModule } from './history/history.module';
 import { UserModule } from './user/user.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     GraphQLModule.forRoot({
       autoSchemaFile: 'schema.gql',

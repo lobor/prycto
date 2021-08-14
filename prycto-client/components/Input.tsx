@@ -9,7 +9,7 @@ const Input = (props: InputProps) => {
     <>
       <input
         {...otherProps}
-        className={`bg-gray-900 appearance-none border-2 border-gray-800 rounded-lg w-full py-2 px-4 text-gray-200 leading-tight focus:outline-none shadow-inner focus:border-gray-900 ${classnames(
+        className={`bg-gray-900 appearance-none border-2 border-gray-800 rounded-lg w-full py-2 px-4 text-gray-200 leading-tight focus:outline-none shadow-inner ${classnames(
           ...((className || "").split(" ") as TArg[])
         )}`}
       />

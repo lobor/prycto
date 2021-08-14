@@ -2,5 +2,6 @@ query user {
   user {
     _id
     email
+    lang
   }
 }

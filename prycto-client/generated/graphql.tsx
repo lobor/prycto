@@ -35,7 +35,7 @@ export type Exchange = {
   name: Scalars['String'];
   publicKey: Scalars['String'];
   secretKey: Scalars['String'];
-  balance: Scalars['JSON'];
+  balance?: Maybe<Scalars['JSON']>;
 };
 
 export type History = {
@@ -66,6 +66,7 @@ export type Mutation = {
   login: Scalars['String'];
   register: Scalars['Boolean'];
   logout: Scalars['Boolean'];
+  updateLang: User;
 };
 
 
@@ -120,6 +121,11 @@ export type MutationLogoutArgs = {
   confirmPassword: Scalars['String'];
   password: Scalars['String'];
   email: Scalars['String'];
+};
+
+
+export type MutationUpdateLangArgs = {
+  lang: Scalars['String'];
 };
 
 export type Pair = {
@@ -202,6 +208,7 @@ export type User = {
   tokens: Array<Scalars['String']>;
   password: Scalars['String'];
   createdAt: Scalars['Float'];
+  lang: Scalars['String'];
 };
 
 export type AddExchangeMutationVariables = Exact<{
@@ -425,6 +432,19 @@ export type SyncPositionsMutation = (
   ) }
 );
 
+export type UpdateLangMutationVariables = Exact<{
+  lang: Scalars['String'];
+}>;
+
+
+export type UpdateLangMutation = (
+  { __typename?: 'Mutation' }
+  & { updateLang: (
+    { __typename?: 'User' }
+    & Pick<User, '_id' | 'lang'>
+  ) }
+);
+
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -432,7 +452,7 @@ export type UserQuery = (
   { __typename?: 'Query' }
   & { user: (
     { __typename?: 'User' }
-    & Pick<User, '_id' | 'email'>
+    & Pick<User, '_id' | 'email' | 'lang'>
   ) }
 );
 
@@ -624,11 +644,23 @@ export const SyncPositionsDocument = gql`
 export type SyncPositionsMutationFn = Apollo.MutationFunction<SyncPositionsMutation, SyncPositionsMutationVariables>;
 export type SyncPositionsMutationResult = Apollo.MutationResult<SyncPositionsMutation>;
 export type SyncPositionsMutationOptions = Apollo.BaseMutationOptions<SyncPositionsMutation, SyncPositionsMutationVariables>;
+export const UpdateLangDocument = gql`
+    mutation updateLang($lang: String!) {
+  updateLang(lang: $lang) {
+    _id
+    lang
+  }
+}
+    `;
+export type UpdateLangMutationFn = Apollo.MutationFunction<UpdateLangMutation, UpdateLangMutationVariables>;
+export type UpdateLangMutationResult = Apollo.MutationResult<UpdateLangMutation>;
+export type UpdateLangMutationOptions = Apollo.BaseMutationOptions<UpdateLangMutation, UpdateLangMutationVariables>;
 export const UserDocument = gql`
     query user {
   user {
     _id
     email
+    lang
   }
 }
     `;

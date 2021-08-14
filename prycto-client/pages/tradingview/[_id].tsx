@@ -68,18 +68,14 @@ export default function Trade() {
           toolbar_bg: "#f1f3f6",
           enable_publishing: false,
           container_id: `container-${pair.label}`,
-          // width: 600,
-          // height: 600,
           symbol: `${pair.exchange.toUpperCase()}:${(pair.label as string)
             .replace("/", "")
             .toUpperCase()}`,
           interval: "D",
           theme: "dark",
           style: "1",
-          // "toolbar_bg": "#f1f3f6",
           hide_side_toolbar: false,
           save_image: false,
-          // hideideas: true,
           studies: [
             "CCI@tv-basicstudies",
             "MACD@tv-basicstudies",
@@ -124,7 +120,7 @@ export default function Trade() {
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {quickPositionsRender}
           {pair && process.browser && (
-            <div className="flex flex-1 flex-row">
+            <div className="flex flex-1 flex-row pb-1">
               <div className="flex-1" id={`container-${pair.label}`} />
             </div>
           )}

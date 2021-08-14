@@ -44,4 +44,13 @@ export class UserResolver {
     await this.userService.register(email, password, confirmPassword);
     return true;
   }
+
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async updateLang(
+    @UseUser() user: UserSchema,
+    @Args('lang') lang: string,
+  ): Promise<User> {
+    return this.userService.updateUserById(user._id, { $set: { lang } });
+  }
 }

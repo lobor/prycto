@@ -2,9 +2,8 @@ import {
   ApolloQueryResult,
   OperationVariables,
   useQuery,
-  useSubscription,
 } from "@apollo/client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   GetMarketsDocument,
   GetMarketsQuery,
@@ -47,39 +46,34 @@ const MarketsProvider: React.FC = ({ children }) => {
 
 function useMarket(symbol?: string) {
   const context = React.useContext(MarketsContext);
-  const { exchangeId, loading } = useExchange();
+  const { exchangeId } = useExchange();
   const oldExchangeId = useRef();
   if (context === undefined) {
     throw new Error("useMarket must be used within a MarketProvider");
   }
 
-  const [priceMarket, setPriceMarket] = useState<Record<string, number>>({});
-  // const [skipState, setSkip] = useState(loading);
-  const { data: dataMore } = useSubscription<MarketHitSubscription>(
-    MarketHitDocument,
-    {
-      // fetchPolicy: "network-only",
-      skip: !process.browser || !exchangeId,
-      variables: { exchangeId },
-    }
-  );
-
-  const { data, refetch, loading: loadingMarket } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
+  const {
+    data,
+    refetch,
+    loading: loadingMarket,
+    subscribeToMore,
+    previousData,
+  } = useQuery<GetMarketsQuery>(GetMarketsDocument, {
     skip: !exchangeId || !process.browser,
-    // fetchPolicy: "network-only",
     variables: { exchangeId },
   });
 
   useEffect(() => {
-    if (data) {
-      setPriceMarket((prev) => ({ ...prev, ...data.getMarkets }));
+    if (!previousData) {
+      subscribeToMore<MarketHitSubscription>({
+        document: MarketHitDocument,
+        variables: { exchangeId },
+        updateQuery: (prev, { subscriptionData }) => {
+          return { ...prev, getMarkets: { ...prev.getMarkets, ...subscriptionData.data.marketHit } };
+        },
+      });
     }
-  }, [data]);
-  useEffect(() => {
-    if (dataMore) {
-      setPriceMarket((prev) => ({ ...prev, ...dataMore.marketHit }));
-    }
-  }, [dataMore]);
+  }, [previousData, exchangeId]);
 
   useEffect(() => {
     if (!oldExchangeId.current || oldExchangeId.current !== exchangeId) {
@@ -88,10 +82,15 @@ function useMarket(symbol?: string) {
   }, [exchangeId]);
 
   if (symbol) {
-    return priceMarket[symbol] || 0;
+    return (data && data.getMarkets[symbol]) || 0;
   }
 
-  return { ...context, markets: priceMarket, refetch, loading: loadingMarket };
+  return {
+    ...context,
+    markets: (data && data.getMarkets) || {},
+    refetch,
+    loading: loadingMarket,
+  };
 }
 
 export { MarketsProvider, useMarket };

@@ -3,7 +3,7 @@ services:
   prycto-client:
     container_name: prycto-client
     image: 'node:14.15.1-alpine'
-    command: npx lerna exec 'npm run start' --scope prycto-client
+    command: npx lerna exec 'npm run dev' --scope prycto-client
     depends_on:
       - prycto-server
     ports:
@@ -16,7 +16,7 @@ services:
   prycto-server:
     container_name: prycto-server
     image: 'node:14.15.1-alpine'
-    command: npx lerna exec 'npm run start' --scope prycto-server
+    command: npx lerna exec 'npm run start:dev' --scope prycto-server
     env_file:
       - ./prycto-server/.env
     depends_on:

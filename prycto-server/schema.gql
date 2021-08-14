@@ -8,7 +8,7 @@ type Exchange {
   name: String!
   publicKey: String!
   secretKey: String!
-  balance: JSON!
+  balance: JSON
 }
 
 """
@@ -64,6 +64,7 @@ type User {
   tokens: [String!]!
   password: String!
   createdAt: Float!
+  lang: String!
 }
 
 type Query {
@@ -89,6 +90,7 @@ type Mutation {
   login(password: String!, email: String!): String!
   register(confirmPassword: String!, password: String!, email: String!): Boolean!
   logout(confirmPassword: String!, password: String!, email: String!): Boolean!
+  updateLang(lang: String!): User!
 }
 
 type Subscription {

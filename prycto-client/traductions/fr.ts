@@ -34,4 +34,7 @@ export const fr = {
   'balance.available': 'Disponible',
   'balance.locked': 'Bloqué',
   "balance.token": "Monnaie",
+  "predicts": "Prédictions",
+  "predict.description": "Prédiction des cours sur une journée",
+  "positions.noData": "Veuillez ajouter une position",
 };

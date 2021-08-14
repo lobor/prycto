@@ -200,7 +200,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         </div>
         {chart}
         <div className="py-2 px-6 hidden md:block flex-1">
-          <HideShow>{total}</HideShow>
+          <HideShow>{round(total, 7)}</HideShow>
         </div>
         <div className="py-2 px-6 hidden md:block flex-1">
           <HideShow>{round(total === 0 ? 0 : investment / total, 8)}</HideShow>

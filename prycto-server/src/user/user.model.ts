@@ -16,4 +16,7 @@ export class User {
 
   @Field(() => Float)
   createdAt: number;
+
+  @Field()
+  lang: string;
 }

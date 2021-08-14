@@ -34,4 +34,7 @@ export const en = {
   "balance.available": "Available",
   "balance.locked": "Locked",
   "balance.token": "Token",
+  "predicts": "Predictions",
+  "predict.description": "Markets prediction for tomorrow",
+  "positions.noData": "Add a position",
 };

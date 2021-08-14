@@ -18,6 +18,6 @@ export class Exchange {
   @Field()
   secretKey: string;
 
-  @Field((type) => JSON)
+  @Field((type) => JSON, { nullable: true })
   balance: Record<string, { locked: number; available: number }>;
 }

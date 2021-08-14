@@ -83,7 +83,7 @@ const Balances = () => {
                   autoHide
                   style={{ width, height }}
                 >
-                  {Object.keys(data.exchangeById.balance).map((quote) => {
+                  {Object.keys(data.exchangeById.balance || {}).map((quote) => {
                     const { locked, available } =
                       data.exchangeById.balance[quote];
                     return (

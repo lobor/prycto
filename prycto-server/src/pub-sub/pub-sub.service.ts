@@ -7,8 +7,8 @@ export class PubSubService {
   private pubSub: RedisPubSub;
   constructor() {
     const options = {
-      host: 'redis-prycto',
-      port: 6379,
+      host: 'localhost',
+      port: 6377,
     };
 
     this.pubSub = new RedisPubSub({

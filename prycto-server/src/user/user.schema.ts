@@ -21,6 +21,9 @@ export class User {
 
   @Prop({ required: true, type: [String] })
   tokens: string[];
+
+  @Prop({ required: true, default: 'en' })
+  lang: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -45,16 +45,15 @@ export default function Exchange() {
         <meta name="description" content="Exchange configuration" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {addExchangeShowing && (
-        <AddExchange
-          onSubmit={(e) => {
-            addExchange({ variables: e });
-          }}
-          onCancel={() => {
-            setAddExchangeShowing(false);
-          }}
-        />
-      )}
+      <AddExchange
+        open={addExchangeShowing}
+        onSubmit={(e) => {
+          addExchange({ variables: e });
+        }}
+        onCancel={() => {
+          setAddExchangeShowing(false);
+        }}
+      />
       <div className="shadow-md mt-6 block">
         <table className="table-auto text-left w-full border-collapse">
           <thead>

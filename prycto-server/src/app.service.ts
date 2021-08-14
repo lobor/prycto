@@ -59,6 +59,7 @@ export class AppService {
 
   public addExchange(exchange: Exchange) {
     this.exchanges[exchange._id] = new ccxt[exchange.exchange]({
+      options: { adjustForTimeDifference: true },
       enableRateLimit: true,
       timeout: 30000,
       apiKey: exchange.publicKey,

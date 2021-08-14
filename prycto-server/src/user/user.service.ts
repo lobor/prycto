@@ -4,7 +4,8 @@ import {
   PreconditionFailedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ObjectId } from 'mongodb';
+import { Model, UpdateQuery } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import * as CryptoJS from 'crypto-js';
 import * as jwt from 'jsonwebtoken';
@@ -63,11 +64,20 @@ export class UserService {
     return CryptoJS.HmacSHA256(process.env.HASH_PASSWORD, password).toString();
   }
 
+  updateUserById(userId: string, doc: UpdateQuery<User>) {
+    return this.userModel
+      .findOneAndUpdate({ _id: new ObjectId(userId) }, doc, { new: true })
+      .exec();
+  }
+
   verifyToken(token): User | false {
     try {
-      return jwt.verify(token.replace('Bearer ', ''), process.env.JWT_HASH) as User;
-    } catch(e) {
-      console.error('UserService:verifyToken', e.toString())
+      return jwt.verify(
+        token.replace('Bearer ', ''),
+        process.env.JWT_HASH,
+      ) as User;
+    } catch (e) {
+      console.error('UserService:verifyToken', e.toString());
       return false;
     }
   }

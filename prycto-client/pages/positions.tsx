@@ -23,26 +23,30 @@ import ItemPosition from "../components/ItemPosition";
 import SimpleBarReact from "simplebar-react";
 import { AutoSizer } from "react-virtualized";
 
-const sortFunction =
-  (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
-    return positionsOriginal.sort((a: any, b: any) => {
-      let valueA = a[sort.key];
-      let valueB = b[sort.key];
-      if (sort.key === "amount") {
-        valueA = a.locked + a.available;
-        valueB = b.locked + b.available;
-      }
-      if (sort.sort === "asc") {
-        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
-      } else {
-        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
-      }
-    });
-  };
+const sortFunction = (sort: { sort: string; key: string }) => (
+  positionsOriginal: any[]
+) => {
+  return positionsOriginal.sort((a: any, b: any) => {
+    let valueA = a[sort.key];
+    let valueB = b[sort.key];
+    if (sort.key === "amount") {
+      valueA = a.locked + a.available;
+      valueB = b.locked + b.available;
+    }
+    if (sort.sort === "asc") {
+      return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+    } else {
+      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+    }
+  });
+};
 
 const Positions = () => {
   const { exchangeId, loading: loadingExchange } = useExchange();
-  const [sort, setSort] = useState<{ sort: string; key: string } | null>(null);
+  const [sort, setSort] = useState<{ sort: string; key: string }>({
+    sort: "asc",
+    key: "pair",
+  });
   const [addPosisitonShowing, setAddPositionShowing] = useState(false);
   const {
     markets,
@@ -113,6 +117,7 @@ const Positions = () => {
 
   // const totalPnlRender = useMemo(() => <TotalPnl />, []);
   const positionsRender = useMemo(() => {
+    // console.log(positionsOriginal.length === 0)
     return (
       <AutoSizer>
         {({ height, width }) => (
@@ -122,11 +127,16 @@ const Positions = () => {
             forceVisible="y"
             autoHide={false}
           >
-            {sort && positionsOriginal && (
+            {positionsOriginal.length > 0 && (
               <div>
                 {sortFunction(sort)(positionsOriginal).map((position) => (
                   <ItemPosition key={position.pair} position={position} />
                 ))}
+              </div>
+            )}
+            {positionsOriginal.length === 0 && (
+              <div className="flex-1 text-center text-gray-200 mt-3">
+                <FormattedMessage id="positions.noData" />
               </div>
             )}
           </SimpleBarReact>
@@ -143,16 +153,15 @@ const Positions = () => {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         {/* {totalPnlRender} */}
-        {addPosisitonShowing && (
-          <AddPosition
-            onSubmit={(e) => {
-              addPosition({ variables: e });
-            }}
-            onCancel={() => {
-              setAddPositionShowing(false);
-            }}
-          />
-        )}
+        <AddPosition
+          open={addPosisitonShowing}
+          onSubmit={(e) => {
+            addPosition({ variables: e });
+          }}
+          onCancel={() => {
+            setAddPositionShowing(false);
+          }}
+        />
         {/* {editPositionShowing && (
           <EditPosition
             position={editPositionShowing}
@@ -170,9 +179,9 @@ const Positions = () => {
             }}
           />
         )} */}
-        <div className="shadow-md flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col">
           <div className="w-full">
-            <div className="w-full bg-gray-900 text-gray-200 flex flex-row items-center">
+            <div className="w-full border-b-2 border-gray-900 text-gray-200 flex flex-row items-center">
               <div
                 onClick={handleSort("pair")}
                 className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
@@ -253,9 +262,9 @@ const Positions = () => {
             </div>
           </div>
           <div className="flex-1 overflow-hidden">
-            {!loading && !loadingMarkets && sort && positionsRender}
+            {!loading && !loadingMarkets && positionsRender}
           </div>
-          {(loading || loadingMarkets || !sort) && (
+          {(loading || loadingMarkets) && (
             <div className="flex-1 text-center text-gray-200">
               <FormattedMessage id="loading" />
             </div>

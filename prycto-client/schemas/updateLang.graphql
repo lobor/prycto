@@ -1,0 +1,6 @@
+mutation updateLang($lang: String!) {
+  updateLang(lang: $lang) {
+    _id
+    lang
+  }
+}

@@ -18,6 +18,10 @@ export class ExchangeService {
     return this.exchangeModel.find().exec();
   }
 
+  async findByUserId(userId: string): Promise<ExchangeDocument[]> {
+    return this.exchangeModel.find({ userId }).exec();
+  }
+
   async find(
     query: FilterQuery<ExchangeDocument>,
   ): Promise<ExchangeDocument[]> {
