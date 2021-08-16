@@ -104,7 +104,7 @@ const AutocompleteMarket = ({
         leaveFrom="h-80"
         leaveTo="h-0"
       >
-        <div className="absolute z-10 bg-gray-900 w-full overflow-auto rounded mt-1">
+        <div className="absolute z-10 bg-gray-900 w-full overflow-y-auto overflow-x-hidden rounded mt-1">
           <AutoSizer>
             {({ width, height }) => (
               <List

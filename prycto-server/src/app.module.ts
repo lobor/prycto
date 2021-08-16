@@ -20,6 +20,7 @@ import { CoursModule } from './cours/cours.module';
 import { HistoryModule } from './history/history.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { PredictModule } from './predict/predict.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ConfigModule } from '@nestjs/config';
     CoursModule,
     HistoryModule,
     UserModule,
+    PredictModule,
   ],
   controllers: [],
   providers: [

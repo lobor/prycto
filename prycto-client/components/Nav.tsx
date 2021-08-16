@@ -59,7 +59,7 @@ const Nav = ({ children, hide }: NavProps) => {
   return (
     <div className="flex flex-row h-full w-full">
       {!hide && (
-        <ul className="text-gray-500 flex-none flex flex-col bg-gray-900 w-30">
+        <ul className="text-gray-500 flex-none hidden md:flex flex-col bg-gray-900 w-30">
           <li>
             <Link href="/positions">
               <a

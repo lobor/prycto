@@ -84,7 +84,7 @@ const Positions = () => {
       return {
         ...position,
         market,
-        profitPercent: (profit * 100) / (position.investment || 1),
+        profitPercent: position.investment > 0 ? (profit * 100) / (position.investment || 1) : 0,
         profit,
         total,
       };

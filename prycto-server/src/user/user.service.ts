@@ -36,6 +36,30 @@ export class UserService {
     return token;
   }
 
+  async updatePassword(
+    userId: string,
+    oldPassword: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<UserDocument> {
+    if (confirmPassword !== password) {
+      throw new PreconditionFailedException(
+        'Password ans confirm password not match',
+      );
+    }
+    const userBdd = await this.userModel.findOne({
+      _id: userId,
+      password: this.encrypt(oldPassword),
+    });
+    if (!userBdd) {
+      throw new PreconditionFailedException('User not found');
+    }
+
+    return this.updateById(userId, {
+      $set: { password: this.encrypt(password) },
+    });
+  }
+
   async register(email: string, password: string, confirmPassword: string) {
     if (confirmPassword !== password) {
       throw new PreconditionFailedException(
@@ -67,6 +91,15 @@ export class UserService {
   updateUserById(userId: string, doc: UpdateQuery<User>) {
     return this.userModel
       .findOneAndUpdate({ _id: new ObjectId(userId) }, doc, { new: true })
+      .exec();
+  }
+
+  updateById(
+    _id: string,
+    document: UpdateQuery<UserDocument>,
+  ): Promise<UserDocument> {
+    return this.userModel
+      .findOneAndUpdate({ _id }, document, { new: true })
       .exec();
   }
 

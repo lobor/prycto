@@ -220,7 +220,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           <HideShow>{round(profit)}</HideShow>{" "}
           <div className="block md:hidden" />(
-          {round((profit * 100) / (investment || 1))}
+          {round(investment > 0 ? (profit * 100) / (investment || 1) : 0)}
           %)
         </div>
         <div

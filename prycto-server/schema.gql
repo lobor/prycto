@@ -67,6 +67,11 @@ type User {
   lang: String!
 }
 
+type Predict {
+  up: Float!
+  down: Float!
+}
+
 type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
@@ -78,6 +83,7 @@ type Query {
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
   getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
   user: User!
+  predict(symbol: String!, exchangeId: String!): Predict!
 }
 
 type Mutation {
@@ -89,6 +95,8 @@ type Mutation {
   addPosition(symbol: String!): Position!
   login(password: String!, email: String!): String!
   register(confirmPassword: String!, password: String!, email: String!): Boolean!
+  updateUser(email: String!, _id: ID!): User!
+  updatePassword(confirmPassword: String!, password: String!, oldPassword: String!): User!
   logout(confirmPassword: String!, password: String!, email: String!): Boolean!
   updateLang(lang: String!): User!
 }
