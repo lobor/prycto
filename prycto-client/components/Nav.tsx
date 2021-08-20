@@ -118,7 +118,7 @@ const Nav = ({ children, hide }: NavProps) => {
               </a>
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link href="/predicts">
               <a
                 className="px-4 py-2 text-2xl hover:text-gray-200 flex-col flex items-center"
@@ -141,7 +141,7 @@ const Nav = ({ children, hide }: NavProps) => {
                 </span>
               </a>
             </Link>
-          </li>
+          </li> */}
           <li className="flex-1" />
           <li>
             <Link href="/settings">
@@ -192,7 +192,7 @@ const Nav = ({ children, hide }: NavProps) => {
         {!hide && (
           <nav className="bg-gray-900 pt-2 md:pt-1 pb-1 px-1 w-full z-10">
             <div className="flex flex-1 items-baseline md:flex-row md:items-center">
-              <div className="flex w-full md:w-2/12 justify-center md:justify-start">
+              <div className="hidden md:flex w-full md:w-2/12 justify-center md:justify-start">
                 <div className="flex md:max-w-lg justify-center md:justify-start text-white flex-1 mr-1 md:mr-0">
                   <AutocompleteMarket
                     icon
@@ -214,9 +214,30 @@ const Nav = ({ children, hide }: NavProps) => {
                   />
                 </div>
               </div>
-              <div className="flex flex-col w-full md:flex-1 md:flex-row items-center">
-                <Tabs />
+              <div className="md:flex flex-col w-full md:flex-1 md:flex-row items-center">
                 <div className="flex h-12 md:justify-end mt-2 md:mt-0">
+                  <div className="flex md:hidden w-full md:w-2/12 justify-center md:justify-start">
+                    <div className="flex md:max-w-lg justify-center md:justify-start text-white flex-1 mr-1 md:mr-0">
+                      <AutocompleteMarket
+                        icon
+                        type="search"
+                        placeholder={intl.formatMessage({ id: "searchPairs" })}
+                        onSelect={(key) => {
+                          const { symbol } = key;
+                          const pathname = `/tradingview/?pair=${symbol}`;
+                          addTab({
+                            key: `${symbol.toLowerCase()}`,
+                            label: symbol,
+                            canClose: true,
+                            exchange: name,
+                            href: pathname,
+                          });
+                          selectTab(symbol.toLowerCase());
+                          router.push(pathname);
+                        }}
+                      />
+                    </div>
+                  </div>
                   <button
                     className="hidden md:block px-3 self-stretch focus:outline-none text-gray-200"
                     onClick={() => {
@@ -258,6 +279,7 @@ const Nav = ({ children, hide }: NavProps) => {
                     <SelectLang />
                   </div>
                 </div>
+                <Tabs />
                 <div
                   className="h-0 block md:hidden"
                   style={{ flexBasis: "100%" }}

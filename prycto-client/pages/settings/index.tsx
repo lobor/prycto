@@ -76,7 +76,6 @@ const Settings = () => {
     );
   }
 
-  console.log(formik.errors)
   return (
     <div className="text-gray-200">
       <Head>

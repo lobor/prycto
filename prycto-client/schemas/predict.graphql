@@ -1,6 +1,11 @@
-query predict($exchangeId: String!, $symbol: String!) {
-  predict (exchangeId: $exchangeId, symbol: $symbol) {
-    up
-    down
+query predict($exchangeId: ID!) {
+  positions(exchangeId: $exchangeId) {
+    _id
+    pair
+    predict {
+      up
+      down
+      predictDate
+    }
   }
 }

@@ -52,7 +52,10 @@ const QuickPositions = () => {
         return {
           ...position,
           profit,
-          profitPercent: (profit * 100) / (position.investment || 1)
+          profitPercent:
+            position.investment > 0
+              ? (profit * 100) / (position.investment || 1)
+              : 0,
         };
       }
     );
@@ -68,7 +71,7 @@ const QuickPositions = () => {
     }
   };
   return (
-    <div className="w-50 flex flex-col pr-1">
+    <div className="w-50 flex flex-col pr-1 pb-1">
       <div className="py-2 px-2 flex justify-between bg-gray-900 text-gray-200">
         <div
           className="flex-1 flex items-center font-bold text-sm cursor-pointer"
@@ -138,8 +141,7 @@ const QuickPositions = () => {
                     })}
                   >
                     {/* <HideShow>{round(profit)}</HideShow>{" "} */}
-                    <div className="block md:hidden" />(
-                    {round(profitPercent)}
+                    <div className="block md:hidden" />({round(profitPercent)}
                     %)
                   </div>
                 </div>

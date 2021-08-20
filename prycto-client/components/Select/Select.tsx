@@ -39,7 +39,7 @@ const Select = ({
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Listbox.Options className="mt-1 shadow-lg rounded-md bg-gray-900 border-0 text-gray-200 py-1">
+        <Listbox.Options className="absolute z-20 w-full mt-1 shadow-lg rounded-md bg-gray-900 border-0 text-gray-200 py-1">
           {options.map((option) => (
             <Listbox.Option
               className="px-4 py-2 text-sm hover:bg-gray-800 flex items-center cursor-pointer"

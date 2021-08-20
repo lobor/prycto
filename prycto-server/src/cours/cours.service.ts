@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { isSameDay, subDays } from 'date-fns';
 import { keyBy } from 'lodash';
 import { Model, Query } from 'mongoose';
-import { AppService } from 'src/app.service';
+import { AppService } from '../app.service';
 import { Cours, CoursDocument } from './cours.schema';
 
 @Injectable()

@@ -28,6 +28,7 @@
     "@nestjs/mongoose": "^7.2.4",
     "@nestjs/passport": "^7.1.5",
     "@nestjs/platform-express": "^7.6.15",
+    "@nestjs/schedule": "^1.0.1",
     "apollo-server-express": "^2.25.2",
     "brain.js": "^2.0.0-beta.2",
     "date-fns": "^2.22.1",
@@ -46,6 +47,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6",
+    "serialization": "^0.2.0",
     "trading-signals": "^1.8.0"
   },
   "devDependencies": {

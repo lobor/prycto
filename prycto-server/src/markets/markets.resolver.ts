@@ -1,13 +1,13 @@
 import { Resolver, Query, Subscription, Args } from '@nestjs/graphql';
 import JSON from 'graphql-type-json';
 import { Market } from './markets.model';
-import { PositionsService } from 'src/positions/positions.service';
-import { AppService } from 'src/app.service';
+import { PositionsService } from '../positions/positions.service';
+import { AppService } from '../app.service';
 import { UseGuards } from '@nestjs/common';
-import { PubSubService } from 'src/pub-sub/pub-sub.service';
-import { SocketExchangeService } from 'src/socketExchange/socketExchange.service';
-import { ExchangeService } from 'src/exchanges/service';
-import { AuthGuard } from 'src/user/guards/auth.guard';
+import { PubSubService } from '../pub-sub/pub-sub.service';
+import { SocketExchangeService } from '../socketExchange/socketExchange.service';
+import { ExchangeService } from '../exchanges/service';
+import { AuthGuard } from '../user/guards/auth.guard';
 
 @Resolver(() => JSON)
 export class MarketsResolver {

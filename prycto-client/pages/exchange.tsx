@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useState } from "react";
 import Button from "../components/Button";
 import AddExchange from "../components/AddExchange";
+import Table from "../components/Table";
 import { useMutation, useQuery } from "@apollo/client";
 import {
   AddExchangeDocument,
@@ -13,10 +14,12 @@ import {
   RemoveExchangeMutation,
   RemoveExchangeMutationVariables,
 } from "../generated/graphql";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
+import { intlFormat } from "date-fns";
 
 export default function Exchange() {
+  const intl = useIntl();
   const [addExchangeShowing, setAddExchangeShowing] = useState(false);
   const { data: exchanges, refetch: getExchanges } =
     useQuery<ExchangesQuery>(ExchangesDocument);
@@ -39,7 +42,7 @@ export default function Exchange() {
     },
   });
   return (
-    <div>
+    <>
       <Head>
         <title>Exchange - Prycto</title>
         <meta name="description" content="Exchange configuration" />
@@ -54,49 +57,45 @@ export default function Exchange() {
           setAddExchangeShowing(false);
         }}
       />
-      <div className="shadow-md mt-6 block">
-        <table className="table-auto text-left w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-900 text-gray-200">
-              <th className="py-4 px-6 font-bold uppercase text-sm">
-                <FormattedMessage id="exchanges" />
-              </th>
-              <th className="w-1/12 py-4 px-6 font-bold uppercase text-sm">
-                <Button
-                  variant="validate"
-                  onClick={() => {
-                    setAddExchangeShowing(true);
-                  }}
-                >
-                  <AiOutlinePlus />
-                </Button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {exchanges &&
-              exchanges.exchanges.map((exchange) => {
+      <div className="shadow-md mt-6 h-full flex">
+        <Table
+          data={(exchanges && exchanges.exchanges) || []}
+          columns={[
+            {
+              Header: intl.formatMessage({ id: "exchanges" }),
+              accessor: "name",
+            },
+            {
+              Header: () => {
                 return (
-                  <tr
-                    key={exchange._id}
-                    className="hover:bg-gray-900 text-gray-200 border-b border-gray-900"
+                  <Button
+                    variant="validate"
+                    onClick={() => {
+                      setAddExchangeShowing(true);
+                    }}
                   >
-                    <td className="py-2 px-6 ">{exchange.name}</td>
-                    <td className="py-2 px-6">
-                      <Button
-                        onClick={() => {
-                          removeExchanges({ variables: { _id: exchange._id } });
-                        }}
-                      >
-                        <AiOutlineDelete />
-                      </Button>
-                    </td>
-                  </tr>
+                    <AiOutlinePlus />
+                  </Button>
                 );
-              })}
-          </tbody>
-        </table>
+              },
+              width: 5,
+              // width: 50,
+              accessor: "_id",
+              Cell: ({ value }: { value: string }) => {
+                return (
+                  <Button
+                    onClick={() => {
+                      removeExchanges({ variables: { _id: value } });
+                    }}
+                  >
+                    <AiOutlineDelete />
+                  </Button>
+                );
+              },
+            },
+          ]}
+        />
       </div>
-    </div>
+    </>
   );
 }

@@ -5,6 +5,6 @@ import { UserImport } from './user.schema';
 
 @Module({
   imports: [UserImport],
-  providers: [UserService, UserResolver]
+  providers: [UserService, UserResolver],
 })
 export class UserModule {}

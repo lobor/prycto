@@ -81,7 +81,7 @@ export class UserService {
   }
 
   findById(id: string) {
-    return this.userModel.findOne({ _id: id });
+    return this.userModel.findOne({ _id: new Object(id) });
   }
 
   encrypt(password: string) {

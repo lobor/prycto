@@ -12,11 +12,13 @@ import {
 import { Position } from './positions.model';
 import { PositionsService } from './positions.service';
 import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
-import { ExchangeService } from 'src/exchanges/service';
-import { AppService } from 'src/app.service';
-import { SocketExchangeService } from 'src/socketExchange/socketExchange.service';
-import { AuthGuard } from 'src/user/guards/auth.guard';
-import { User } from 'src/user/user.schema';
+import { ExchangeService } from '../exchanges/service';
+import { AppService } from '../app.service';
+import { SocketExchangeService } from '../socketExchange/socketExchange.service';
+import { AuthGuard } from '../user/guards/auth.guard';
+import { User } from '../user/user.schema';
+import { PredictService } from '../predict/predict.service';
+import { Predict } from '../predict/predict.model';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -25,6 +27,7 @@ export class PositionsResolver {
     private readonly positionService: PositionsService,
     private readonly exchangeService: ExchangeService,
     private readonly appService: AppService,
+    private readonly predictService: PredictService,
   ) {}
 
   @Query(() => [Position])
@@ -47,6 +50,13 @@ export class PositionsResolver {
         exchange: exchange.exchange,
       };
     });
+  }
+
+  @ResolveField()
+  async predict(@Parent() position: Position) {
+    const { pair } = position;
+    const predict = await this.predictService.predictByPair(pair);
+    return predict || { up: 0.5, down: 0.5, predictDate: Date.now() };
   }
 
   @ResolveField()
@@ -139,17 +149,26 @@ export class PositionsResolver {
       (history) => history.symbol === position.pair,
     );
     let investment = 0;
+    let amount = 0;
     historiesOnPosition.forEach((order) => {
       if (order.status === 'closed') {
         if (order.side === 'buy') {
+          amount += Number(order.amount);
           investment += Number(order.cost);
         }
         if (order.side === 'sell') {
-          investment -= Number(order.cost);
+          let percentSell = 0;
+          if (amount < order.amount) {
+            percentSell = (100 * amount) / order.amount;
+          } else {
+            percentSell = (100 * order.amount) / amount;
+          }
+          amount -= Number(order.amount);
+          investment -= (investment * percentSell) / 100;
         }
       }
     });
-    investment = investment < 0 ? 0 : investment;
+    // investment = investment < 0 ? 0 : investment;
     await this.positionService.updateOne(position._id, {
       investment,
     });
@@ -213,13 +232,22 @@ export class PositionsResolver {
       userId: ctx.user._id,
     };
     let investment = 0;
+    let amount = 0;
     historiesOnPosition.forEach((order) => {
       if (order.status === 'closed') {
         if (order.side === 'buy') {
+          amount += Number(order.amount);
           investment += Number(order.cost);
         }
         if (order.side === 'sell') {
-          investment -= Number(order.cost);
+          let percentSell = 0;
+          if (amount < order.amount) {
+            percentSell = (100 * amount) / order.amount;
+          } else {
+            percentSell = (100 * order.amount) / amount;
+          }
+          amount -= Number(order.amount);
+          investment -= (investment * percentSell) / 100;
         }
       }
     });

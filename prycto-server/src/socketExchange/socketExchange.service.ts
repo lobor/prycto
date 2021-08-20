@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as ccxws from 'ccxws';
 import { uniq } from 'lodash';
-import { AppService } from 'src/app.service';
-import { Exchange } from 'src/exchanges/exchange.schema';
-import { ExchangeService } from 'src/exchanges/service';
-import { PositionsService } from 'src/positions/positions.service';
-import { PubSubService } from 'src/pub-sub/pub-sub.service';
+import { AppService } from '../app.service';
+import { Exchange } from '../exchanges/exchange.schema';
+import { ExchangeService } from '../exchanges/service';
+import { PositionsService } from '../positions/positions.service';
+import { PubSubService } from '../pub-sub/pub-sub.service';
 
 const pairsByExchange: Record<string, any> = {};
 const exchangeByName: Record<string, any> = {};

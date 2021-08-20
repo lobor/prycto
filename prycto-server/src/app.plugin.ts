@@ -18,7 +18,6 @@ export class LoggingPlugin implements ApolloServerPlugin {
         );
       },
       didEncounterErrors: (e) => {
-        // console.log(e);
         this.logger.error(
           `response:graphql:${nameOperation}`,
           e.errors[0].message,

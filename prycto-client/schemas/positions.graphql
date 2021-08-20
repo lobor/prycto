@@ -7,5 +7,10 @@ query positions($exchangeId: ID!) {
     locked
     investment
     objectif
+    predict {
+      up
+      down
+      predictDate
+    }
   }
 }

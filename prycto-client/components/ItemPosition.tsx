@@ -24,7 +24,13 @@ import {
 } from "../generated/graphql";
 import { VictoryChart, VictoryAxis, VictoryArea } from "victory";
 import { useExchange } from "../context/exchange";
-import { AiOutlineDelete, AiOutlineReload } from "react-icons/ai";
+import {
+  AiOutlineCaretDown,
+  AiOutlineCaretUp,
+  AiOutlineDash,
+  AiOutlineDelete,
+  AiOutlineReload,
+} from "react-icons/ai";
 
 export interface ItemPositionProps {
   position: Position & {
@@ -50,6 +56,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     objectif,
     market,
     total,
+    predict,
   } = position;
   const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
@@ -177,6 +184,8 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       </VictoryChart>
     );
   }, [dataHistory, market]);
+  const isUp = predict.up > predict.down;
+  const isUnknown = predict.up === predict.down;
   return useMemo(
     () => (
       <div
@@ -220,10 +229,10 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           <HideShow>{round(profit)}</HideShow>{" "}
           <div className="block md:hidden" />(
-          {round(investment > 0 ? (profit * 100) / (investment || 1) : 0)}
+          {round(investment !== 0 ? (profit * 100) / investment : 0)}
           %)
         </div>
-        <div
+        {/* <div
           className="py-2 px-6 hidden md:block flex-1 cursor-pointer"
           onClick={handleEditObjectif}
         >
@@ -251,7 +260,24 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
               <HideShow>{round(total * (objectif || 0))}</HideShow>
             </>
           )}
-        </div>
+        </div> */}
+        {/* <div
+          className={`py-2 px-6 w-40 hidden md:flex md:justify-center ${
+            isUnknown
+              ? "text-yellow-500"
+              : isUp
+              ? "text-green-500"
+              : "text-red-600"
+          }`}
+        >
+          {isUnknown ? (
+            <AiOutlineDash />
+          ) : isUp ? (
+            <AiOutlineCaretUp />
+          ) : (
+            <AiOutlineCaretDown />
+          )}
+        </div> */}
         <div className="py-2 px-6 text-center w-60 hidden md:block">
           <Button
             onClick={() => {

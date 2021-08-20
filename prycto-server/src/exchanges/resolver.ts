@@ -1,10 +1,10 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Exchange } from './model';
 import { ExchangeService } from './service';
-import { AppService } from 'src/app.service';
-import { AuthGuard } from 'src/user/guards/auth.guard';
+import { AppService } from '../app.service';
+import { AuthGuard } from '../user/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { User } from 'src/user/user.schema';
+import { User } from '../user/user.schema';
 
 @Resolver(() => Exchange)
 export class EchangeResolver {

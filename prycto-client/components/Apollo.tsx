@@ -84,11 +84,13 @@ interface ApolloCustomProps {
 const ApolloCustom = ({ children }: ApolloCustomProps) => {
   const [persist, setPersist] = useState(false);
   useEffect(() => {
-    if (process.browser) {
+    if (process.browser && process.env.NODE_ENV === 'production') {
       persistCache({
         cache,
         storage: new LocalStorageWrapper(window.localStorage),
       }).then(() => setPersist(true));
+    } else if (process.env.NODE_ENV === 'development') {
+      setPersist(true)
     }
   }, [process.browser]);
   if (!persist) {

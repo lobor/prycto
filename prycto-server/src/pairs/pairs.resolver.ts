@@ -1,8 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import { Context, Query, Resolver } from '@nestjs/graphql';
-import { AppService } from 'src/app.service';
-import { AuthGuard } from 'src/user/guards/auth.guard';
-import { EchangeIdGuard } from 'src/exchanges/guards/exchangeId.guard';
+import { AppService } from '../app.service';
+import { AuthGuard } from '../user/guards/auth.guard';
+import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
 import { Pair } from './pairs.model';
 
 @Resolver()

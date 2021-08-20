@@ -2,10 +2,10 @@ import { NotFoundException, UseGuards } from '@nestjs/common';
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
 import { History } from './history.model';
 import { HistoryService } from './history.service';
-import { EchangeIdGuard } from 'src/exchanges/guards/exchangeId.guard';
-import { AppService } from 'src/app.service';
-import { AuthGuard } from 'src/user/guards/auth.guard';
-import { PositionsService } from 'src/positions/positions.service';
+import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
+import { AppService } from '../app.service';
+import { AuthGuard } from '../user/guards/auth.guard';
+import { PositionsService } from '../positions/positions.service';
 
 @Resolver(() => History)
 export class HistoryResolver {

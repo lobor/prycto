@@ -56,14 +56,14 @@ export default function Trade() {
     variables: { _id },
     skip: !_id,
   });
-  const { data: dataPredict, loading: loadingPredict } = useQuery<
-    PredictQuery,
-    PredictQueryVariables
-  >(PredictDocument, {
-    fetchPolicy: "network-only",
-    variables: { exchangeId, symbol: (data && data.position.pair) || "" },
-    skip: true,
-  });
+  // const { data: dataPredict, loading: loadingPredict } = useQuery<
+  //   PredictQuery,
+  //   PredictQueryVariables
+  // >(PredictDocument, {
+  //   fetchPolicy: "network-only",
+  //   variables: { exchangeId, symbol: (data && data.position.pair) || "" },
+  //   skip: true,
+  // });
 
   const [showHistory, setShowHistory] = useState(false);
 
@@ -130,12 +130,12 @@ export default function Trade() {
         (data.position.investment || 0)) ||
     0;
 
-  const isUp =
-    dataPredict && Number(dataPredict.predict.up) > 0.5 ? true : false;
-  const validPredict =
-    dataPredict &&
-    dataPredict.predict.up !== 0 &&
-    dataPredict.predict.down !== 0;
+  // const isUp =
+  //   dataPredict && Number(dataPredict.predict.up) > 0.5 ? true : false;
+  // const validPredict =
+  //   dataPredict &&
+  //   dataPredict.predict.up !== 0 &&
+  //   dataPredict.predict.down !== 0;
 
   const quickPositionsRender = useMemo(() => {
     return <QuickPositions />;
@@ -212,8 +212,8 @@ export default function Trade() {
                   </div>
                 </div>
               </div>
-              <div className="">
-                {/* <div>Predict</div> */}
+              {/* <div className="">
+                <div>Predict</div>
                 <div>
                   {loadingPredict && <Loading />}
                   {!loadingPredict && dataPredict && (
@@ -242,7 +242,7 @@ export default function Trade() {
                     </div>
                   )}
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
         </div>

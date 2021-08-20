@@ -1,4 +1,7 @@
+import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Exchange } from '../exchanges/exchange.schema';
+import { ExchangeService } from '../exchanges/service';
 import { InitResolver } from './init.resolver';
 
 describe('InitResolver', () => {
@@ -6,7 +9,14 @@ describe('InitResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [InitResolver],
+      providers: [
+        InitResolver,
+        ExchangeService,
+        {
+          provide: getModelToken(Exchange.name),
+          useValue: {},
+        },
+      ],
     }).compile();
 
     resolver = module.get<InitResolver>(InitResolver);

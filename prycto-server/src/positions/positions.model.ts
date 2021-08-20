@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import JSON from 'graphql-type-json';
+import { Predict } from '../predict/predict.model';
 
 @ObjectType()
 export class Position {
@@ -26,4 +27,7 @@ export class Position {
 
   @Field(() => JSON)
   balance?: Record<string, number>;
+
+  @Field(() => Predict)
+  predict?: Predict;
 }
