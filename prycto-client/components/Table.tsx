@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   useTable,
   Column,
@@ -24,6 +25,12 @@ const Table = ({ columns, data }: TableProps) => {
   );
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     tableInstance;
+
+  useEffect(() => {
+    if (process.browser) {
+      window.dispatchEvent(new Event('resize'));
+    }
+  }, [process.browser]) 
   return (
     <table
       {...getTableProps({
