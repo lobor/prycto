@@ -94,8 +94,9 @@ export class EchangeResolver {
           if (!acc[key]) {
             acc[key] = { available: 0, locked: 0 };
           }
-
-          acc[key].locked = balance[key];
+          if (Number(balance[key])) {
+            acc[key].locked = Number(balance[key]);
+          }
 
           return acc;
         }, {}),
