@@ -28,9 +28,11 @@ const Table = ({ columns, data }: TableProps) => {
 
   useEffect(() => {
     if (process.browser) {
-      window.dispatchEvent(new Event('resize'));
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 500);
     }
-  }, [process.browser]) 
+  }, [process.browser]);
   return (
     <table
       {...getTableProps({

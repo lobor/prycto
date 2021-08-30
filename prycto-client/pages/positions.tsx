@@ -80,6 +80,14 @@ const Positions = () => {
       refetchMarkets();
     },
   });
+
+  useEffect(() => {
+    if (process.browser) {
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 500);
+    }
+  }, [process.browser]);
   // const [editPosition] = useEmit<EditPositionParams>("editPosition");
 
   const positionsOriginal = useMemo(() => {
