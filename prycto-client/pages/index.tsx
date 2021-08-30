@@ -1,6 +1,5 @@
 import Head from "next/head";
 import Snackbar from "../components/Snackbar";
-import Loading from "../components/Loading";
 import Button from "../components/Button";
 import { FormattedMessage } from "react-intl";
 import Link from "next/link";

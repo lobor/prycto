@@ -86,8 +86,20 @@ export class EchangeResolver {
     if (!exchange || exchange.userId !== ctx.user._id.toString()) {
       throw new NotFoundException();
     }
+
     return this.exchangeService.updateOneById(_id, {
-      balance: { ...exchange.balance, ...balance },
+      balance: {
+        ...exchange.balance,
+        ...Object.keys(balance).reduce((acc, key) => {
+          if (!acc[key]) {
+            acc[key] = { available: 0, locked: 0 };
+          }
+
+          acc[key].locked = balance[key];
+
+          return acc;
+        }, {}),
+      },
     });
   }
 }

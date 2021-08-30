@@ -12,6 +12,7 @@ import HideShow from "../components/HideShow";
 import Table from "../components/Table";
 import Input from "../components/Input";
 import { useFormik } from "formik";
+import round from "../utils/round";
 
 const EditCell = ({
   value,
@@ -87,7 +88,9 @@ const Balances = () => {
             {
               Header: intl.formatMessage({ id: "balance.available" }),
               accessor: "available",
-              Cell: EditCell,
+              Cell: ({ value }: { value: number }) => {
+                return <HideShow>{round(value, 7)}</HideShow>
+              }
             },
             {
               Header: intl.formatMessage({ id: "balance.locked" }),
