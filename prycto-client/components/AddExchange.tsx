@@ -67,6 +67,7 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
             <Input
               id="publicKey"
               name="publicKey"
+              type="password"
               onChange={formik.handleChange}
             />
           </Label>
@@ -77,6 +78,7 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
             <Input
               id="secretKey"
               name="secretKey"
+              type="password"
               onChange={formik.handleChange}
             />
           </Label>

@@ -202,6 +202,14 @@ export class AppService {
   }
 
   public async getBalancesByExchangeId(exchangeId) {
+    if (!this.exchanges[exchangeId]) {
+      const exchange = await this.exchangeService.findById(exchangeId);
+      this.addExchange({
+        ...exchange.toJSON(),
+        secretKey: this.decrypt(exchange.secretKey),
+        publicKey: this.decrypt(exchange.publicKey),
+      });
+    }
     const balances = await this.exchanges[exchangeId].fetchBalance({
       recvWindow: 60000,
     });
