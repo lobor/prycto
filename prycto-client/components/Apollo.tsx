@@ -24,7 +24,8 @@ const errorLink = onError((args) => {
     const error = args.graphQLErrors[0] as { message?: { id?: string } };
     if (
       error.message === "notLogin" &&
-      !window.location.href.match(/(login|register)/i)
+      !window.location.pathname.match(/(login|register)/i) &&
+      window.location.pathname !== '/'
     ) {
       localStorage.clear();
       window.location.href = "/login";
