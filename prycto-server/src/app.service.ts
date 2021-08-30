@@ -4,8 +4,7 @@ import { flatten } from 'lodash';
 import * as CryptoJS from 'crypto-js';
 import { Exchange } from './exchanges/model';
 import { ExchangeService } from './exchanges/service';
-
-const secret = 'secret key 123';
+import { ConfigService } from '@nestjs/config';
 
 export interface addExchangeParams {
   _id: string;
@@ -19,7 +18,10 @@ export interface addExchangeParams {
 export class AppService {
   private exchanges: { [key: string]: ccxt.Exchange } = {};
 
-  constructor(private readonly exchangeService: ExchangeService) {
+  constructor(
+    private readonly exchangeService: ExchangeService,
+    private configService: ConfigService,
+  ) {
     this.exchangeService.findAll().then((exchanges) => {
       exchanges.forEach((exchange) => {
         this.addExchange({
@@ -32,11 +34,17 @@ export class AppService {
   }
 
   encrypt = (msg: string) => {
-    return CryptoJS.AES.encrypt(msg, secret).toString();
+    return CryptoJS.AES.encrypt(
+      msg,
+      this.configService.get<string>('HASH_BDD'),
+    ).toString();
   };
 
   decrypt = (ciphertext: string) => {
-    const bytes = CryptoJS.AES.decrypt(ciphertext, secret);
+    const bytes = CryptoJS.AES.decrypt(
+      ciphertext,
+      this.configService.get<string>('HASH_BDD'),
+    );
     return bytes.toString(CryptoJS.enc.Utf8);
   };
 
@@ -146,8 +154,17 @@ export class AppService {
   }
 
   public async getMarketByExchangeId(exchangeId: string) {
-    const exchange = this.exchanges[exchangeId];
-    return exchange.fetchMarkets();
+    let exchangeInstance = this.exchanges[exchangeId];
+    if (!exchangeInstance) {
+      const exchange = await this.exchangeService.findById(exchangeId);
+      this.addExchange({
+        ...exchange.toJSON(),
+        secretKey: this.decrypt(exchange.secretKey),
+        publicKey: this.decrypt(exchange.publicKey),
+      });
+      exchangeInstance = this.exchanges[exchangeId];
+    }
+    return exchangeInstance.fetchMarkets();
   }
 
   public async getBalances(exchangesToGet: { _id: string }[]) {

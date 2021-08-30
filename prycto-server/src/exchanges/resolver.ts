@@ -1,10 +1,11 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Exchange } from './model';
+import { Args, Context, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Balance, Exchange } from './model';
 import { ExchangeService } from './service';
 import { AppService } from '../app.service';
 import { AuthGuard } from '../user/guards/auth.guard';
-import { UseGuards } from '@nestjs/common';
+import { NotFoundException, UseGuards } from '@nestjs/common';
 import { User } from '../user/user.schema';
+import JSON from 'graphql-type-json';
 
 @Resolver(() => Exchange)
 export class EchangeResolver {
@@ -15,8 +16,15 @@ export class EchangeResolver {
 
   @Query(() => Exchange)
   @UseGuards(AuthGuard)
-  async exchangeById(@Args('_id') _id: string): Promise<Exchange> {
-    return this.exchangeService.findById(_id);
+  async exchangeById(
+    @Args('_id') _id: string,
+    @Context() ctx: { user: User },
+  ): Promise<Exchange> {
+    const exchange = await this.exchangeService.findById(_id);
+    if (!exchange || exchange.userId !== ctx.user._id.toString()) {
+      throw new NotFoundException();
+    }
+    return exchange;
   }
 
   @Query(() => [Exchange])
@@ -54,8 +62,31 @@ export class EchangeResolver {
   }
 
   @Mutation(() => Boolean)
-  async removeExchange(@Args('_id') _id: string): Promise<boolean> {
+  async removeExchange(
+    @Context() ctx: { user: User },
+    @Args('_id') _id: string,
+  ): Promise<boolean> {
+    const exchange = await this.exchangeService.findById(_id);
+    if (!exchange || exchange.userId !== ctx.user._id.toString()) {
+      throw new NotFoundException();
+    }
     await this.exchangeService.removeOne(_id);
     return true;
+  }
+
+  @Mutation(() => Exchange)
+  @UseGuards(AuthGuard)
+  async updateExchange(
+    @Context() ctx: { user: User },
+    @Args('_id', { type: () => ID }) _id: string,
+    @Args('balance', { type: () => JSON }) balance: Balance,
+  ): Promise<Exchange> {
+    const exchange = await this.exchangeService.findById(_id);
+    if (!exchange || exchange.userId !== ctx.user._id.toString()) {
+      throw new NotFoundException();
+    }
+    return this.exchangeService.updateOneById(_id, {
+      balance: { ...exchange.balance, ...balance },
+    });
   }
 }

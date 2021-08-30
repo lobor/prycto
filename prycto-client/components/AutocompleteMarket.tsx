@@ -24,7 +24,7 @@ const AutocompleteMarket = ({
 }: AutocompleteMarketProps) => {
   const [pairs, setPairs] = useState<Pair[]>([]);
   const [show, setShow] = useState<boolean>(false);
-  const { data } = useQuery<GetPairsQuery>(GetPairsDocument);
+  const { data, error, loading } = useQuery<GetPairsQuery>(GetPairsDocument);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.currentTarget;
@@ -68,6 +68,8 @@ const AutocompleteMarket = ({
               }
               setShow(false);
             }, 200);
+          } else {
+            setShow(false);
           }
         }}
         autoComplete="off"
@@ -105,6 +107,16 @@ const AutocompleteMarket = ({
         leaveTo="h-0"
       >
         <div className="absolute z-10 bg-gray-900 w-full overflow-y-auto overflow-x-hidden rounded mt-1">
+          {loading && (
+            <div className="text-left px-2 py-1 block w-full text-gray-200">
+              Loading...
+            </div>
+          )}
+          {error && (
+            <div className="text-left px-2 py-1 block w-full text-red-500">
+              Error fetch data
+            </div>
+          )}
           <AutoSizer>
             {({ width, height }) => (
               <List

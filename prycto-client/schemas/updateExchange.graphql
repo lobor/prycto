@@ -1,0 +1,6 @@
+mutation updateExchange($_id: ID!, $balance: JSON!) {
+  updateExchange(_id: $_id, balance: $balance) {
+    balance
+    _id
+  }
+}

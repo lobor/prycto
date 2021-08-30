@@ -80,7 +80,6 @@ type User {
 type Query {
   exchangeById(_id: String!): Exchange!
   exchanges: [Exchange!]!
-  hasInit1: Boolean!
   positions(exchangeId: ID!): [Position!]!
   position(_id: String!): Position!
   getMarkets(exchangeId: String!): JSON!
@@ -88,14 +87,12 @@ type Query {
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
   getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
   user: User!
-  predictHistory: [Predict!]!
-  predictManually(positionId: String): Boolean!
-  trainManually(positionId: String!): Boolean!
 }
 
 type Mutation {
   addExchange(name: String!, exchange: String!, publicKey: String!, secretKey: String!): Exchange!
   removeExchange(_id: String!): Boolean!
+  updateExchange(balance: JSON!, _id: ID!): Exchange!
   removePosition(_id: String!): Boolean!
   editPosition(objectif: Float!, _id: String!): Position!
   syncPositions(_id: String!): Position!

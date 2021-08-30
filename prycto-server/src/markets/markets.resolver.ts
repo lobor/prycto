@@ -1,4 +1,4 @@
-import { Resolver, Query, Subscription, Args } from '@nestjs/graphql';
+import { Resolver, Query, Subscription, Args, Context } from '@nestjs/graphql';
 import JSON from 'graphql-type-json';
 import { Market } from './markets.model';
 import { PositionsService } from '../positions/positions.service';
@@ -8,6 +8,7 @@ import { PubSubService } from '../pub-sub/pub-sub.service';
 import { SocketExchangeService } from '../socketExchange/socketExchange.service';
 import { ExchangeService } from '../exchanges/service';
 import { AuthGuard } from '../user/guards/auth.guard';
+import { User } from 'src/user/user.schema';
 
 @Resolver(() => JSON)
 export class MarketsResolver {
@@ -21,8 +22,13 @@ export class MarketsResolver {
 
   @UseGuards(AuthGuard)
   @Query(() => JSON)
-  async getMarkets(@Args('exchangeId') exchangeId: string): Promise<Market> {
-    const positions = await this.positionsService.findByExchangeId(exchangeId);
+  async getMarkets(
+    @Context() ctx: { user: User },
+    @Args('exchangeId') exchangeId: string,
+  ): Promise<Market> {
+    const positions = await this.positionsService.findByExchangeId(exchangeId, {
+      userId: ctx.user._id.toString(),
+    });
     const [currencies] = await this.appService.getCurrencies({
       [exchangeId]: positions.map(({ pair }) => pair),
     });

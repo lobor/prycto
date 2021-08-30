@@ -5,13 +5,9 @@ import Table from "../../components/Table";
 import {
   PredictHistoryDocument,
   PredictHistoryQuery,
-  PredictHistoryQueryResult,
   PredictHistoryQueryVariables,
 } from "../../generated/graphql";
-import { useTable, Column } from "react-table";
 import { useMemo } from "react";
-import { AutoSizer } from "react-virtualized";
-import SimpleBarReact from "simplebar-react";
 
 const HistoryPredict = () => {
   const { data, loading } = useQuery<
@@ -44,12 +40,6 @@ const HistoryPredict = () => {
       },
     ];
   }, []);
-  const tableInstance = useTable({
-    columns,
-    data: (data && data.predictHistory) || [],
-  });
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    tableInstance;
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-xl text-gray-200 font-bold">History predict</h1>

@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import JSON from 'graphql-type-json';
 
+export type Balance = Record<string, { locked: number; available: number }>;
 @ObjectType()
 export class Exchange {
   @Field((type) => ID)
@@ -19,5 +20,5 @@ export class Exchange {
   secretKey: string;
 
   @Field((type) => JSON, { nullable: true })
-  balance: Record<string, { locked: number; available: number }>;
+  balance: Balance;
 }

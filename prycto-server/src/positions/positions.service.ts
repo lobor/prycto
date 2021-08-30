@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, UpdateQuery } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Position, PositionDocument } from './positions.schema';
 
 @Injectable()
@@ -14,8 +14,11 @@ export class PositionsService {
     return this.positionModel.find().exec();
   }
 
-  async findByExchangeId(exchangeId: string): Promise<PositionDocument[]> {
-    return this.positionModel.find({ exchangeId });
+  async findByExchangeId(
+    exchangeId: string,
+    other: FilterQuery<PositionDocument> = {},
+  ): Promise<PositionDocument[]> {
+    return this.positionModel.find({ exchangeId, ...other });
   }
 
   async findByPair(

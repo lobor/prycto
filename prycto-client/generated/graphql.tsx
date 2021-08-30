@@ -59,6 +59,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addExchange: Exchange;
   removeExchange: Scalars['Boolean'];
+  updateExchange: Exchange;
   removePosition: Scalars['Boolean'];
   editPosition: Position;
   syncPositions: Position;
@@ -82,6 +83,12 @@ export type MutationAddExchangeArgs = {
 
 export type MutationRemoveExchangeArgs = {
   _id: Scalars['String'];
+};
+
+
+export type MutationUpdateExchangeArgs = {
+  balance: Scalars['JSON'];
+  _id: Scalars['ID'];
 };
 
 
@@ -503,6 +510,20 @@ export type SyncPositionsMutation = (
   ) }
 );
 
+export type UpdateExchangeMutationVariables = Exact<{
+  _id: Scalars['ID'];
+  balance: Scalars['JSON'];
+}>;
+
+
+export type UpdateExchangeMutation = (
+  { __typename?: 'Mutation' }
+  & { updateExchange: (
+    { __typename?: 'Exchange' }
+    & Pick<Exchange, 'balance' | '_id'>
+  ) }
+);
+
 export type UpdateLangMutationVariables = Exact<{
   lang: Scalars['String'];
 }>;
@@ -774,6 +795,17 @@ export const SyncPositionsDocument = gql`
 export type SyncPositionsMutationFn = Apollo.MutationFunction<SyncPositionsMutation, SyncPositionsMutationVariables>;
 export type SyncPositionsMutationResult = Apollo.MutationResult<SyncPositionsMutation>;
 export type SyncPositionsMutationOptions = Apollo.BaseMutationOptions<SyncPositionsMutation, SyncPositionsMutationVariables>;
+export const UpdateExchangeDocument = gql`
+    mutation updateExchange($_id: ID!, $balance: JSON!) {
+  updateExchange(_id: $_id, balance: $balance) {
+    balance
+    _id
+  }
+}
+    `;
+export type UpdateExchangeMutationFn = Apollo.MutationFunction<UpdateExchangeMutation, UpdateExchangeMutationVariables>;
+export type UpdateExchangeMutationResult = Apollo.MutationResult<UpdateExchangeMutation>;
+export type UpdateExchangeMutationOptions = Apollo.BaseMutationOptions<UpdateExchangeMutation, UpdateExchangeMutationVariables>;
 export const UpdateLangDocument = gql`
     mutation updateLang($lang: String!) {
   updateLang(lang: $lang) {

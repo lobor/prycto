@@ -16,7 +16,7 @@ import { ExchangeService } from '../exchanges/service';
 import { AppService } from '../app.service';
 import { SocketExchangeService } from '../socketExchange/socketExchange.service';
 import { AuthGuard } from '../user/guards/auth.guard';
-import { User } from '../user/user.schema';
+import { User, UserDocument } from '../user/user.schema';
 import { PredictService } from '../predict/predict.service';
 import { Predict } from '../predict/predict.model';
 
@@ -100,9 +100,13 @@ export class PositionsResolver {
   @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
   async removePosition(
-    @Context() ctx: { exchangeId: string },
+    @Context() ctx: { exchangeId: string; user: UserDocument },
     @Args('_id') _id: string,
   ): Promise<boolean> {
+    const position = await this.positionService.findById(_id);
+    if (!position || ctx.user._id.toString() !== position.userId) {
+      throw new NotFoundException();
+    }
     await this.positionService.deleteOne(_id);
     return true;
   }
@@ -111,12 +115,12 @@ export class PositionsResolver {
   @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
   async editPosition(
-    @Context() ctx: { exchangeId: string },
+    @Context() ctx: { user: UserDocument },
     @Args('_id') _id: string,
     @Args('objectif') objectif: number,
   ): Promise<Position> {
     const position = await this.positionService.findById(_id);
-    if (!position) {
+    if (!position || ctx.user._id.toString() !== position.userId) {
       throw new Error('position not found');
     }
     return this.positionService.updateOne(_id, { objectif: Number(objectif) });
@@ -126,15 +130,15 @@ export class PositionsResolver {
   @UseGuards(EchangeIdGuard)
   @UseGuards(AuthGuard)
   async syncPositions(
-    @Context() ctx: { exchangeId: string },
+    @Context() ctx: { exchangeId: string; user: UserDocument },
     @Args('_id') _id: string,
   ): Promise<Position> {
     const exchange = await this.exchangeService.findById(ctx.exchangeId);
-    if (!exchange) {
+    if (!exchange || ctx.user._id.toString() !== exchange.userId) {
       throw new Error('exchange not found');
     }
     const position = await this.positionService.findById(_id);
-    if (!position) {
+    if (!position || ctx.user._id.toString() !== position.userId) {
       throw new Error('position not found');
     }
     const balance = await this.appService.getBalancesByExchangeId(

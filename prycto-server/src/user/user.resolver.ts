@@ -31,10 +31,13 @@ export class UserResolver {
   @Mutation(() => User)
   @UseGuards(AuthGuard)
   async updateUser(
+    @Context() ctx: { user: User },
     @Args('_id', { type: () => ID }) _id: string,
     @Args('email') email: string,
   ): Promise<User> {
-    return this.userService.updateById(_id, { $set: { email } });
+    return this.userService.updateById(ctx.user._id.toString(), {
+      $set: { email },
+    });
   }
 
   @Mutation(() => User)
