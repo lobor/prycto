@@ -62,6 +62,7 @@ export class EchangeResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
   async removeExchange(
     @Context() ctx: { user: User },
     @Args('_id') _id: string,

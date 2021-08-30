@@ -90,7 +90,7 @@ export class AppService {
   }) {
     const exchange = this.exchanges[params.exchangeId];
     let orders = [];
-    if (exchange.has.fetchOrders) {
+    if (exchange && exchange.has.fetchOrders) {
       orders = flatten(
         await Promise.all(
           params.pairs.map(async (symbol) => {
