@@ -4,6 +4,12 @@ Add position pair
 And app get wallet balance, and associate to pair  
 You can set objectif of sell  
 
+## Requirements
+- node
+- docker
+- docker-compose
+
+
 ## Getting Started
 
 First, run install dependencies:
@@ -14,12 +20,12 @@ npm install
 yarn install
 ```
 
-copy and paste `prycto-client/.env.dist` to `prycto-client/.env`  
+copy and paste `prycto-client/.env.dist` to `prycto-client/.env` and change variable env  
+copy and paste `prycto-server/.env.dist` to `prycto-server/.env` and change variable env  
 
 Then, run development container:
 
 ```bash
-npx lerna exec --scope prycto-client -- npm run build
 docker-compose up
 ```
 
