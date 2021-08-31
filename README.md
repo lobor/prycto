@@ -29,7 +29,7 @@ Then, run development container:
 docker-compose up
 ```
 
-Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+Open [http://prycto.localhost](http://prycto.localhost) with your browser to see the result.
 
 <!-- ## Doc front component
 ```bash

@@ -12,6 +12,12 @@ services:
     volumes:
       - './:/home/node/app'
     working_dir: /home/node/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`prycto.localhost`)"
+      - "traefik.http.routers.client.entrypoints=web"
+      # - "traefik.http.routers.client.tls=true"
+      # - "traefik.http.routers.client.tls.certresolver=pryctoClient"
 
   prycto-server:
     container_name: prycto-server
@@ -28,6 +34,12 @@ services:
     volumes:
       - './:/home/node/app'
     working_dir: /home/node/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server.rule=Host(`prycto-api.localhost`)"
+      - "traefik.http.routers.server.entrypoints=web"
+      # - "traefik.http.routers.server.tls=true"
+      # - "traefik.http.routers.server.tls.certresolver=pryctoServer"
 
   mongo-prycto:
     container_name: mongo-prycto
@@ -43,6 +55,26 @@ services:
     restart: always
     ports:
       - 6377:6379
+  
+  traefik:
+    image: "traefik:v2.5"
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      # - "--entrypoints.websecure.address=:443"
+      # - "--certificatesResolvers.pryctoClient.acme.email=lionel.bertrand@ymail.com"
+      # - "--certificatesResolvers.pryctoClient.acme.storage=acme.json"
+      # - "--certificatesResolvers.pryctoClient.acme.httpChallenge.entryPoint=web"
+    ports:
+      - "80:80"
+      # - "443:443"
+      # - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
 volumes:
   mongo-data-prycto: {}
