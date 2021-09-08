@@ -168,7 +168,8 @@ export class PositionsResolver {
             percentSell = (100 * order.amount) / amount;
           }
           amount -= Number(order.amount);
-          investment -= (investment * percentSell) / 100;
+          investment -= Number(order.cost);
+          // investment -= (investment * percentSell) / 100;
         }
       }
     });
@@ -251,7 +252,8 @@ export class PositionsResolver {
             percentSell = (100 * order.amount) / amount;
           }
           amount -= Number(order.amount);
-          investment -= (investment * percentSell) / 100;
+          investment -= Number(order.cost);
+          // investment -= (investment * percentSell) / 100;
         }
       }
     });
