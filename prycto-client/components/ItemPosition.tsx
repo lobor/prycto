@@ -31,6 +31,7 @@ import {
   AiOutlineDelete,
   AiOutlineReload,
 } from "react-icons/ai";
+import { ImSpinner5 } from "react-icons/im";
 
 export interface ItemPositionProps {
   position: Position & {
@@ -38,6 +39,7 @@ export interface ItemPositionProps {
     profit: number;
     profitPercent: number;
     total: number;
+    gain: number;
   };
 }
 
@@ -57,6 +59,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     market,
     total,
     predict,
+    gain,
   } = position;
   const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
@@ -142,46 +145,55 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   }, [dataHistory]);
 
   const chart = useMemo(() => {
-    return (
-      <VictoryChart
-        width={1}
-        height={50}
-        style={{
-          parent: { width: "80px", height: "40px" },
-        }}
-        // scale={{ x: "time" }}
-        // domainPadding={{ x: 0, y: 0 }}
-        minDomain={{ y: min }}
+    return !dataHistory ? (
+      <div
+        className="flex justify-center items-center"
+        style={{ width: "80px", height: "40px" }}
       >
-        <VictoryArea
+        <ImSpinner5 className="animate-spin" />
+      </div>
+    ) : (
+      <div>
+        <VictoryChart
+          width={1}
+          height={50}
           style={{
-            data: { stroke: "rgb(59, 130, 246)" },
+            parent: { width: "80px", height: "40px" },
           }}
-          data={[
-            ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
-            { timestamp: Date.now(), close: market },
-          ]}
-          x="timestamp"
-          y="close"
-        />
-        <VictoryAxis
-          invertAxis
-          tickFormat={() => ""}
-          style={{
-            axisLabel: { color: "transparent" },
-            axis: { stroke: "none" },
-          }}
-        />
-        <VictoryAxis
-          dependentAxis
-          invertAxis
-          tickFormat={() => ""}
-          style={{
-            axisLabel: { color: "transparent" },
-            axis: { stroke: "none" },
-          }}
-        />
-      </VictoryChart>
+          // scale={{ x: "time" }}
+          // domainPadding={{ x: 0, y: 0 }}
+          minDomain={{ y: min }}
+        >
+          <VictoryArea
+            style={{
+              data: { stroke: "rgb(59, 130, 246)" },
+            }}
+            data={[
+              ...((dataHistory && dataHistory.getHistoryBySymbol) || []),
+              { timestamp: Date.now(), close: market },
+            ]}
+            x="timestamp"
+            y="close"
+          />
+          <VictoryAxis
+            invertAxis
+            tickFormat={() => ""}
+            style={{
+              axisLabel: { color: "transparent" },
+              axis: { stroke: "none" },
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            invertAxis
+            tickFormat={() => ""}
+            style={{
+              axisLabel: { color: "transparent" },
+              axis: { stroke: "none" },
+            }}
+          />
+        </VictoryChart>
+      </div>
     );
   }, [dataHistory, market]);
   const isUp = predict.up > predict.down;
@@ -190,9 +202,11 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     () => (
       <div
         key={`itemPosition${symbol}`}
-        className="hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center"
+        className={`${
+          objectif && objectif <= market ? "bg-green-900" : ""
+        } hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center`}
       >
-        <div className="py-2 px-6 flex-1 flex items-center">
+        <div className="py-2 md:px-6 flex-1 flex items-center">
           <img
             src={`/${exchange}.ico`}
             className="inline-block mr-2"
@@ -207,60 +221,58 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
             {symbol}
           </Button>
         </div>
+        {/* Char column  */}
         {chart}
-        <div className="py-2 px-6 hidden md:block flex-1">
+        {/* Amount column  */}
+        <div className="py-2 md:px-6 hidden md:block flex-1">
           <HideShow>{round(total, 7)}</HideShow>
         </div>
-        <div className="py-2 px-6 hidden md:block flex-1">
-          <HideShow>{round(total === 0 ? 0 : investment / total, 8)}</HideShow>
+        {/* Average price column  */}
+        <div className="py-2 md:px-6 hidden md:block flex-1">
+          <HideShow>
+            {round(total === 0 || investment < 0 ? 0 : investment / total, 8)}
+          </HideShow>
         </div>
-        <div className="py-2 px-6 hidden md:block flex-1">{market}</div>
-        <div className="py-2 px-6 hidden md:block flex-1">
-          <HideShow>{round(investment)}</HideShow> /{" "}
+        {/* Market column  */}
+        <div className="py-2 md:px-6 hidden md:block flex-1">{market}</div>
+        {/* Investment column  */}
+        <div className="py-2 md:px-6 hidden md:block flex-1">
+          <HideShow>{round(investment > 0 ? investment : 0)}</HideShow> /{" "}
           <span className="text-gray-400">
             <HideShow>{round(market * total)}</HideShow>
           </span>
         </div>
+        {/* Profit column  */}
         <div
-          className={classnames("py-2", "px-6", "flex-1", {
-            "text-green-500": profit >= 0,
-            "text-red-600": profit < 0,
-          })}
+          className={classnames(
+            "py-2",
+            "px-6",
+            "flex-1",
+            "flex",
+            "justify-between",
+            {
+              "text-green-500": profit >= 0,
+              "text-red-600": profit < 0,
+            }
+          )}
         >
-          <HideShow>{round(profit)}</HideShow>{" "}
-          <div className="block md:hidden" />(
-          {round(investment !== 0 ? (profit * 100) / investment : 0)}
-          %)
+          <div>
+            <HideShow>
+              {round(investment > 0 ? profit : profit + investment)}
+            </HideShow>
+          </div>
+          <div>{round(investment > 0 ? (profit * 100) / investment : 0)}%</div>
         </div>
-        {/* <div
-          className="py-2 px-6 hidden md:block flex-1 cursor-pointer"
+        {/* Gain column  */}
+        <div className="py-2 md:px-6 hidden md:block flex-1 text-center">
+          <HideShow>{round(gain)}</HideShow>
+        </div>
+        <div
+          className="py-2 md:px-6 hidden md:block w-28 cursor-pointer text-center"
           onClick={handleEditObjectif}
         >
-          {isEditObjectif ? (
-            <form onSubmit={formik.handleSubmit}>
-              <Input
-                autoFocus
-                type="text"
-                name="objectif"
-                onBlur={handleEditObjectif}
-                value={formik.values.objectif}
-                onChange={(e) => {
-                  formik.setFieldValue(
-                    "objectif",
-                    Number(e.currentTarget.value)
-                  );
-                  formik.setFieldTouched("objectif", true);
-                }}
-                error={formik.errors.objectif}
-              />
-            </form>
-          ) : (
-            <>
-              {objectif || 0} /{" "}
-              <HideShow>{round(total * (objectif || 0))}</HideShow>
-            </>
-          )}
-        </div> */}
+          {objectif || 0}
+        </div>
         {/* <div
           className={`py-2 px-6 w-40 hidden md:flex md:justify-center ${
             isUnknown
@@ -278,7 +290,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
             <AiOutlineCaretDown />
           )}
         </div> */}
-        <div className="py-2 px-6 text-center w-60 hidden md:block">
+        <div className="py-2 md:px-6 text-center w-60 hidden md:block">
           <Button
             onClick={() => {
               removePosition({ variables: { _id } });

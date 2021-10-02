@@ -53,4 +53,5 @@ export const en = {
   "history.sell": "Sell",
   "history.closed": "Executed",
   "history.canceled": "Canceld",
+  "gain": "Relatif gain",
 };

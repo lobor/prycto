@@ -105,6 +105,7 @@ const Positions = () => {
             : 0,
         profit,
         total,
+        gain: position.investment < 0 ? position.investment * -1 : 0,
       };
     });
   }, [data, markets]);
@@ -198,125 +199,10 @@ const Positions = () => {
         )} */}
         <div className="flex-1 flex flex-col">
           <div className="w-full">
-            {/* <Table
-            columns={[
-              {
-                Header: intl.formatMessage({ id: "pairs" }),
-                accessor: "pair",
-                Cell: ({ row }: any) => {
-                  return useMemo(
-                    () => (
-                      <>
-                        <img
-                        src={`/${exchange}.ico`}
-                        className="inline-block mr-2"
-                        width="20"
-                        alt={exchange}
-                      />
-                        <Button
-                          variant="link"
-                          className="inline-block"
-                          onClick={() => {
-                            const pathname = `/tradingview/${row.original._id}?pair=${row.original.pair}`;
-                            addTab({
-                              key: row.original.pair,
-                              label: row.original.pair,
-                              canClose: true,
-                              exchange: exchange,
-                              href: pathname,
-                            });
-                            router.push(pathname);
-                            selectTab(row.original.pair);
-                          }}
-                        >
-                          {row.original.pair}
-                        </Button>
-                      </>
-                    ),
-                    []
-                  );
-                },
-              },
-              {
-                id: "graph",
-                Cell: ({ row }: any) => {
-                  return <Graph symbol={row.original.pair} market={row.original.market} />;
-                },
-              },
-              {
-                Header: intl.formatMessage({ id: "amount" }),
-                accessor: "total",
-                Cell: ({ value }) => {
-                  return <HideShow>{round(value, 7)}</HideShow>;
-                },
-              },
-              {
-                Header: intl.formatMessage({ id: "averagePrice" }),
-                id: "averagePrice",
-                Cell: ({ row }: any) => {
-                  return (
-                    <>
-                      <HideShow>
-                        {round(
-                          row.original.total === 0
-                            ? 0
-                            : row.original.investment / row.original.total,
-                          8
-                        )}
-                      </HideShow>
-                    </>
-                  );
-                },
-              },
-              {
-                Header: intl.formatMessage({ id: "market" }),
-                accessor: "market",
-              },
-              {
-                Header: intl.formatMessage({ id: "investment" }),
-                accessor: "investment",
-                Cell: ({ value, row }: any) => {
-                  return (
-                    <>
-                      <HideShow>{round(value)}</HideShow> /{" "}
-                      <span className="text-gray-400">
-                        <HideShow>
-                          {round(row.original.market * row.original.total)}
-                        </HideShow>
-                      </span>
-                    </>
-                  );
-                },
-              },
-              {
-                Header: intl.formatMessage({ id: "profit" }),
-                accessor: "profitPercent",
-                Cell: ({ value, row }: any) => {
-                  return (
-                    <div
-                      className={classnames("py-2", "px-6", "flex-1", {
-                        "text-green-500": row.original.profit >= 0,
-                        "text-red-600": row.original.profit < 0,
-                      })}
-                    >
-                      <HideShow>{round(row.original.profit)}</HideShow>{" "}
-                      <div className="block md:hidden" />({round(value)}
-                      %)
-                    </div>
-                  );
-                },
-              },
-              {
-                Header: intl.formatMessage({ id: "goal" }),
-                accessor: "objectif",
-              },
-            ]}
-            data={positionsOriginal}
-          /> */}
             <div className="w-full border-b-2 border-gray-900 text-gray-200 flex flex-row items-center">
               <div
                 onClick={handleSort("pair")}
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer"
               >
                 <FormattedMessage id="pairs" />
                 {sort &&
@@ -325,7 +211,7 @@ const Positions = () => {
               </div>
               <div className="" style={{ width: "80px" }}></div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("amount")}
               >
                 <FormattedMessage id="amount" />
@@ -333,11 +219,11 @@ const Positions = () => {
                   sort.key === "amount" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
-              <div className="flex-1 py-4 px-6 font-bold uppercase text-sm hidden md:flex">
+              <div className="flex-1 py-4 md:px-6 font-bold uppercase text-sm hidden md:flex">
                 <FormattedMessage id="averagePrice" />
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("market")}
               >
                 <FormattedMessage id="market" />
@@ -346,7 +232,7 @@ const Positions = () => {
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
                 onClick={handleSort("investment")}
               >
                 <FormattedMessage id="investment" />
@@ -355,7 +241,7 @@ const Positions = () => {
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
               <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer"
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer text-center"
                 onClick={handleSort("profitPercent")}
               >
                 <FormattedMessage id="profit" />
@@ -363,24 +249,24 @@ const Positions = () => {
                   sort.key === "profitPercent" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
               </div>
-              {/* <div
-                className="flex-1 py-4 px-6 font-bold uppercase text-sm cursor-pointer hidden md:flex"
+              <div
+                className="flex-1 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer text-center hidden md:block"
+                onClick={handleSort("gain")}
+              >
+                <FormattedMessage id="gain" />
+                {sort &&
+                  sort.key === "gain" &&
+                  (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
+              </div>
+              <div
+                className="w-28 py-4 md:px-6 font-bold uppercase text-sm cursor-pointer hidden md:block text-center"
                 onClick={handleSort("objectif")}
               >
-                <FormattedMessage id="goal" /> (
-                <HideShow>
-                  {round(
-                    positionsOriginal.reduce((acc, { objectif, total }) => {
-                      acc += (objectif || 0) * total;
-                      return acc;
-                    }, 0)
-                  )}
-                </HideShow>
-                )
+                <FormattedMessage id="goal" />
                 {sort &&
                   sort.key === "objectif" &&
                   (sort.sort === "desc" ? "\u21E3" : `\u21E1`)}
-              </div> */}
+              </div>
               {/* <div
                 className="py-4 px-6 font-bold uppercase w-40 text-sm hidden md:flex md:justify-center"
               >
@@ -388,7 +274,7 @@ const Positions = () => {
                 <br />
                 (<FormattedDate value={addDays(Date.now(), 1)} />)
               </div> */}
-              <div className="py-4 px-6 font-bold uppercase text-sm text-center w-60 hidden md:flex justify-center">
+              <div className="py-4 md:px-6 font-bold uppercase text-sm text-center w-60 hidden md:flex justify-center">
                 <Button
                   variant="validate"
                   onClick={() => {

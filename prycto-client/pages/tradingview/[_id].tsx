@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
 import { format } from "date-fns";
@@ -7,6 +7,7 @@ import { useMarket } from "../../context/market";
 import { useTabsContext, Tab } from "../../context/tabs";
 import HideShow from "../../components/HideShow";
 import {
+  EditPositionDocument,
   GetHistoryOrderBySymbolDocument,
   GetHistoryOrderBySymbolQuery,
   GetHistoryOrderBySymbolQueryVariables,
@@ -18,6 +19,7 @@ import {
   PredictQuery,
   PredictQueryVariables,
 } from "../../generated/graphql";
+import * as Yup from "yup";
 import round from "../../utils/round";
 import {
   AiOutlineCaretDown,
@@ -32,6 +34,8 @@ import { AutoSizer } from "react-virtualized";
 import QuickPositions from "../../components/QuickPositions";
 import { FormattedMessage } from "react-intl";
 import Loading from "../../components/Loading";
+import Input from "../../components/Input";
+import { useFormik } from "formik";
 
 declare global {
   interface Window {
@@ -44,6 +48,7 @@ const view: Record<string, any> = {};
 export default function Trade() {
   const { selected, tabs } = useTabsContext();
   const { exchangeId } = useExchange();
+  const [editPosition, { loading }] = useMutation(EditPositionDocument);
   const router = useRouter();
   const div = useRef<any>(null);
   const pair = tabs
@@ -56,14 +61,19 @@ export default function Trade() {
     variables: { _id },
     skip: !_id,
   });
-  // const { data: dataPredict, loading: loadingPredict } = useQuery<
-  //   PredictQuery,
-  //   PredictQueryVariables
-  // >(PredictDocument, {
-  //   fetchPolicy: "network-only",
-  //   variables: { exchangeId, symbol: (data && data.position.pair) || "" },
-  //   skip: true,
-  // });
+
+  const formik = useFormik({
+    validationSchema: Yup.object({
+      objectif: Yup.number().required(),
+    }),
+    enableReinitialize: true,
+    initialValues: {
+      objectif: (data && data.position.objectif) || 0,
+    },
+    onSubmit: (value) => {
+      editPosition({ variables: { _id, ...value } });
+    },
+  });
 
   const [showHistory, setShowHistory] = useState(false);
 
@@ -118,7 +128,7 @@ export default function Trade() {
         if (div.current) {
           div.current = null;
         }
-      }
+      };
     }
   }, [pair && pair.label, process.browser]);
 
@@ -140,6 +150,8 @@ export default function Trade() {
   const quickPositionsRender = useMemo(() => {
     return <QuickPositions />;
   }, []);
+
+  const form = useRef<HTMLFormElement>(null);
 
   return (
     <>
@@ -195,12 +207,26 @@ export default function Trade() {
                     <HideShow>{data.position.investment}</HideShow>
                   </div>
                 </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md">
+                <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md items-center">
                   <div className="flex-1">
                     <FormattedMessage id="goal" />:
                   </div>
                   <div className="text-gray-200">
-                    {data.position.objectif || 0}
+                    <form ref={form} onSubmit={formik.handleSubmit}>
+                      <Input
+                        className="text-right"
+                        name="objectif"
+                        type="number"
+                        value={formik.values.objectif}
+                        error={formik.errors.objectif}
+                        onChange={formik.handleChange}
+                        onBlur={() => {
+                          if (formik.isValid && form.current) {
+                            formik.handleSubmit({ target: form.current } as any)
+                          }
+                        }}
+                      />
+                    </form>
                   </div>
                 </div>
                 <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md">

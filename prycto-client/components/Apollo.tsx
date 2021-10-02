@@ -1,4 +1,3 @@
-import { persistCache, LocalStorageWrapper } from "apollo3-cache-persist";
 import {
   ApolloClient,
   InMemoryCache,
@@ -9,7 +8,7 @@ import {
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 import { HttpLink } from "@apollo/client/link/http";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { WebSocketLink } from "apollo-link-ws";
 
 const setAuthorizationLink = setContext((request, previousContext) => ({
@@ -83,20 +82,6 @@ interface ApolloCustomProps {
 }
 
 const ApolloCustom = ({ children }: ApolloCustomProps) => {
-  const [persist, setPersist] = useState(false);
-  useEffect(() => {
-    if (process.browser && process.env.NODE_ENV === 'production') {
-      persistCache({
-        cache,
-        storage: new LocalStorageWrapper(window.localStorage),
-      }).then(() => setPersist(true));
-    } else if (process.env.NODE_ENV === 'development') {
-      setPersist(true)
-    }
-  }, [process.browser]);
-  if (!persist) {
-    return null;
-  }
   return (
     <ApolloProvider client={client}>
       {children}
