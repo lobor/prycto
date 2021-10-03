@@ -196,18 +196,29 @@ export default function Trade() {
                     className={profit < 0 ? "text-red-600" : "text-green-500"}
                   >
                     <HideShow>{round(profit)}</HideShow>(
-                    {round((profit * 100) / (data.position.investment || 1))}%)
+                    {round(
+                      data.position.investment > 0
+                        ? (profit * 100) / (data.position.investment || 1)
+                        : 0
+                    )}
+                    %)
                   </div>
                 </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md">
+                <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md">
                   <div className="flex-1">
                     <FormattedMessage id="investment" />:
                   </div>
                   <div className="text-gray-200">
-                    <HideShow>{data.position.investment}</HideShow>
+                    <HideShow>
+                      {round(
+                        data.position.investment > 0
+                          ? data.position.investment
+                          : 0
+                      )}
+                    </HideShow>
                   </div>
                 </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md items-center">
+                <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md items-center">
                   <div className="flex-1">
                     <FormattedMessage id="goal" />:
                   </div>
@@ -222,7 +233,9 @@ export default function Trade() {
                         onChange={formik.handleChange}
                         onBlur={() => {
                           if (formik.isValid && form.current) {
-                            formik.handleSubmit({ target: form.current } as any)
+                            formik.handleSubmit({
+                              target: form.current,
+                            } as any);
                           }
                         }}
                       />
@@ -287,7 +300,7 @@ export default function Trade() {
             </div>
             {showHistory && (
               <>
-                <div className="flex flex-row bg-gray-900 text-gray-200 p-2">
+                <div className="hidden md:flex flex-row bg-gray-900 text-gray-200 p-2">
                   <div className="flex-1">
                     <FormattedMessage id="history.date" />
                   </div>
@@ -328,44 +341,84 @@ export default function Trade() {
                             return (
                               <div
                                 key={`symbol${order.timestamp}`}
-                                className={`flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex items-center p-1 ${
+                                className={`flex-col md:flex-row hover:bg-gray-900 text-gray-200 border-b border-gray-900 flex md:items-center p-1 ${
                                   order.status === "canceled" && "opacity-50"
                                 }`}
                               >
-                                <div className="flex-1">
-                                  {format(
-                                    order.timestamp,
-                                    "MM/dd/yyyy HH:mm:ss"
-                                  )}
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.date" />
+                                  </span>
+                                  <span>
+                                    {format(
+                                      order.timestamp,
+                                      "MM/dd/yyyy HH:mm:ss"
+                                    )}
+                                  </span>
                                 </div>
-                                <div className="flex-1">{order.symbol}</div>
-                                <div className="flex-1">{order.price}</div>
-                                <div className="flex-1">
-                                  <HideShow>{order.amount}</HideShow>
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.symbol" />
+                                  </span>
+                                  <span>{order.symbol}</span>
                                 </div>
-                                <div className="flex-1">
-                                  <HideShow>{order.cost}</HideShow>
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.price" />
+                                  </span>
+                                  <span>{order.price}</span>
                                 </div>
-                                <div className="flex-1">
-                                  <FormattedMessage
-                                    id={`history.${order.type}`}
-                                  />
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.amount" />
+                                  </span>
+                                  <span>
+                                    <HideShow>{order.amount}</HideShow>
+                                  </span>
+                                </div>
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.cost" />
+                                  </span>
+                                  <span>
+                                    <HideShow>{order.cost}</HideShow>
+                                  </span>
+                                </div>
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.type" />
+                                  </span>
+                                  <span>
+                                    <FormattedMessage
+                                      id={`history.${order.type}`}
+                                    />
+                                  </span>
                                 </div>
                                 <div
-                                  className={`flex-1 ${
+                                  className={`flex-1  flex justify-between ${
                                     order.side === "sell"
                                       ? "text-red-600"
                                       : "text-green-500"
                                   }`}
                                 >
-                                  <FormattedMessage
-                                    id={`history.${order.side}`}
-                                  />
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.side" />
+                                  </span>
+                                  <span>
+                                    <FormattedMessage
+                                      id={`history.${order.side}`}
+                                    />
+                                  </span>
                                 </div>
-                                <div className="flex-1">
-                                  <FormattedMessage
-                                    id={`history.${order.status}`}
-                                  />
+                                <div className="flex-1 flex justify-between">
+                                  <span className="md:hidden">
+                                    <FormattedMessage id="history.status" />
+                                  </span>
+                                  <span>
+                                    <FormattedMessage
+                                      id={`history.${order.status}`}
+                                    />
+                                  </span>
                                 </div>
                               </div>
                             );

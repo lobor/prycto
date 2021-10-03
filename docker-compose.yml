@@ -6,6 +6,7 @@ services:
     command: npx lerna exec 'npm run dev' --scope prycto-client
     depends_on:
       - prycto-server
+      - traefik
     ports:
       - '3001:3001'
     user: node
@@ -28,6 +29,7 @@ services:
     depends_on:
       - mongo-prycto
       - redis-prycto
+      - traefik
     ports:
       - '3002:3000'
     user: node

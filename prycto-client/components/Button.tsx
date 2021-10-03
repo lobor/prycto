@@ -8,7 +8,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = (props: ButtonProps) => {
   const { children, className, size, variant, ...otherProps } = props;
 
-  let sizeClassName = "px-4 py-2";
+  let sizeClassName = "px-4 py-1 md:py-2";
   if (size === "small") {
     sizeClassName = "px-2 py-1";
   }

@@ -71,7 +71,7 @@ const QuickPositions = () => {
     }
   };
   return (
-    <div className="w-50 flex flex-col pr-1 pb-1">
+    <div className="w-50 flex-col pr-1 pb-1 hidden md:flex">
       <div className="py-2 px-2 flex justify-between bg-gray-900 text-gray-200">
         <div
           className="flex-1 flex items-center font-bold text-sm cursor-pointer"

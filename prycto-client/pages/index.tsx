@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Snackbar from "../components/Snackbar";
 import Button from "../components/Button";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import Link from "next/link";
 import SelectLang from "../components/SelectLang";
 import { useRouter } from "next/dist/client/router";
@@ -9,6 +9,7 @@ import PryctoLogo from "../components/PryctoLogo";
 
 export default function Home() {
   const router = useRouter();
+  const intl = useIntl();
   return (
     <>
       <Head>
@@ -40,23 +41,28 @@ export default function Home() {
         </div>
         <div className="flex-1 overflow-auto">
           <div className="w-1/3 m-auto">
-            <h1 className="text-2xl">Prycto</h1>
-            <div>Suivre une position crypto en toute simplicité</div>
-
+            <h1 className="text-2xl">Prycto - {intl.formatMessage({ id: 'subTitle' })}</h1>
+            <p className="mt-5">
+              {intl.formatMessage({ id: 'index.descriptif' })}
+              Beaucoup d'application existe afin de tracker le PNL de nos
+              cryptos adorées. Mais elle se base sur le prix d'un token, peu
+              importe la paire. Or quand on fait du trading, on a besoin de
+              connaitre la valeur lié a notre position, Prycto rentre en jeux
+            </p>
             <h2 className="text-2xl mt-5">Commençons</h2>
 
             <h3 className="text-xl mt-5">Inscription</h3>
-            <img src="/tuto/register.png" alt="Register" />
+            <img src="/tuto/register.png" alt="Register" className="border p-2 rounded-xl bg-gray-900 border-gray-500 m-auto" />
             {/* <div className="text-md">Suivre une position crypto en toute simplicité</div> */}
 
             <h3 className="text-xl mt-5">Ajout d'un porte-feuille</h3>
-            <img src="/tuto/addExchange.png" alt="add Exchange" />
+            <img src="/tuto/addExchange.png" alt="add Exchange" className="border p-2 rounded-xl bg-gray-900 border-gray-500 m-auto" />
             <br />
-            <img src="/tuto/selectExchange.png" alt="selectExchange" />
+            <img src="/tuto/selectExchange.png" alt="selectExchange" className="border p-2 rounded-xl bg-gray-900 border-gray-500 m-auto" />
             {/* <div>Suivre une position crypto en toute simplicité</div> */}
 
             <h3 className="text-xl mt-5">Ajout d'une position</h3>
-            <img src="/tuto/addedPosition.png" alt="added position" />
+            <img src="/tuto/addedPosition.png" alt="added position" className="border p-2 rounded-xl bg-gray-900 border-gray-500 m-auto" />
             {/* <div>Suivre une position crypto en toute simplicité</div> */}
           </div>
         </div>

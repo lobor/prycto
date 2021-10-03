@@ -14,7 +14,7 @@ interface AutocompleteMarketProps {
   type?: string;
   value?: Pair;
   onSelect?: (key: Pair) => void;
-  onChange?: (value: Pair) => void
+  onChange?: (value: Pair) => void;
 }
 const AutocompleteMarket = ({
   icon,
@@ -77,14 +77,14 @@ const AutocompleteMarket = ({
         value={value && value.symbol}
         type={type || "text"}
         placeholder={placeholder}
-        className={`w-full bg-gray-900 text-white transition border border-transparent rounded py-3 px-2 appearance-none leading-normal ${classnames(
+        className={`w-full bg-gray-900 text-white transition border border-transparent rounded appearance-none leading-normal ${classnames(
           { "pl-10": icon }
         )}`}
       />
       {icon && (
         <div
-          className="absolute search-icon z-20"
-          style={{ top: "1rem", left: ".8rem" }}
+          className="absolute search-icon z-20 top-2.5"
+          style={{ left: ".8rem" }}
         >
           <svg
             className="fill-current pointer-events-none text-white w-4 h-4"

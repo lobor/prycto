@@ -12,6 +12,7 @@ import HideShow from "../components/HideShow";
 import Table from "../components/Table";
 import Input from "../components/Input";
 import { useFormik } from "formik";
+import * as Yup from "yup";
 import round from "../utils/round";
 
 const EditCell = ({
@@ -31,28 +32,34 @@ const EditCell = ({
   const { original } = row;
   const [updateExchange] = useMutation(UpdateExchangeDocument);
   const formik = useFormik({
+    validationSchema: Yup.object({ [original.quote]: Yup.number() }),
     initialValues: { [original.quote]: value },
     onSubmit: () => {},
   });
   const handleSave = (e: any) => {
-    console.log(formik.values[original.quote]);
-    updateExchange({
-      variables: {
-        _id: original.exchangeId,
-        balance: { [original.quote]: formik.values[original.quote] },
-      },
-    });
+    if (Number(formik.values[original.quote])) {
+      updateExchange({
+        variables: {
+          _id: original.exchangeId,
+          balance: { [original.quote]: Number(formik.values[original.quote]) },
+        },
+      });
+    } else {
+      formik.setFieldValue(original.quote, value);
+    }
   };
   return (
-    <HideShow>
-      <Input
-        name={original.quote}
-        value={formik.values[original.quote]}
-        error={formik.errors[original.quote]}
-        onChange={formik.handleChange}
-        onBlur={handleSave}
-      />
-    </HideShow>
+    <span className="flex flex-col flex-1">
+      <HideShow>
+        <Input
+          name={original.quote}
+          value={formik.values[original.quote]}
+          error={formik.errors[original.quote]}
+          onChange={formik.handleChange}
+          onBlur={handleSave}
+        />
+      </HideShow>
+    </span>
   );
 };
 const Balances = () => {
@@ -89,8 +96,8 @@ const Balances = () => {
               Header: intl.formatMessage({ id: "balance.available" }),
               accessor: "available",
               Cell: ({ value }: { value: number }) => {
-                return <HideShow>{round(value, 7)}</HideShow>
-              }
+                return <HideShow>{round(value, 7)}</HideShow>;
+              },
             },
             {
               Header: intl.formatMessage({ id: "balance.locked" }),

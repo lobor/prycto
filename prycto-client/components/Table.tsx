@@ -19,7 +19,8 @@ const Table = ({ columns, data }: TableProps) => {
     {
       columns,
       data,
-    },
+      autoResetSortBy: false,
+    } as any,
     useFlexLayout,
     useSortBy
   );

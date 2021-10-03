@@ -215,7 +215,7 @@ const Nav = ({ children, hide }: NavProps) => {
                 </div>
               </div>
               <div className="md:flex flex-col w-full md:flex-1 md:flex-row items-center">
-                <div className="flex h-12 md:justify-end mt-2 md:mt-0">
+                <div className="flex md:h-12 md:justify-end mt-0">
                   <div className="flex md:hidden w-full md:w-2/12 justify-center md:justify-start">
                     <div className="flex md:max-w-lg justify-center md:justify-start text-white flex-1 mr-1 md:mr-0">
                       <AutocompleteMarket
@@ -247,7 +247,7 @@ const Nav = ({ children, hide }: NavProps) => {
                     {!isHide && <AiFillEye />}
                     {isHide && <AiFillEyeInvisible />}
                   </button>
-                  <div className="inline-block mr-3 flex-1">
+                  <div className="inline-block mr-3 flex-1 h-9">
                     <Select
                       className="w-full"
                       placeholder={<FormattedMessage id="exchanges" />}
@@ -275,7 +275,7 @@ const Nav = ({ children, hide }: NavProps) => {
                       }
                     />
                   </div>
-                  <div className="mr-3 flex-1">
+                  <div className="mr-3 flex-1 h-9">
                     <SelectLang />
                   </div>
                 </div>

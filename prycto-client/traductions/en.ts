@@ -54,4 +54,6 @@ export const en = {
   "history.closed": "Executed",
   "history.canceled": "Canceld",
   "gain": "Relatif gain",
+  "subTitle": "Easily follow a crypto position",
+  "index.descriptif": "Many applications exist to track the NLP of our beloved cryptos. But it is based on the price of a token, regardless of the pair. But when we trade, we need to know the value linked to our position, Prycto comes into play",
 };

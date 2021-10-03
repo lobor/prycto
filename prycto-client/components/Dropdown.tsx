@@ -18,7 +18,7 @@ const Dropdown = ({ menu, label }: DropdownProps) => {
   // };
   return (
     <Menu as="div" className="relative inline-block text-left h-full">
-      <Menu.Button className="inline-flex items-center h-full justify-center w-full px-4 py-2 font-medium text-gray-200 bg-gray-900 rounded-md hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
+      <Menu.Button className="inline-flex items-center h-full justify-center w-full px-4 py-1 md:py-2 font-medium text-gray-200 bg-gray-900 rounded-md hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
         {label}
         <AiOutlineDown className="w-5 h-3 ml-2 -mr-1" />
       </Menu.Button>

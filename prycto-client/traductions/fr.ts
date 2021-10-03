@@ -54,4 +54,6 @@ export const fr = {
   "history.closed": "Exécuté",
   "history.canceled": "Annulé",
   "gain": "Gain relatif",
+  "subTitle": "Suivre une position crypto en toute simplicité",
+  "index.descriptif": "Beaucoup d'application existe afin de tracker le PNL de nos cryptos adorées. Mais elles se basent sur le prix d'un token, peu importe la paire. Or quand on fait du trading, on a besoin de connaître la valeur lié à notre position, Prycto rentre en jeux",
 };
