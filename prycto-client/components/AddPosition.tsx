@@ -28,6 +28,7 @@ const AddPosition = ({ onSubmit, open, onCancel }: AddPositionProps) => {
           e.preventDefault();
           if (value) {
             onSubmit(value);
+            setValue(null);
           }
         }}
       >

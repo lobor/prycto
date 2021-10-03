@@ -6,12 +6,14 @@ import { AuthGuard } from '../user/guards/auth.guard';
 import { NotFoundException, UseGuards } from '@nestjs/common';
 import { User } from '../user/user.schema';
 import JSON from 'graphql-type-json';
+import { CcxtService } from 'src/ccxt/ccxt.service';
 
 @Resolver(() => Exchange)
 export class EchangeResolver {
   constructor(
     private readonly exchangeService: ExchangeService,
     private readonly appService: AppService,
+    private readonly ccxtService: CcxtService,
   ) {}
 
   @Query(() => Exchange)
@@ -49,12 +51,12 @@ export class EchangeResolver {
       publicKey: this.appService.encrypt(publicKey),
       userId: ctx.user._id,
     });
-    this.appService.addExchange({
+    this.ccxtService.addExchange({
       ...exchangeSaved,
       secretKey: secretKey,
       publicKey: publicKey,
     });
-    const balance = await this.appService.getBalancesByExchangeId(
+    const balance = await this.ccxtService.getBalancesByExchangeId(
       exchangeSaved._id,
     );
     await this.exchangeService.updateOneById(exchangeSaved._id, { balance });

@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isSameDay, subDays } from 'date-fns';
 import { keyBy } from 'lodash';
 import { Model, Query } from 'mongoose';
-import { AppService } from '../app.service';
+import { CcxtService } from '../ccxt/ccxt.service';
 import { Cours, CoursDocument } from './cours.schema';
-
 @Injectable()
 export class CoursService {
+  private readonly logger = new Logger(CoursService.name);
+
   constructor(
     @InjectModel(Cours.name)
     private readonly coursModel: Model<CoursDocument>,
-    private readonly appService: AppService,
+    private readonly ccxtService: CcxtService,
   ) {}
 
   findByExchangeIdAndSymbol(
@@ -39,7 +40,7 @@ export class CoursService {
       try {
         const coursByTimestamp = keyBy(cours, 'timestamp');
         const coursNotHave = (
-          await this.appService.fetchOHLCV(
+          await this.ccxtService.fetchOHLCV(
             exchangeId,
             symbol,
             '1d',
@@ -70,7 +71,9 @@ export class CoursService {
           .limit(limit)
           .sort({ timestamp: -1 })
           .exec();
-      } catch (e) {}
+      } catch (e) {
+        this.logger.error(e.message);
+      }
     }
     return cours;
   }

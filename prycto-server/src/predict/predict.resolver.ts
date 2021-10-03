@@ -19,14 +19,7 @@ import { PredictDocument } from './predict.schema';
 
 @Resolver(() => Predict)
 export class PredictResolver {
-  constructor(
-    @InjectModel(Cours.name)
-    private readonly coursModel: Model<CoursDocument>,
-    private readonly coursService: CoursService,
-    private readonly positionsService: PositionsService,
-    private readonly predictService: PredictService,
-  ) {}
-
+  // constructor() {} // private readonly predictService: PredictService, // private readonly positionsService: PositionsService, // private readonly coursService: CoursService, // private readonly coursModel: Model<CoursDocument>, // @InjectModel(Cours.name)
   // @Query(() => [Predict])
   // @UseGuards(AuthGuard)
   // async predictHistory(): Promise<Predict[]> {
@@ -75,7 +68,6 @@ export class PredictResolver {
   //       if (!coursSameDay) {
   //         continue;
   //       }
-
   //       const isUp = coursSameDay.open < coursSameDay.close;
   //       const isUpPredict = Number(predict.up) > 0.5;
   //       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -87,7 +79,6 @@ export class PredictResolver {
   //   }
   //   return foo;
   // }
-
   // @Query(() => Boolean)
   // // @Cron('* 10 3 * * *', { name: 'predict', timeZone: 'Europe/Paris' })
   // async predictManually(
@@ -111,7 +102,6 @@ export class PredictResolver {
   //   }
   //   return true;
   // }
-
   // @Query(() => Boolean)
   // // @Cron('* 10 2 * * *', { name: 'train', timeZone: 'Europe/Paris' })
   // async trainManually(@Args('positionId') positionId: string) {

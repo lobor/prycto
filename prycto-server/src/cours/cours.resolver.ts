@@ -1,6 +1,5 @@
 import { UseGuards } from '@nestjs/common';
 import { Query, Args, Context, Resolver, Int } from '@nestjs/graphql';
-import { AppService } from '../app.service';
 import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
 import { Cours } from './cours.model';
 import { CoursService } from './cours.service';
@@ -8,10 +7,7 @@ import { AuthGuard } from '../user/guards/auth.guard';
 
 @Resolver(() => Cours)
 export class CoursResolver {
-  constructor(
-    private readonly coursService: CoursService,
-    private readonly appService: AppService,
-  ) {}
+  constructor(private readonly coursService: CoursService) {}
 
   @Query(() => [Cours])
   @UseGuards(AuthGuard)

@@ -2,22 +2,20 @@ import { Resolver, Query, Subscription, Args, Context } from '@nestjs/graphql';
 import JSON from 'graphql-type-json';
 import { Market } from './markets.model';
 import { PositionsService } from '../positions/positions.service';
-import { AppService } from '../app.service';
 import { UseGuards } from '@nestjs/common';
 import { PubSubService } from '../pub-sub/pub-sub.service';
-import { SocketExchangeService } from '../socketExchange/socketExchange.service';
 import { ExchangeService } from '../exchanges/service';
 import { AuthGuard } from '../user/guards/auth.guard';
 import { User } from 'src/user/user.schema';
+import { CcxtService } from 'src/ccxt/ccxt.service';
 
 @Resolver(() => JSON)
 export class MarketsResolver {
   constructor(
     private readonly exchangeService: ExchangeService,
     private readonly positionsService: PositionsService,
-    private readonly appService: AppService,
+    private readonly ccxtService: CcxtService,
     private readonly pubSub: PubSubService,
-    private readonly socketExchange: SocketExchangeService,
   ) {}
 
   @UseGuards(AuthGuard)
@@ -29,7 +27,7 @@ export class MarketsResolver {
     const positions = await this.positionsService.findByExchangeId(exchangeId, {
       userId: ctx.user._id.toString(),
     });
-    const [currencies] = await this.appService.getCurrencies({
+    const [currencies] = await this.ccxtService.getCurrencies({
       [exchangeId]: positions.map(({ pair }) => pair),
     });
     if (currencies) {

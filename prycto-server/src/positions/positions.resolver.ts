@@ -13,12 +13,11 @@ import { Position } from './positions.model';
 import { PositionsService } from './positions.service';
 import { EchangeIdGuard } from '../exchanges/guards/exchangeId.guard';
 import { ExchangeService } from '../exchanges/service';
-import { AppService } from '../app.service';
 import { SocketExchangeService } from '../socketExchange/socketExchange.service';
 import { AuthGuard } from '../user/guards/auth.guard';
 import { User, UserDocument } from '../user/user.schema';
 import { PredictService } from '../predict/predict.service';
-import { Predict } from '../predict/predict.model';
+import { CcxtService } from 'src/ccxt/ccxt.service';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -26,7 +25,7 @@ export class PositionsResolver {
     private readonly socketExchange: SocketExchangeService,
     private readonly positionService: PositionsService,
     private readonly exchangeService: ExchangeService,
-    private readonly appService: AppService,
+    private readonly ccxtService: CcxtService,
     private readonly predictService: PredictService,
   ) {}
 
@@ -141,11 +140,11 @@ export class PositionsResolver {
     if (!position || ctx.user._id.toString() !== position.userId) {
       throw new Error('position not found');
     }
-    const balance = await this.appService.getBalancesByExchangeId(
+    const balance = await this.ccxtService.getBalancesByExchangeId(
       ctx.exchangeId,
     );
 
-    const histories = await this.appService.getHistoryByExchangeId({
+    const histories = await this.ccxtService.getHistoryByExchangeId({
       exchangeId: ctx.exchangeId,
       pairs: [position.pair],
     });
@@ -221,7 +220,7 @@ export class PositionsResolver {
     if (pair) {
       throw new Error('pair already exist');
     }
-    const histories = await this.appService.getHistoryByExchangeId({
+    const histories = await this.ccxtService.getHistoryByExchangeId({
       exchangeId: ctx.exchangeId,
       pairs: [symbol],
     });

@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { InitResolver } from './init.resolver';
-import { ExchangeService } from '../exchanges/service';
-import { ExchangeImport } from '../exchanges/exchange.schema';
+import { ExchangeModule } from '../exchanges/module';
 
 @Module({
-  imports: [ExchangeImport],
-  providers: [InitResolver, ExchangeService],
+  imports: [ExchangeModule],
+  providers: [InitResolver],
 })
 export class InitModule {}

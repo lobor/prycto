@@ -3,11 +3,12 @@ import { EchangeResolver } from './resolver';
 import { ExchangeService } from './service';
 import { ExchangeImport } from './exchange.schema';
 import { AppService } from '../app.service';
-import { UserService } from '../user/user.service';
-import { UserImport } from '../user/user.schema';
+import { CcxtServiceModule } from 'src/ccxt/ccxt.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [ExchangeImport, UserImport],
-  providers: [EchangeResolver, ExchangeService, AppService, UserService],
+  imports: [ExchangeImport, CcxtServiceModule, UserModule],
+  providers: [EchangeResolver, ExchangeService, AppService],
+  exports: [ExchangeService],
 })
 export class ExchangeModule {}

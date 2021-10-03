@@ -6,7 +6,6 @@ import { Exchange } from '../exchanges/exchange.schema';
 import { ExchangeService } from '../exchanges/service';
 import { PredictResolver } from './predict.resolver';
 import { PredictService } from './predict.service';
-import { ScheduleModule } from '@nestjs/schedule';
 import { PositionsService } from '../positions/positions.service';
 import { Position } from '../positions/positions.schema';
 import { Predict } from './predict.schema';
@@ -17,7 +16,6 @@ describe('PredictResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ScheduleModule.forRoot()],
       providers: [
         PredictResolver,
         PredictService,

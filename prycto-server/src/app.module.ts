@@ -19,9 +19,12 @@ import { PubSubService } from './pub-sub/pub-sub.service';
 import { CoursModule } from './cours/cours.module';
 import { HistoryModule } from './history/history.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PredictModule } from './predict/predict.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CronsService } from './crons/crons.service';
+import { CronsModule } from './crons/cron.module';
+import { CcxtServiceModule } from './ccxt/ccxt.module';
 
 @Module({
   imports: [
@@ -48,18 +51,18 @@ import { ScheduleModule } from '@nestjs/schedule';
     PositionsModule,
     MarketsModule,
     PairsModule,
-    ExchangeImport,
     PositionImport,
     CoursModule,
+    CronsModule,
     HistoryModule,
     UserModule,
     PredictModule,
+    CcxtServiceModule,
   ],
   controllers: [],
   providers: [
     LoggingPlugin,
     AppService,
-    ExchangeService,
     PositionsService,
     SocketExchangeService,
     PubSubService,

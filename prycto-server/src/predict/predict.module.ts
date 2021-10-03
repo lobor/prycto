@@ -1,33 +1,26 @@
 import { Module } from '@nestjs/common';
-import { AppService } from '../app.service';
-import { CoursImport } from '../cours/cours.schema';
-import { CoursService } from '../cours/cours.service';
-import { ExchangeImport } from '../exchanges/exchange.schema';
-import { ExchangeService } from '../exchanges/service';
 import { PredictResolver } from './predict.resolver';
 import { PredictService } from './predict.service';
-import { PositionsService } from '../positions/positions.service';
-import { PositionImport } from '../positions/positions.schema';
 import { PredictImport } from './predict.schema';
-import { UserService } from '../user/user.service';
-import { UserImport } from '../user/user.schema';
+import { ExchangeModule } from 'src/exchanges/module';
+import { CoursModule } from 'src/cours/cours.module';
+import { CcxtServiceModule } from 'src/ccxt/ccxt.module';
+import { UserModule } from 'src/user/user.module';
+import { PositionImport } from 'src/positions/positions.schema';
+import { PositionsService } from 'src/positions/positions.service';
+import { CoursImport } from 'src/cours/cours.schema';
 
 @Module({
   imports: [
     CoursImport,
-    ExchangeImport,
     PositionImport,
+    ExchangeModule,
+    CoursModule,
+    UserModule,
+    CcxtServiceModule,
     PredictImport,
-    UserImport,
   ],
-  providers: [
-    PredictResolver,
-    PredictService,
-    CoursService,
-    AppService,
-    ExchangeService,
-    PositionsService,
-    UserService,
-  ],
+  providers: [PredictResolver, PredictService, PositionsService],
+  exports: [PredictService],
 })
 export class PredictModule {}

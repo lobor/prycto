@@ -1,15 +1,11 @@
-import { Module } from '@nestjs/common';
-import { AppService } from '../app.service';
-import { CoursImport } from '../cours/cours.schema';
-import { CoursService } from '../cours/cours.service';
-import { ExchangeImport } from '../exchanges/exchange.schema';
-import { ExchangeService } from '../exchanges/service';
+import { forwardRef, Module } from '@nestjs/common';
+import { CcxtServiceModule } from 'src/ccxt/ccxt.module';
+import { CoursModule } from 'src/cours/cours.module';
+import { ExchangeModule } from 'src/exchanges/module';
+import { PredictModule } from 'src/predict/predict.module';
+import { SocketExchangeModule } from 'src/socketExchange/socketExchange.module';
+import { UserModule } from 'src/user/user.module';
 import { PredictImport } from '../predict/predict.schema';
-import { PredictService } from '../predict/predict.service';
-import { PubSubService } from '../pub-sub/pub-sub.service';
-import { SocketExchangeService } from '../socketExchange/socketExchange.service';
-import { UserImport } from '../user/user.schema';
-import { UserService } from '../user/user.service';
 import { PositionsResolver } from './positions.resolver';
 import { PositionImport } from './positions.schema';
 import { PositionsService } from './positions.service';
@@ -17,21 +13,15 @@ import { PositionsService } from './positions.service';
 @Module({
   imports: [
     PositionImport,
-    ExchangeImport,
-    UserImport,
-    CoursImport,
+    UserModule,
     PredictImport,
+    ExchangeModule,
+    CcxtServiceModule,
+    CoursModule,
+    forwardRef(() => SocketExchangeModule),
+    PredictModule,
   ],
-  providers: [
-    PositionsService,
-    ExchangeService,
-    PositionsResolver,
-    AppService,
-    SocketExchangeService,
-    PubSubService,
-    UserService,
-    PredictService,
-    CoursService,
-  ],
+  providers: [PositionsService, PositionsResolver],
+  exports: [PositionsService],
 })
 export class PositionsModule {}

@@ -14,6 +14,7 @@ interface AutocompleteMarketProps {
   type?: string;
   value?: Pair;
   onSelect?: (key: Pair) => void;
+  onChange?: (value: Pair) => void
 }
 const AutocompleteMarket = ({
   icon,
@@ -27,10 +28,10 @@ const AutocompleteMarket = ({
   const { data, error, loading } = useQuery<GetPairsQuery>(GetPairsDocument);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.currentTarget;
+    const { value: valueTarget } = e.currentTarget;
     if (data) {
       setPairs(
-        filter(value, data.getPairs, {
+        filter(valueTarget, data.getPairs, {
           extract: function (el) {
             return el.symbol;
           },

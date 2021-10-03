@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AppService } from '../app.service';
 import { Cours, CoursDocument } from '../cours/cours.schema';
 import { CoursService } from '../cours/cours.service';
 import { PositionsService } from '../positions/positions.service';
@@ -11,6 +10,7 @@ import * as fs from 'fs';
 import { addDays } from 'date-fns';
 import { Predict, PredictDocument } from './predict.schema';
 import { Position } from 'src/positions/positions.schema';
+import { CcxtService } from 'src/ccxt/ccxt.service';
 
 @Injectable()
 export class PredictService {
@@ -20,7 +20,7 @@ export class PredictService {
     @InjectModel(Cours.name)
     private readonly coursModel: Model<CoursDocument>,
     private readonly coursService: CoursService,
-    private readonly appService: AppService,
+    private readonly ccxtService: CcxtService,
     private readonly positionsService: PositionsService,
   ) {}
 
@@ -98,7 +98,7 @@ export class PredictService {
 
     const { exchangeId, pair: symbol } = position;
     console.log('get history');
-    const foo = await this.appService.getCurrenciesByPair({
+    const foo = await this.ccxtService.getCurrenciesByPair({
       exchangeId: exchangeId,
       symbol,
     });
@@ -183,7 +183,7 @@ export class PredictService {
         .find({ exchangeId, symbol })
         .sort({ timestamp: 1 })
         .exec();
-      const foo = await this.appService.getCurrenciesByPair({
+      const foo = await this.ccxtService.getCurrenciesByPair({
         exchangeId: exchangeId,
         symbol,
       });
