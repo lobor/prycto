@@ -32,7 +32,7 @@ const EditCell = ({
   const { original } = row;
   const [updateExchange] = useMutation(UpdateExchangeDocument);
   const formik = useFormik({
-    validationSchema: Yup.object({ [original.quote]: Yup.number(). }),
+    validationSchema: Yup.object({ [original.quote]: Yup.number() }),
     initialValues: { [original.quote]: value },
     onSubmit: () => {},
   });
