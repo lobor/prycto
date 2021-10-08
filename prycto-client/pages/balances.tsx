@@ -32,12 +32,12 @@ const EditCell = ({
   const { original } = row;
   const [updateExchange] = useMutation(UpdateExchangeDocument);
   const formik = useFormik({
-    validationSchema: Yup.object({ [original.quote]: Yup.number() }),
+    validationSchema: Yup.object({ [original.quote]: Yup.number(). }),
     initialValues: { [original.quote]: value },
     onSubmit: () => {},
   });
   const handleSave = (e: any) => {
-    if (Number(formik.values[original.quote])) {
+    if (Number(formik.values[original.quote]) || Number(formik.values[original.quote]) === 0) {
       updateExchange({
         variables: {
           _id: original.exchangeId,
