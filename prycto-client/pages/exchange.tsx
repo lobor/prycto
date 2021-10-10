@@ -51,7 +51,7 @@ export default function Exchange() {
       <AddExchange
         open={addExchangeShowing}
         onSubmit={(e) => {
-          addExchange({ variables: e });
+          addExchange({ variables: e as any });
         }}
         onCancel={() => {
           setAddExchangeShowing(false);
