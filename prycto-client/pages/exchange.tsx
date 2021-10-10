@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../components/Button";
 import AddExchange from "../components/AddExchange";
 import Table from "../components/Table";
@@ -16,7 +16,6 @@ import {
 } from "../generated/graphql";
 import { FormattedMessage, useIntl } from "react-intl";
 import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
-import { intlFormat } from "date-fns";
 
 export default function Exchange() {
   const intl = useIntl();
@@ -41,6 +40,7 @@ export default function Exchange() {
       getExchanges();
     },
   });
+  
   return (
     <>
       <Head>

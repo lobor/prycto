@@ -16,6 +16,10 @@ import { useRouter } from "next/dist/client/router";
 import * as trad from "../traductions";
 
 const Apollo = dynamic(() => import("../components/Apollo"), { ssr: false });
+const Wallet = dynamic(() => import("../providers/Wallet"), { ssr: false });
+// const { MetaMaskProvider } = dynamic(() => import("metamask-react"), {
+//   ssr: false,
+// });
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -31,10 +35,12 @@ function MyApp({ Component, pageProps }: AppProps) {
       defaultLocale={router.defaultLocale || "en"}
     >
       <Apollo>
-        <ExchangeProvider>
-          <MarketsProvider>
-            <MetamaskProvider>
+        <Wallet>
+          <ExchangeProvider>
+            <MarketsProvider>
+              {/* <MetamaskProvider> */}
               <HideShowProvider>
+                {/* <MetaMaskProvider> */}
                 <TabsProvider
                   value={{
                     tabs: [
@@ -52,10 +58,12 @@ function MyApp({ Component, pageProps }: AppProps) {
                     <Component {...pageProps} />
                   </Nav>
                 </TabsProvider>
+                {/* </MetaMaskProvider> */}
               </HideShowProvider>
-            </MetamaskProvider>
-          </MarketsProvider>
-        </ExchangeProvider>
+              {/* </MetamaskProvider> */}
+            </MarketsProvider>
+          </ExchangeProvider>
+        </Wallet>
       </Apollo>
     </IntlProvider>
   );

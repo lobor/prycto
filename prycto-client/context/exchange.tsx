@@ -1,5 +1,6 @@
 import { useApolloClient, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
+import useWallet from "use-wallet";
 import { ExchangeByIdDocument, Exchange } from "../generated/graphql";
 
 interface ExchangeContext extends Partial<Exchange> {
@@ -52,10 +53,18 @@ const ExchangeProvider: React.FC = ({ children }) => {
 };
 
 function useExchange() {
+  const { connect, status } = useWallet();
   const context = React.useContext(ExchangeContext);
   if (context === undefined) {
     throw new Error("useExchange must be used within a ExchangeProvider");
   }
+
+  useEffect(() => {
+    if (context.exchange === "metamask" && status === "disconnected") {
+      // @ts-ignore
+      connect();
+    }
+  }, [status, context.exchange]);
 
   return context;
 }

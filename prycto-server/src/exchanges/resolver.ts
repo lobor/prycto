@@ -67,7 +67,7 @@ export class EchangeResolver {
       );
       await this.exchangeService.updateOneById(exchangeSaved._id, { balance });
     } else {
-       // U2FsdGVkX19IC3PSs4E0jGPeCPgAFySTQbWocNgxCOGmoLq6sMgB54fR29rVmjAlp8ATwb0ZRnNKL7sUHyqvyw==
+      // U2FsdGVkX19IC3PSs4E0jGPeCPgAFySTQbWocNgxCOGmoLq6sMgB54fR29rVmjAlp8ATwb0ZRnNKL7sUHyqvyw==
       // await this.bscService.getBalance(exchangeSaved._id);
     }
     return exchangeSaved;

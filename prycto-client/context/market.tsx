@@ -46,7 +46,7 @@ const MarketsProvider: React.FC = ({ children }) => {
 
 function useMarket(symbol?: string) {
   const context = React.useContext(MarketsContext);
-  const { exchangeId } = useExchange();
+  const { exchangeId, exchange } = useExchange();
   const oldExchangeId = useRef();
   if (context === undefined) {
     throw new Error("useMarket must be used within a MarketProvider");
@@ -80,7 +80,7 @@ function useMarket(symbol?: string) {
       oldExchangeId.current === exchangeId;
     }
   }, [exchangeId]);
-
+  console.log(data)
   if (symbol) {
     return (data && data.getMarkets[symbol]) || 0;
   }

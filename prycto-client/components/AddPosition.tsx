@@ -36,7 +36,7 @@ const AddPosition = ({ onSubmit, open, onCancel }: AddPositionProps) => {
         }}
       >
         <div className="mb-8">
-          {exchange !== "bsc" ? (
+          {exchange !== "metamask" ? (
             <Label htmlFor="pair" label={<FormattedMessage id="pair" />}>
               <AutocompleteMarket
                 value={value}

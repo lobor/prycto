@@ -28,6 +28,7 @@ export class CoursService {
   }
 
   async syncCoursHistory(exchangeId: string, symbol: string, limit: number) {
+    // const exchange = await this.exch
     const cours = await this.findByExchangeIdAndSymbol(exchangeId, symbol)
       .limit(limit)
       .sort({ timestamp: -1 })

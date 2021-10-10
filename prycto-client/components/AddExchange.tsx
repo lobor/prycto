@@ -5,13 +5,16 @@ import Input from "./Input";
 import Select from "./Select";
 import Dialog from "./Dialog";
 import { FormattedMessage } from "react-intl";
-import { useMetamask } from "../context/metamask";
+import { useWallet } from "use-wallet";
+
+import { useCallback, useEffect, useRef } from "react";
 
 interface FormValues {
   name: string;
   exchange: string;
   publicKey: string;
   secretKey: string;
+  address?: string;
 }
 interface AddPositionProps {
   onSubmit: (params: FormValues) => void;
@@ -19,6 +22,7 @@ interface AddPositionProps {
   open: boolean;
 }
 const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
+  const { account, connect, status, error } = useWallet();
   const formik = useFormik({
     initialValues: {
       exchange: "",
@@ -35,8 +39,31 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
     { label: "Binance", value: "binance" },
     { label: "FTX", value: "ftx" },
     { label: "Kraken", value: "kraken" },
-    // { label: "Binance Smart Chain", value: "bsc" },
   ];
+
+  const newWallet = useRef(false);
+
+  useEffect(() => {
+    if(account && newWallet.current) {
+      onSubmit({
+        exchange: "metamask",
+        name: "MetaMask",
+        publicKey: "",
+        secretKey: "",
+        address: account!,
+      });
+    }
+  }, [account])
+
+  const handleConnect = useCallback(async () => {
+    newWallet.current = true
+    // @ts-ignore
+    await connect();
+  }, [connect])
+  
+  if (status === "disconnected") {
+    optionsExchange.push({ label: "Metamask", value: "metamask" });
+  }
   return (
     <Dialog
       open={open}
@@ -60,45 +87,45 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
               }}
             />
           </Label>
-          <Label htmlFor="name" label={<FormattedMessage id="exchangeName" />}>
-            <Input id="name" name="name" onChange={formik.handleChange} />
-          </Label>
-          {formik.values.exchange !== "bsc" ? (
-            <Label
-              htmlFor="publicKey"
-              label={<FormattedMessage id="publicKey" />}
-            >
-              <Input
-                id="publicKey"
-                name="publicKey"
-                type="password"
-                onChange={formik.handleChange}
-              />
-            </Label>
+          {formik.values.exchange !== "metamask" ? (
+            <>
+              <Label
+                htmlFor="name"
+                label={<FormattedMessage id="exchangeName" />}
+              >
+                <Input id="name" name="name" onChange={formik.handleChange} />
+              </Label>
+
+              <Label
+                htmlFor="publicKey"
+                label={<FormattedMessage id="publicKey" />}
+              >
+                <Input
+                  id="publicKey"
+                  name="publicKey"
+                  type="password"
+                  onChange={formik.handleChange}
+                />
+              </Label>
+              <Label
+                htmlFor="secretKey"
+                label={<FormattedMessage id="secretKey" />}
+              >
+                <Input
+                  id="secretKey"
+                  name="secretKey"
+                  type="password"
+                  onChange={formik.handleChange}
+                />
+              </Label>
+            </>
+          ) : status === "connected" ? (
+            "already connected"
           ) : (
-            <Label
-              htmlFor="address"
-              label={<FormattedMessage id="address" />}
-            >
-              <Input
-                id="address"
-                name="address"
-                type="password"
-                onChange={formik.handleChange}
-              />
-            </Label>
+            <Button onClick={handleConnect}>
+              {status === "connecting" ? "Connecting" : "Se connecter"}
+            </Button>
           )}
-          <Label
-            htmlFor="secretKey"
-            label={<FormattedMessage id="secretKey" />}
-          >
-            <Input
-              id="secretKey"
-              name="secretKey"
-              type="password"
-              onChange={formik.handleChange}
-            />
-          </Label>
         </div>
         <div className="flex justify-center">
           <Button onClick={onCancel}>

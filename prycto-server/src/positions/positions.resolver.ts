@@ -19,6 +19,8 @@ import { User, UserDocument } from '../user/user.schema';
 import { PredictService } from '../predict/predict.service';
 import { CcxtService } from 'src/ccxt/ccxt.service';
 import { BscService } from 'src/bsc/bsc.service';
+import * as Web3 from 'web3';
+import { pancakeSwapAbi } from 'src/utils/tokenPrice';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -42,15 +44,50 @@ export class PositionsResolver {
       throw new NotFoundException();
     }
     const positions = await this.positionService.findByExchangeId(exchangeId);
-    return positions.map((position) => {
-      const { pair } = position;
-      const [asset1] = pair.split('/');
-      return {
-        ...position.toJSON(),
-        ...((exchange.balance && exchange.balance[asset1]) || {}),
-        exchange: exchange.exchange,
-      };
-    });
+    if (exchange.exchange === 'metamask') {
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      const minABI = [
+        // balanceOf
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+      ];
+      return Promise.all(
+        positions.map(async (position) => {
+          let balance = 0;
+          if (position.address) {
+            const contract = new web3.eth.Contract(
+              minABI as any,
+              position.address,
+            );
+            balance =
+              Number(
+                await contract.methods.balanceOf(exchange.address).call(),
+              ) / Number(web3.utils.toWei('1'));
+          }
+          return {
+            ...position.toJSON(),
+            available: balance,
+            locked: 0,
+            exchange: exchange.exchange,
+          };
+        }),
+      );
+    } else {
+      return positions.map((position) => {
+        const { pair } = position;
+        const [asset1] = pair.split('/');
+        return {
+          ...position.toJSON(),
+          ...((exchange.balance && exchange.balance[asset1]) || {}),
+          exchange: exchange.exchange,
+        };
+      });
+    }
   }
 
   @ResolveField()
@@ -238,7 +275,7 @@ export class PositionsResolver {
       throw new Error('exchange not found');
     }
 
-    if (exchange.exchange !== 'bsc') {
+    if (exchange.exchange !== 'metamask') {
       const pair = await this.positionService.findByPair(
         ctx.exchangeId,
         symbol,
@@ -290,21 +327,42 @@ export class PositionsResolver {
       const position = await this.positionService.insertOne(positionTmp);
       return position;
     } else {
-      const balance = await this.bscService.getBalance(ctx.exchangeId, symbol);
-      await this.exchangeService.updateOneById(ctx.exchangeId, {
-        balance: {
-          ...exchange.balance,
-          [balance.symbol]: { available: balance.available, locked: 0 },
-        },
-      });
-
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      const contract = new web3.eth.Contract(
+        [
+          // decimals
+          {
+            constant: true,
+            inputs: [],
+            name: 'decimals',
+            outputs: [{ name: '', type: 'uint8' }],
+            type: 'function',
+          },
+          {
+            inputs: [],
+            name: 'symbol',
+            outputs: [{ internalType: 'string', name: '', type: 'string' }],
+            stateMutability: 'view',
+            type: 'function',
+          },
+          {
+            inputs: [],
+            name: 'name',
+            outputs: [{ internalType: 'string', name: '', type: 'string' }],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ],
+        symbol,
+      );
       const positionTmp = {
         exchangeId: ctx.exchangeId,
-        pair: `${balance.symbol}/USDC`,
+        pair: `${await contract.methods.symbol().call()}/USD`,
         investment: 0,
-        available: balance.available,
+        available: 0,
         objectif: 0,
         userId: ctx.user._id,
+        address: symbol,
       };
 
       const position = await this.positionService.insertOne(positionTmp);

@@ -1,22 +1,4 @@
-import {
-  ApolloQueryResult,
-  OperationVariables,
-  useQuery,
-} from "@apollo/client";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  GetMarketsDocument,
-  GetMarketsQuery,
-  MarketHitDocument,
-  MarketHitSubscription,
-} from "../generated/graphql";
-import { useExchange } from "./exchange";
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
 
 export interface ContextMetamask {
   account?: any;

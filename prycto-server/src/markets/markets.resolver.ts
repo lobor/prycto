@@ -8,6 +8,8 @@ import { ExchangeService } from '../exchanges/service';
 import { AuthGuard } from '../user/guards/auth.guard';
 import { User } from 'src/user/user.schema';
 import { CcxtService } from 'src/ccxt/ccxt.service';
+import { TokenPrice } from '../utils/tokenPrice';
+import * as Web3 from 'web3';
 
 @Resolver(() => JSON)
 export class MarketsResolver {
@@ -24,20 +26,83 @@ export class MarketsResolver {
     @Context() ctx: { user: User },
     @Args('exchangeId') exchangeId: string,
   ): Promise<Market> {
+    const exchange = await this.exchangeService.findById(exchangeId);
+
     const positions = await this.positionsService.findByExchangeId(exchangeId, {
       userId: ctx.user._id.toString(),
     });
-    const [currencies] = await this.ccxtService.getCurrencies({
-      [exchangeId]: positions.map(({ pair }) => pair),
-    });
-    if (currencies) {
-      return currencies.pairs.reduce((acc: any, currency: any) => {
-        acc[currency.symbol] = currency.last;
+    if (exchange.exchange === 'metamask') {
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      const minABI = [
+        // balanceOf
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+        // decimals
+        {
+          constant: true,
+          inputs: [],
+          name: 'decimals',
+          outputs: [{ name: '', type: 'uint8' }],
+          type: 'function',
+        },
+      ];
+      const positionsArray = await Promise.all(
+        positions.map(async (position) => {
+          const price = await TokenPrice.calcSell(web3, position.address);
+          return {
+            symbol: position.pair,
+            price,
+          };
+        }),
+      );
+      return positionsArray.reduce((acc, { symbol, price }) => {
+        acc[symbol] = price;
         return acc;
       }, {});
     } else {
-      return {};
+      const [currencies] = await this.ccxtService.getCurrencies({
+        [exchangeId]: positions.map(({ pair }) => pair),
+      });
+      if (currencies) {
+        return currencies.pairs.reduce((acc: any, currency: any) => {
+          acc[currency.symbol] = currency.last;
+          return acc;
+        }, {});
+      } else {
+        return {};
+      }
     }
+    // const web3 = new Web3(ethereum);
+    // let minABI = [
+    //   // balanceOf
+    //   {
+    //     constant: true,
+    //     inputs: [{ name: "_owner", type: "address" }],
+    //     name: "balanceOf",
+    //     outputs: [{ name: "balance", type: "uint256" }],
+    //     type: "function",
+    //   },
+    //   // decimals
+    //   {
+    //     constant: true,
+    //     inputs: [],
+    //     name: "decimals",
+    //     outputs: [{ name: "", type: "uint8" }],
+    //     type: "function",
+    //   },
+    // ];
+    // // // toto
+    // let contract = new web3.eth.Contract(minABI, e.symbol);
+    // // console.log(contract)
+    // const balance =
+    //   Number(await contract.methods.balanceOf(account!).call()) /
+    //   Number(web3.utils.toWei("1"));
+    // console.log((await TokenPrice.calcSell(web3, e.symbol)) * balance);
   }
 
   @Subscription(() => JSON, {

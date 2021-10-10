@@ -25,6 +25,9 @@ export class Position {
   @Field({ nullable: true })
   locked?: number;
 
+  @Field({ nullable: true })
+  address?: string;
+
   @Field(() => JSON)
   balance?: Record<string, number>;
 

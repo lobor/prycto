@@ -55,6 +55,7 @@ type Position {
   objectif: Float
   available: Float
   locked: Float
+  address: String
   balance: JSON!
   predict: Predict!
 }

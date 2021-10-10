@@ -18,6 +18,9 @@ import Head from "next/head";
 import ItemPosition from "../components/ItemPosition";
 import SimpleBarReact from "simplebar-react";
 import { AutoSizer } from "react-virtualized";
+import useWallet from "use-wallet";
+import { TokenPrice } from "../utils/tokenPrice";
+import { fromWei } from "web3-utils";
 
 const sortFunction =
   (sort: { sort: string; key: string }) => (positionsOriginal: any[]) => {
@@ -37,7 +40,7 @@ const sortFunction =
   };
 
 const Positions = () => {
-  const { exchangeId, loading: loadingExchange } = useExchange();
+  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const [sort, setSort] = useState<{ sort: string; key: string }>({
     sort: "asc",
     key: "pair",
@@ -76,25 +79,28 @@ const Positions = () => {
     }
   }, [process.browser]);
 
+  const { ethereum, account } = useWallet();
+
   const totalPnlRender = useMemo(() => <TotalPnl />, []);
 
   const positionsOriginal = ((data && data.positions) || []).map((position) => {
-      const { available, locked } = position;
-      const market = (markets && markets[position.pair]) || 0;
-      const total = Number(available || 0) + (Number(locked || 0) || 0);
-      const profit = market * total - position.investment;
-      return {
-        ...position,
-        market,
-        profitPercent:
-          position.investment > 0
-            ? (profit * 100) / (position.investment || 1)
-            : 0,
-        profit,
-        total,
-        gain: position.investment < 0 ? position.investment * -1 : 0,
-      };
-    });
+    const { available, locked } = position;
+    console.log(markets, position.pair)
+    const market = (markets && markets[position.pair]) || 0;
+    const total = Number(available || 0) + (Number(locked || 0) || 0);
+    const profit = market * total - position.investment;
+    return {
+      ...position,
+      market,
+      profitPercent:
+        position.investment > 0
+          ? (profit * 100) / (position.investment || 1)
+          : 0,
+      profit,
+      total,
+      gain: position.investment < 0 ? position.investment * -1 : 0,
+    };
+  });
 
   const handleSort = (key: string) => () => {
     if (positionsOriginal) {
@@ -157,7 +163,7 @@ const Positions = () => {
       {totalPnlRender}
       <AddPosition
         open={addPosisitonShowing}
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           addPosition({ variables: e });
         }}
         onCancel={() => {

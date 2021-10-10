@@ -227,7 +227,6 @@ export class PredictService {
           JSON.stringify(net.toJSON()),
         );
       }
-
     }
   }
 }

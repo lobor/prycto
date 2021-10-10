@@ -22,6 +22,9 @@ export class Position {
   @Prop({ required: true })
   userId: string;
 
+  @Prop({ type: String })
+  address?: string;
+
   @Prop({ type: Number })
   objectif: number;
 }

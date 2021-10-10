@@ -24,7 +24,7 @@ describe('PairsResolver', () => {
         {
           provide: getModelToken(User.name),
           useValue: {},
-        }
+        },
       ],
     }).compile();
 
