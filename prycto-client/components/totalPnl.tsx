@@ -20,7 +20,6 @@ const TotalPnl = () => {
     []
   ).reduce(
     (acc, position) => {
-      console.log(position.pair);
       if (position.pair.match(new RegExp(`(${stableCoins})$`, "g"))) {
         const market = markets[position.pair] || 0;
         const profit =
