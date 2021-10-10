@@ -75,6 +75,7 @@ const TabsProvider: React.FC<{ value: { tabs: Tab[]; selected: string } }> = ({
     for (const tab of tabs) {
       if (tab.href === router.asPath && selected !== tab.key) {
         setSelected(tab.key);
+        break;
       }
     }
   }, [tabs, selected, router.asPath]);

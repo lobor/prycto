@@ -80,6 +80,26 @@ const TabItem = ({
     </li>
   );
 };
+
+const TabsList = () => {
+  const { tabs, selected, removeTab, selectTab } = useTabsContext();
+  return (
+    <>
+      {tabs.map((tab) => {
+        return (
+          <TabItem
+            {...tab}
+            id={tab.key}
+            key={tab.key}
+            selected={selected}
+            removeTab={removeTab}
+            selectTab={selectTab}
+          />
+        );
+      })}
+    </>
+  );
+};
 const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
   return (
@@ -90,18 +110,7 @@ const Tabs = () => {
             style={{ width }}
             className="bottom-0 flex flex-grow flex-row py-0 pt-0 overflow-x-auto px-1 text-left"
           >
-            {tabs.map((props) => {
-              return (
-                <TabItem
-                  {...props}
-                  id={props.key}
-                  key={props.key}
-                  selected={selected}
-                  removeTab={removeTab}
-                  selectTab={selectTab}
-                />
-              );
-            })}
+            <TabsList />
           </ul>
         )}
       </AutoSizer>
