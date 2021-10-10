@@ -52,8 +52,7 @@ const TotalPnl = () => {
         </span>
         <small className="text-sm text-gray-500 flex items-center">
           <AiOutlineInfoCircle className="mr-1" />
-          Take only stable coin pairs ({stableCoins}) for calculate global
-          profit
+          Only stablecoins pairs {stableCoins}
         </small>
       </span>
     </div>

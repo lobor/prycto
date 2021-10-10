@@ -247,10 +247,10 @@ const Nav = ({ children, hide }: NavProps) => {
                     {!isHide && <AiFillEye />}
                     {isHide && <AiFillEyeInvisible />}
                   </button>
-                  <div className="inline-block mr-3 flex-1 h-9">
+                  <div className="inline-block mr-3 flex-1">
                     <Select
                       className="w-full"
-                      placeholder={<FormattedMessage id="exchanges" />}
+                      placeholder={<div className="min-w-max"><FormattedMessage id="exchanges" /></div>}
                       value={
                         data &&
                         data.exchanges
@@ -278,7 +278,7 @@ const Nav = ({ children, hide }: NavProps) => {
                       ]}
                     />
                   </div>
-                  <div className="mr-3 flex-1 h-9">
+                  <div className="mr-3 flex-1">
                     <SelectLang />
                   </div>
                 </div>

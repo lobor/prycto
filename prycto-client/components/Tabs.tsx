@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useTabsContext } from "../context/tabs";
 import { AiOutlineClose } from "react-icons/ai";
 import { AutoSizer } from "react-virtualized";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { AiOutlineHome } from "react-icons/ai";
 
 interface TabItemProps {
@@ -87,8 +87,14 @@ const TabItem = ({
 };
 const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
+  useEffect(() => {
+    if (process.browser) {
+      window.dispatchEvent(new Event('resize'));
+      console.log('ici')
+    }
+  }, [tabs.length])
   return (
-    <div className="flex flex-1 md:w-1 md:order-first">
+    <div className="flex flex-1 md:order-first">
       <AutoSizer disableHeight>
         {({ width }) => (
           <ul
