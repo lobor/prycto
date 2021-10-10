@@ -84,7 +84,10 @@ export class SocketExchangeService {
 
   async createByExchange(exchange: Exchange) {
     const { exchange: name } = exchange;
-    if (!exchangeByName[name]) {
+    if (
+      !exchangeByName[name] &&
+      ccxws[name.charAt(0).toUpperCase() + name.slice(1)]
+    ) {
       exchangeByName[name] = new ccxws[
         name.charAt(0).toUpperCase() + name.slice(1)
       ]({

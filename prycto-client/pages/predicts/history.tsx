@@ -10,10 +10,10 @@ import {
 import { useMemo } from "react";
 
 const HistoryPredict = () => {
-  const { data, loading } = useQuery<
-    PredictHistoryQuery,
-    PredictHistoryQueryVariables
-  >(PredictHistoryDocument);
+  // const { data, loading } = useQuery<
+  //   PredictHistoryQuery,
+  //   PredictHistoryQueryVariables
+  // >(PredictHistoryDocument);
   const columns = useMemo(() => {
     return [
       {
@@ -43,7 +43,7 @@ const HistoryPredict = () => {
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-xl text-gray-200 font-bold">History predict</h1>
-      <Table columns={columns} data={(data && data.predictHistory) || []} />
+      {/* <Table columns={columns} data={(data && data.predictHistory) || []} /> */}
     </div>
   );
 };

@@ -14,6 +14,8 @@ import Input from "../components/Input";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import round from "../utils/round";
+import Button from "../components/Button";
+import { AiOutlinePlus } from "react-icons/ai";
 
 const EditCell = ({
   value,
@@ -103,6 +105,23 @@ const Balances = () => {
               Header: intl.formatMessage({ id: "balance.locked" }),
               accessor: "locked",
               Cell: EditCell,
+            },
+            {
+              Header: () => {
+                return (
+                  <Button
+                    variant="validate"
+                    onClick={() => {
+                      // setAddExchangeShowing(true);
+                    }}
+                  >
+                    <AiOutlinePlus />
+                  </Button>
+                );
+              },
+              width: 20,
+              accessor: "_id",
+              Cell: ({ value }: { value: string }) => null,
             },
           ]}
           data={Object.keys(data.exchangeById.balance || {}).map((quote) => {

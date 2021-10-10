@@ -9,8 +9,6 @@ import { PositionsModule } from './positions/positions.module';
 import { MarketsModule } from './markets/markets.module';
 import { PairsModule } from './pairs/pairs.module';
 import { AppService } from './app.service';
-import { ExchangeService } from './exchanges/service';
-import { ExchangeImport } from './exchanges/exchange.schema';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SocketExchangeService } from './socketExchange/socketExchange.service';
 import { PositionsService } from './positions/positions.service';
@@ -22,9 +20,9 @@ import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PredictModule } from './predict/predict.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { CronsService } from './crons/crons.service';
 import { CronsModule } from './crons/cron.module';
 import { CcxtServiceModule } from './ccxt/ccxt.module';
+import { BscModule } from './bsc/bsc.module';
 
 @Module({
   imports: [
@@ -58,6 +56,7 @@ import { CcxtServiceModule } from './ccxt/ccxt.module';
     UserModule,
     PredictModule,
     CcxtServiceModule,
+    BscModule,
   ],
   controllers: [],
   providers: [

@@ -1,8 +1,0 @@
-query predictHistory {
-  predictHistory{
-    _id
-    predictDate
-    pair
-    verified
-  }
-}

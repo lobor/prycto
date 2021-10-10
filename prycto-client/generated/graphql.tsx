@@ -35,6 +35,7 @@ export type Exchange = {
   name: Scalars['String'];
   publicKey: Scalars['String'];
   secretKey: Scalars['String'];
+  address: Scalars['String'];
   balance?: Maybe<Scalars['JSON']>;
 };
 
@@ -60,21 +61,22 @@ export type Mutation = {
   addExchange: Exchange;
   removeExchange: Scalars['Boolean'];
   updateExchange: Exchange;
-  removePosition: Scalars['Boolean'];
-  editPosition: Position;
-  syncPositions: Position;
-  addPosition: Position;
   login: Scalars['String'];
   register: Scalars['Boolean'];
   updateUser: User;
   updatePassword: User;
   logout: Scalars['Boolean'];
   updateLang: User;
+  removePosition: Scalars['Boolean'];
+  editPosition: Position;
+  syncPositions: Position;
+  addPosition: Position;
 };
 
 
 export type MutationAddExchangeArgs = {
   name: Scalars['String'];
+  address: Scalars['String'];
   exchange: Scalars['String'];
   publicKey: Scalars['String'];
   secretKey: Scalars['String'];
@@ -89,27 +91,6 @@ export type MutationRemoveExchangeArgs = {
 export type MutationUpdateExchangeArgs = {
   balance: Scalars['JSON'];
   _id: Scalars['ID'];
-};
-
-
-export type MutationRemovePositionArgs = {
-  _id: Scalars['String'];
-};
-
-
-export type MutationEditPositionArgs = {
-  objectif: Scalars['Float'];
-  _id: Scalars['String'];
-};
-
-
-export type MutationSyncPositionsArgs = {
-  _id: Scalars['String'];
-};
-
-
-export type MutationAddPositionArgs = {
-  symbol: Scalars['String'];
 };
 
 
@@ -150,6 +131,27 @@ export type MutationUpdateLangArgs = {
   lang: Scalars['String'];
 };
 
+
+export type MutationRemovePositionArgs = {
+  _id: Scalars['String'];
+};
+
+
+export type MutationEditPositionArgs = {
+  objectif: Scalars['Float'];
+  _id: Scalars['String'];
+};
+
+
+export type MutationSyncPositionsArgs = {
+  _id: Scalars['String'];
+};
+
+
+export type MutationAddPositionArgs = {
+  symbol: Scalars['String'];
+};
+
 export type Pair = {
   __typename?: 'Pair';
   symbol: Scalars['String'];
@@ -182,17 +184,13 @@ export type Query = {
   __typename?: 'Query';
   exchangeById: Exchange;
   exchanges: Array<Exchange>;
-  hasInit1: Scalars['Boolean'];
+  user: User;
   positions: Array<Position>;
   position: Position;
+  getHistoryBySymbol: Array<Cours>;
   getMarkets: Scalars['JSON'];
   getPairs: Array<Pair>;
-  getHistoryBySymbol: Array<Cours>;
   getHistoryOrderBySymbol: Array<History>;
-  user: User;
-  predictHistory: Array<Predict>;
-  predictManually: Scalars['Boolean'];
-  trainManually: Scalars['Boolean'];
 };
 
 
@@ -211,30 +209,20 @@ export type QueryPositionArgs = {
 };
 
 
-export type QueryGetMarketsArgs = {
-  exchangeId: Scalars['String'];
-};
-
-
 export type QueryGetHistoryBySymbolArgs = {
   limit?: Maybe<Scalars['Int']>;
   symbol: Scalars['String'];
 };
 
 
+export type QueryGetMarketsArgs = {
+  exchangeId: Scalars['String'];
+};
+
+
 export type QueryGetHistoryOrderBySymbolArgs = {
   positionId: Scalars['String'];
   symbol: Scalars['String'];
-};
-
-
-export type QueryPredictManuallyArgs = {
-  positionId?: Maybe<Scalars['String']>;
-};
-
-
-export type QueryTrainManuallyArgs = {
-  positionId: Scalars['String'];
 };
 
 export type Subscription = {
@@ -262,6 +250,7 @@ export type AddExchangeMutationVariables = Exact<{
   exchange: Scalars['String'];
   publicKey: Scalars['String'];
   secretKey: Scalars['String'];
+  address: Scalars['String'];
 }>;
 
 
@@ -269,7 +258,7 @@ export type AddExchangeMutation = (
   { __typename?: 'Mutation' }
   & { addExchange: (
     { __typename?: 'Exchange' }
-    & Pick<Exchange, 'name' | 'exchange' | 'publicKey' | 'secretKey' | '_id'>
+    & Pick<Exchange, 'name' | 'exchange' | 'publicKey' | 'address' | 'secretKey' | '_id'>
   ) }
 );
 
@@ -454,17 +443,6 @@ export type PredictQuery = (
   )> }
 );
 
-export type PredictHistoryQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PredictHistoryQuery = (
-  { __typename?: 'Query' }
-  & { predictHistory: Array<(
-    { __typename?: 'Predict' }
-    & Pick<Predict, '_id' | 'predictDate' | 'pair' | 'verified'>
-  )> }
-);
-
 export type RegisterMutationVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
@@ -579,16 +557,18 @@ export type UserQuery = (
 
 
 export const AddExchangeDocument = gql`
-    mutation addExchange($name: String!, $exchange: String!, $publicKey: String!, $secretKey: String!) {
+    mutation addExchange($name: String!, $exchange: String!, $publicKey: String!, $secretKey: String!, $address: String!) {
   addExchange(
     name: $name
     exchange: $exchange
     publicKey: $publicKey
     secretKey: $secretKey
+    address: $address
   ) {
     name
     exchange
     publicKey
+    address
     secretKey
     _id
   }
@@ -750,17 +730,6 @@ export const PredictDocument = gql`
 }
     `;
 export type PredictQueryResult = Apollo.QueryResult<PredictQuery, PredictQueryVariables>;
-export const PredictHistoryDocument = gql`
-    query predictHistory {
-  predictHistory {
-    _id
-    predictDate
-    pair
-    verified
-  }
-}
-    `;
-export type PredictHistoryQueryResult = Apollo.QueryResult<PredictHistoryQuery, PredictHistoryQueryVariables>;
 export const RegisterDocument = gql`
     mutation register($email: String!, $password: String!, $confirmPassword: String!) {
   register(email: $email, password: $password, confirmPassword: $confirmPassword)

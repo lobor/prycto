@@ -19,6 +19,9 @@ export class Exchange {
   @Field()
   secretKey: string;
 
+  @Field()
+  address: string;
+
   @Field((type) => JSON, { nullable: true })
   balance: Balance;
 }

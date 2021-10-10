@@ -18,6 +18,7 @@ import { AuthGuard } from '../user/guards/auth.guard';
 import { User, UserDocument } from '../user/user.schema';
 import { PredictService } from '../predict/predict.service';
 import { CcxtService } from 'src/ccxt/ccxt.service';
+import { BscService } from 'src/bsc/bsc.service';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -27,6 +28,7 @@ export class PositionsResolver {
     private readonly exchangeService: ExchangeService,
     private readonly ccxtService: CcxtService,
     private readonly predictService: PredictService,
+    private readonly bscService: BscService,
   ) {}
 
   @Query(() => [Position])
@@ -140,67 +142,86 @@ export class PositionsResolver {
     if (!position || ctx.user._id.toString() !== position.userId) {
       throw new Error('position not found');
     }
-    const balance = await this.ccxtService.getBalancesByExchangeId(
-      ctx.exchangeId,
-    );
 
-    const histories = await this.ccxtService.getHistoryByExchangeId({
-      exchangeId: ctx.exchangeId,
-      pairs: [position.pair],
-    });
-    const historiesOnPosition = histories.filter(
-      (history) => history.symbol === position.pair,
-    );
-    let investment = 0;
-    let amount = 0;
-    historiesOnPosition.forEach((order) => {
-      if (order.status === 'closed') {
-        if (order.side === 'buy') {
-          amount += Number(order.amount);
-          investment += Number(order.cost);
-        }
-        if (order.side === 'sell') {
-          let percentSell = 0;
-          if (amount < order.amount) {
-            percentSell = (100 * amount) / order.amount;
-          } else {
-            percentSell = (100 * order.amount) / amount;
+    if (exchange.exchange !== 'bsc') {
+      const balance = await this.ccxtService.getBalancesByExchangeId(
+        ctx.exchangeId,
+      );
+
+      const histories = await this.ccxtService.getHistoryByExchangeId({
+        exchangeId: ctx.exchangeId,
+        pairs: [position.pair],
+      });
+      const historiesOnPosition = histories.filter(
+        (history) => history.symbol === position.pair,
+      );
+      let investment = 0;
+      let amount = 0;
+      historiesOnPosition.forEach((order) => {
+        if (order.status === 'closed') {
+          if (order.side === 'buy') {
+            amount += Number(order.amount);
+            investment += Number(order.cost);
           }
-          amount -= Number(order.amount);
-          investment -= Number(order.cost);
-          // investment -= (investment * percentSell) / 100;
+          if (order.side === 'sell') {
+            let percentSell = 0;
+            if (amount < order.amount) {
+              percentSell = (100 * amount) / order.amount;
+            } else {
+              percentSell = (100 * order.amount) / amount;
+            }
+            amount -= Number(order.amount);
+            investment -= Number(order.cost);
+            // investment -= (investment * percentSell) / 100;
+          }
         }
-      }
-    });
-    // investment = investment < 0 ? 0 : investment;
-    await this.positionService.updateOne(position._id, {
-      investment,
-    });
+      });
+      // investment = investment < 0 ? 0 : investment;
+      await this.positionService.updateOne(position._id, {
+        investment,
+      });
 
-    Object.keys(balance).forEach((position) => {
-      if (exchange.balance[position]) {
-        exchange.balance[position].available = balance[position].available;
-        if (
-          balance[`LD${position}`] &&
-          balance[`LD${position}`].available >= 0
-        ) {
-          exchange.balance[position].locked =
-            balance[`LD${position}`].available;
+      Object.keys(balance).forEach((position) => {
+        if (exchange.balance[position]) {
+          exchange.balance[position].available = balance[position].available;
+          if (
+            balance[`LD${position}`] &&
+            balance[`LD${position}`].available >= 0
+          ) {
+            exchange.balance[position].locked =
+              balance[`LD${position}`].available;
+          }
+        } else {
+          exchange.balance[position] = balance[position];
+          if (
+            balance[`LD${position}`] &&
+            balance[`LD${position}`].available >= 0
+          ) {
+            exchange.balance[position].locked =
+              balance[`LD${position}`].available;
+          }
         }
-      } else {
-        exchange.balance[position] = balance[position];
-        if (
-          balance[`LD${position}`] &&
-          balance[`LD${position}`].available >= 0
-        ) {
-          exchange.balance[position].locked =
-            balance[`LD${position}`].available;
-        }
-      }
-    });
-    await this.exchangeService.updateOneById(ctx.exchangeId, {
-      balance: exchange.balance,
-    });
+      });
+      await this.exchangeService.updateOneById(ctx.exchangeId, {
+        balance: exchange.balance,
+      });
+    } else {
+      const balance = await this.bscService.getBalance(
+        exchange._id,
+        exchange.address,
+      );
+      await this.exchangeService.updateOneById(ctx.exchangeId, {
+        balance: {
+          ...exchange.balance,
+          [balance.symbol]: {
+            available: balance.available,
+            locked: exchange.balance[balance.symbol]
+              ? exchange.balance[balance.symbol].locked
+              : 0,
+          },
+        },
+      });
+    }
 
     return position;
   }
@@ -216,52 +237,79 @@ export class PositionsResolver {
     if (!exchange) {
       throw new Error('exchange not found');
     }
-    const pair = await this.positionService.findByPair(ctx.exchangeId, symbol);
-    if (pair) {
-      throw new Error('pair already exist');
-    }
-    const histories = await this.ccxtService.getHistoryByExchangeId({
-      exchangeId: ctx.exchangeId,
-      pairs: [symbol],
-    });
-    const historiesOnPosition = histories.filter(
-      (history) => history.symbol === symbol,
-    );
-    const positionTmp = {
-      exchangeId: ctx.exchangeId,
-      pair: symbol,
-      investment: 0,
-      available: 0,
-      objectif: 0,
-      userId: ctx.user._id,
-    };
-    let investment = 0;
-    let amount = 0;
-    historiesOnPosition.forEach((order) => {
-      if (order.status === 'closed') {
-        if (order.side === 'buy') {
-          amount += Number(order.amount);
-          investment += Number(order.cost);
-        }
-        if (order.side === 'sell') {
-          let percentSell = 0;
-          if (amount < order.amount) {
-            percentSell = (100 * amount) / order.amount;
-          } else {
-            percentSell = (100 * order.amount) / amount;
-          }
-          amount -= Number(order.amount);
-          investment -= Number(order.cost);
-          // investment -= (investment * percentSell) / 100;
-        }
+
+    if (exchange.exchange !== 'bsc') {
+      const pair = await this.positionService.findByPair(
+        ctx.exchangeId,
+        symbol,
+      );
+      if (pair) {
+        throw new Error('pair already exist');
       }
-    });
-    await this.socketExchange.subscribeByExchange(
-      exchange.exchange as 'ftx' | 'binance',
-      [symbol],
-    );
-    positionTmp.investment = investment < 0 ? 0 : investment;
-    const position = await this.positionService.insertOne(positionTmp);
-    return position;
+      const histories = await this.ccxtService.getHistoryByExchangeId({
+        exchangeId: ctx.exchangeId,
+        pairs: [symbol],
+      });
+      const historiesOnPosition = histories.filter(
+        (history) => history.symbol === symbol,
+      );
+      const positionTmp = {
+        exchangeId: ctx.exchangeId,
+        pair: symbol,
+        investment: 0,
+        available: 0,
+        objectif: 0,
+        userId: ctx.user._id,
+      };
+      let investment = 0;
+      let amount = 0;
+      historiesOnPosition.forEach((order) => {
+        if (order.status === 'closed') {
+          if (order.side === 'buy') {
+            amount += Number(order.amount);
+            investment += Number(order.cost);
+          }
+          if (order.side === 'sell') {
+            let percentSell = 0;
+            if (amount < order.amount) {
+              percentSell = (100 * amount) / order.amount;
+            } else {
+              percentSell = (100 * order.amount) / amount;
+            }
+            amount -= Number(order.amount);
+            investment -= Number(order.cost);
+            // investment -= (investment * percentSell) / 100;
+          }
+        }
+      });
+      await this.socketExchange.subscribeByExchange(
+        exchange.exchange as 'ftx' | 'binance',
+        [symbol],
+      );
+      positionTmp.investment = investment < 0 ? 0 : investment;
+      const position = await this.positionService.insertOne(positionTmp);
+      return position;
+    } else {
+      const balance = await this.bscService.getBalance(ctx.exchangeId, symbol);
+      await this.exchangeService.updateOneById(ctx.exchangeId, {
+        balance: {
+          ...exchange.balance,
+          [balance.symbol]: { available: balance.available, locked: 0 },
+        },
+      });
+
+      const positionTmp = {
+        exchangeId: ctx.exchangeId,
+        pair: `${balance.symbol}/USDC`,
+        investment: 0,
+        available: balance.available,
+        objectif: 0,
+        userId: ctx.user._id,
+      };
+
+      const position = await this.positionService.insertOne(positionTmp);
+
+      return position;
+    }
   }
 }

@@ -22,6 +22,9 @@ export class Exchange {
   @Prop()
   secretKey: string;
 
+  @Prop()
+  address: string;
+
   @Prop({ type: Object })
   balance: Record<string, { locked: number; available: number }>;
 

@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@binance-chain/javascript-sdk": "^4.2.0",
     "@nestjs/common": "^7.6.15",
     "@nestjs/config": "^1.0.1",
     "@nestjs/core": "^7.6.15",
@@ -38,6 +39,7 @@
     "graphql-tools": "^7.0.5",
     "graphql-type-json": "^0.3.2",
     "ioredis": "^4.27.6",
+    "jsdom": "^18.0.0",
     "jsonwebtoken": "^8.5.1",
     "limdu": "^0.9.4",
     "mongoose": "^5.12.15",

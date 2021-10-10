@@ -261,18 +261,21 @@ const Nav = ({ children, hide }: NavProps) => {
                           .find(({ value }) => value === exchangeId)
                       }
                       onChange={(value) => {
-                        if (value) {
+                        if (value && value !== 'redirect') {
                           setExchangeId(value);
+                        } else if (value === 'redirect') {
+                          router.push("/exchange")
                         }
                       }}
-                      options={
-                        (data &&
+                      options={[
+                        ...((data &&
                           data.exchanges.map(({ _id, name }) => ({
                             value: _id,
                             label: name,
                           }))) ||
-                        []
-                      }
+                          []),
+                        { value: "redirect", label: "Create new" },
+                      ]}
                     />
                   </div>
                   <div className="mr-3 flex-1 h-9">

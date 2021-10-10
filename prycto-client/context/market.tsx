@@ -64,7 +64,7 @@ function useMarket(symbol?: string) {
   });
 
   useEffect(() => {
-    if (!previousData) {
+    if (!previousData && subscribeToMore) {
       subscribeToMore<MarketHitSubscription>({
         document: MarketHitDocument,
         variables: { exchangeId },
@@ -73,7 +73,7 @@ function useMarket(symbol?: string) {
         },
       });
     }
-  }, [previousData, exchangeId]);
+  }, [previousData, exchangeId, subscribeToMore]);
 
   useEffect(() => {
     if (!oldExchangeId.current || oldExchangeId.current !== exchangeId) {

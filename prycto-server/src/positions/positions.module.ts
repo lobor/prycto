@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { BscModule } from 'src/bsc/bsc.module';
 import { CcxtServiceModule } from 'src/ccxt/ccxt.module';
 import { CoursModule } from 'src/cours/cours.module';
 import { ExchangeModule } from 'src/exchanges/module';
@@ -20,6 +21,7 @@ import { PositionsService } from './positions.service';
     CoursModule,
     forwardRef(() => SocketExchangeModule),
     PredictModule,
+    BscModule,
   ],
   providers: [PositionsService, PositionsResolver],
   exports: [PositionsService],

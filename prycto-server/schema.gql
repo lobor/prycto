@@ -8,6 +8,7 @@ type Exchange {
   name: String!
   publicKey: String!
   secretKey: String!
+  address: String!
   balance: JSON
 }
 
@@ -90,7 +91,7 @@ type Query {
 }
 
 type Mutation {
-  addExchange(name: String!, exchange: String!, publicKey: String!, secretKey: String!): Exchange!
+  addExchange(name: String!, address: String!, exchange: String!, publicKey: String!, secretKey: String!): Exchange!
   removeExchange(_id: String!): Boolean!
   updateExchange(balance: JSON!, _id: ID!): Exchange!
   login(password: String!, email: String!): String!

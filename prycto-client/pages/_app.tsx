@@ -10,6 +10,7 @@ import Nav from "../components/Nav";
 import { TabsProvider } from "../context/tabs";
 import { MarketsProvider } from "../context/market";
 import { HideShowProvider } from "../context/hideShow";
+import { MetamaskProvider } from "../context/metamask";
 import { ExchangeProvider } from "../context/exchange";
 import { useRouter } from "next/dist/client/router";
 import * as trad from "../traductions";
@@ -22,7 +23,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <IntlProvider
       messages={
-        ((trad as unknown) as Record<string, Record<string, string>>)[
+        (trad as unknown as Record<string, Record<string, string>>)[
           router.locale || "en"
         ] || {}
       }
@@ -32,25 +33,27 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Apollo>
         <ExchangeProvider>
           <MarketsProvider>
-            <HideShowProvider>
-              <TabsProvider
-                value={{
-                  tabs: [
-                    {
-                      label: "Positions",
-                      key: "positions",
-                      canClose: false,
-                      href: "/positions",
-                    },
-                  ],
-                  selected: "positions",
-                }}
-              >
-                <Nav hide={!showLayout}>
-                  <Component {...pageProps} />
-                </Nav>
-              </TabsProvider>
-            </HideShowProvider>
+            <MetamaskProvider>
+              <HideShowProvider>
+                <TabsProvider
+                  value={{
+                    tabs: [
+                      {
+                        label: "Positions",
+                        key: "positions",
+                        canClose: false,
+                        href: "/positions",
+                      },
+                    ],
+                    selected: "positions",
+                  }}
+                >
+                  <Nav hide={!showLayout}>
+                    <Component {...pageProps} />
+                  </Nav>
+                </TabsProvider>
+              </HideShowProvider>
+            </MetamaskProvider>
           </MarketsProvider>
         </ExchangeProvider>
       </Apollo>

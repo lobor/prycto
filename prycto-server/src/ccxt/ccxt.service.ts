@@ -56,7 +56,6 @@ export class CcxtService {
     limit?: number | undefined,
     params?: ccxt.Params | undefined,
   ) {
-    console.log(Object.keys(this.exchanges), exchangeId);
     return this.exchanges[exchangeId].fetchOHLCV(
       symbol,
       timeframe,
@@ -67,14 +66,15 @@ export class CcxtService {
   }
 
   public async addExchange(exchange: Exchange) {
-    this.exchanges[exchange._id] = new ccxt[exchange.exchange]({
-      options: { adjustForTimeDifference: true },
-      enableRateLimit: true,
-      timeout: 30000,
-      apiKey: exchange.publicKey,
-      secret: exchange.secretKey,
-    });
-    // await this.exchanges[exchange._id].loadMarkets();
+    if (ccxt[exchange.exchange]) {
+      this.exchanges[exchange._id] = new ccxt[exchange.exchange]({
+        options: { adjustForTimeDifference: true },
+        enableRateLimit: true,
+        timeout: 30000,
+        apiKey: exchange.publicKey,
+        secret: exchange.secretKey,
+      });
+    }
   }
 
   public async loadMarkets() {
@@ -145,6 +145,7 @@ export class CcxtService {
       await Promise.all(
         Object.keys(this.exchanges).map(async (idExchange) => {
           const exchange = this.exchanges[idExchange];
+          if (!exchange) return null;
           return {
             _id: idExchange,
             markets: await exchange.fetchMarkets(),
@@ -166,7 +167,7 @@ export class CcxtService {
       });
       exchangeInstance = this.exchanges[exchangeId];
     }
-    return exchangeInstance.fetchMarkets();
+    return exchangeInstance ? exchangeInstance.fetchMarkets() : [];
   }
 
   public async getBalances(exchangesToGet: { _id: string }[]) {

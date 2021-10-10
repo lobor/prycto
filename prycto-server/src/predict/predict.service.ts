@@ -97,7 +97,6 @@ export class PredictService {
     }
 
     const { exchangeId, pair: symbol } = position;
-    console.log('get history');
     const foo = await this.ccxtService.getCurrenciesByPair({
       exchangeId: exchangeId,
       symbol,
@@ -176,8 +175,6 @@ export class PredictService {
     // const uniqPositions = positions.find(({ pair }) => pair === 'AXS/BUSD');
     for (const position of uniqPositions) {
       const { exchangeId, pair: symbol } = position;
-      console.log('start', symbol);
-      console.log('get history');
       await this.coursService.syncCoursHistory(exchangeId, symbol, 110);
       const cours = await this.coursModel
         .find({ exchangeId, symbol })
@@ -198,7 +195,6 @@ export class PredictService {
         const last = toto[toto.length - 1] || [];
         toto.push([...last, cour]);
       });
-      console.log('calculate indice');
       const toTrains = this.calculateIndice(toto);
       const net = this.newClassifier();
       const bar = [];
@@ -224,17 +220,14 @@ export class PredictService {
           }, // tomorow result
         });
       });
-      console.log('train');
       if (bar.length > 0) {
         net.trainBatch(bar);
-        console.log('Write file');
         fs.writeFileSync(
           `./${symbol.replace('/', '')}.txt`,
           JSON.stringify(net.toJSON()),
         );
       }
 
-      console.log('finish', symbol);
     }
   }
 }

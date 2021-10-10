@@ -6,10 +6,12 @@ import { AuthGuard } from '../user/guards/auth.guard';
 import { PositionsService } from '../positions/positions.service';
 import { User } from '../user/user.schema';
 import { CcxtService } from 'src/ccxt/ccxt.service';
+import { ExchangeService } from 'src/exchanges/service';
 
 @Resolver(() => History)
 export class HistoryResolver {
   constructor(
+    private readonly exchangeService: ExchangeService,
     private readonly positionsService: PositionsService,
     private readonly ccxtService: CcxtService,
   ) {}
@@ -25,6 +27,15 @@ export class HistoryResolver {
     const position = await this.positionsService.findById(positionId);
     if (!position || position.userId !== ctx.user._id.toString()) {
       throw new NotFoundException();
+    }
+
+    const exchange = await this.exchangeService.findById(position.exchangeId);
+    if (!exchange || exchange.userId !== ctx.user._id.toString()) {
+      throw new NotFoundException();
+    }
+
+    if (exchange.exchange === 'bsc') {
+      return [];
     }
     return this.ccxtService.getHistoryByExchangeId({
       exchangeId: position.exchangeId,

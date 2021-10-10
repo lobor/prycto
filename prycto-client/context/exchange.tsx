@@ -13,7 +13,6 @@ const ExchangeContext = React.createContext<ExchangeContext>({
 });
 
 const ExchangeProvider: React.FC = ({ children }) => {
-  const client = useApolloClient();
   const [exchangeId, setExchangeId] = useState<string>("");
   const { data, loading } = useQuery(ExchangeByIdDocument, {
     variables: { _id: exchangeId },
@@ -32,11 +31,11 @@ const ExchangeProvider: React.FC = ({ children }) => {
     localStorage.setItem("exchangeId", exchange);
   };
 
-  useEffect(() => {
-    if (exchangeId && !loading) {
-      // client.resetStore();
-    }
-  }, [exchangeId, loading]);
+  // useEffect(() => {
+  //   if (exchangeId && !loading) {
+  //     // client.resetStore();
+  //   }
+  // }, [exchangeId, loading]);
 
   return (
     <ExchangeContext.Provider

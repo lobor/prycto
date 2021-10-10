@@ -3,16 +3,19 @@ mutation addExchange(
   $exchange: String!
   $publicKey: String!
   $secretKey: String!
+  $address: String!
 ) {
   addExchange(
     name: $name
     exchange: $exchange
     publicKey: $publicKey
     secretKey: $secretKey
+    address: $address
   ) {
     name
     exchange
     publicKey
+    address
     secretKey
     _id
   }
