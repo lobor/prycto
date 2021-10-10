@@ -44,7 +44,13 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
   const newWallet = useRef(false);
 
   useEffect(() => {
-    if(account && newWallet.current) {
+    if (error) {
+      console.log(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (account && newWallet.current) {
       onSubmit({
         exchange: "metamask",
         name: "MetaMask",
@@ -53,17 +59,18 @@ const AddPosition = ({ onSubmit, onCancel, open }: AddPositionProps) => {
         address: account!,
       });
     }
-  }, [account])
+  }, [account]);
 
   const handleConnect = useCallback(async () => {
-    newWallet.current = true
+    newWallet.current = true;
     // @ts-ignore
     await connect();
-  }, [connect])
-  
+  }, [connect]);
+
   if (status === "disconnected") {
     optionsExchange.push({ label: "Metamask", value: "metamask" });
   }
+
   return (
     <Dialog
       open={open}
