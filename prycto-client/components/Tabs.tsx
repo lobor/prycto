@@ -50,12 +50,7 @@ const TabItem = ({
     >
       <Link href={href}>
         <a title={label as string}>
-          <span
-            className="py-2 md:py-5 pl-1 pr-1 text-white no-underline flex items-center"
-            onClick={() => {
-              selectTab(id);
-            }}
-          >
+          <span className="py-2 md:py-5 pl-1 pr-1 text-white no-underline flex items-center">
             {exchange && (
               <img
                 src={`/${exchange.toLowerCase()}.ico`}
@@ -87,12 +82,6 @@ const TabItem = ({
 };
 const Tabs = () => {
   const { tabs, selected, removeTab, selectTab } = useTabsContext();
-  useEffect(() => {
-    if (process.browser) {
-      window.dispatchEvent(new Event('resize'));
-      console.log('ici')
-    }
-  }, [tabs.length])
   return (
     <div className="flex flex-1 md:order-first">
       <AutoSizer disableHeight>
