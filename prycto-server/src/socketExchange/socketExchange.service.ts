@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ccxws from 'ccxws';
 import { uniq } from 'lodash';
 import { AppService } from '../app.service';
@@ -6,12 +6,15 @@ import { Exchange } from '../exchanges/exchange.schema';
 import { ExchangeService } from '../exchanges/service';
 import { PositionsService } from '../positions/positions.service';
 import { PubSubService } from '../pub-sub/pub-sub.service';
+import * as Web3 from 'web3';
+import { TokenPrice } from 'src/utils/tokenPrice';
 
 const pairsByExchange: Record<string, any> = {};
 const exchangeByName: Record<string, any> = {};
 
 @Injectable()
 export class SocketExchangeService {
+  private readonly logger = new Logger('SocketExchange');
   constructor(
     private readonly appService: AppService,
     private readonly positionsService: PositionsService,
@@ -83,7 +86,7 @@ export class SocketExchangeService {
   }
 
   async createByExchange(exchange: Exchange) {
-    const { exchange: name } = exchange;
+    const { exchange: name, address, _id } = exchange;
     if (
       !exchangeByName[name] &&
       ccxws[name.charAt(0).toUpperCase() + name.slice(1)]
@@ -99,6 +102,25 @@ export class SocketExchangeService {
       exchangeByName[name].on('error', (e) => {
         console.log('error', name, e.toString());
       });
+    } else if (name === 'metamask' && address) {
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      setInterval(async () => {
+        const positions = await this.positionsService.findByExchangeId(_id);
+        positions.map(async (position) => {
+          try {
+            const price = await TokenPrice.calcSell(web3, position.address);
+            const [base, quote] = position.pair.split('/');
+            this.event(name)({
+              base,
+              quote,
+              price,
+            });
+          } catch (e) {
+            console.log(e)
+            this.logger.error(e);
+          }
+        });
+      }, 3000);
     }
   }
 

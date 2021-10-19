@@ -85,7 +85,6 @@ const Positions = () => {
 
   const positionsOriginal = ((data && data.positions) || []).map((position) => {
     const { available, locked } = position;
-    console.log(markets, position.pair)
     const market = (markets && markets[position.pair]) || 0;
     const total = Number(available || 0) + (Number(locked || 0) || 0);
     const profit = market * total - position.investment;

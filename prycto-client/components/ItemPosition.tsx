@@ -59,9 +59,9 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     market,
     total,
     predict,
+    exchange,
     gain,
   } = position;
-  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { data: exchangeData } = useQuery<ExchangeByIdQuery>(
     ExchangeByIdDocument,
     { variables: { _id: position.exchangeId } }
@@ -75,13 +75,11 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   });
   const [getPositions] = useLazyQuery(PositionsDocument, {
     fetchPolicy: "network-only",
-    variables: { exchangeId },
+    variables: { exchangeId: position.exchangeId },
   });
   const [updatePosition] = useMutation(SyncPositionsDocument, {
     onCompleted: () => {
-      if (!loadingExchange && exchangeId) {
-        getPositions({ variables: { exchangeId } });
-      }
+      getPositions({ variables: { exchangeId: position.exchangeId } });
     },
   });
 
@@ -234,7 +232,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
           </HideShow>
         </div>
         {/* Market column  */}
-        <div className="py-2 md:px-6 hidden md:block flex-1">{market}</div>
+        <div className="py-2 md:px-6 hidden md:block flex-1">{round(market, 8)}</div>
         {/* Investment column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1">
           <HideShow>{round(investment > 0 ? investment : 0)}</HideShow> /{" "}

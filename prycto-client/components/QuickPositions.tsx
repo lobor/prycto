@@ -8,7 +8,6 @@ import { useTabsContext } from "../context/tabs";
 import { useRouter } from "next/dist/client/router";
 import { ContextMarkets, useMarket } from "../context/market";
 import { classnames } from "tailwindcss-classnames";
-import HideShow from "./HideShow";
 import { round } from "lodash";
 import { FormattedMessage } from "react-intl";
 import { useMemo, useState } from "react";
@@ -33,13 +32,11 @@ const QuickPositions = () => {
     sort: "desc",
     key: "profitPercent",
   });
-  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const { addTab, selectTab } = useTabsContext();
   const { markets } = useMarket() as ContextMarkets;
   const { data: dataPositions, loading: loadingPosition } =
     useQuery<PositionsQuery>(PositionsDocument, {
-      variables: { exchangeId },
-      skip: loadingExchange || !exchangeId,
+      variables: { exchangeId: '' },
     });
   const positionsOriginal = useMemo(() => {
     return ((dataPositions && dataPositions.positions) || []).map(
@@ -105,7 +102,7 @@ const QuickPositions = () => {
           )}
           {!loadingPosition &&
             sortFunction(sort)(positionsOriginal).map((position) => {
-              const { _id, pair: symbol, profitPercent } = position;
+              const { _id, pair: symbol, profitPercent, exchange } = position;
               return (
                 <div className="py-2 px-2 flex justify-between" key={_id}>
                   <div className="flex-1 flex items-center ">

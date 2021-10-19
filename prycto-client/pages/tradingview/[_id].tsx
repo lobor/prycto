@@ -65,10 +65,12 @@ export default function Trade() {
   const formik = useFormik({
     validationSchema: Yup.object({
       objectif: Yup.number().required(),
+      investment: Yup.number().required(),
     }),
     enableReinitialize: true,
     initialValues: {
       objectif: (data && data.position.objectif) || 0,
+      investment: (data && data.position.investment) || 0,
     },
     onSubmit: (value) => {
       editPosition({ variables: { _id, ...value } });
@@ -170,60 +172,70 @@ export default function Trade() {
           )}
           {data && data.position && (
             <div className="flex-col md:w-1/6 flex order-first md:order-last">
-              <div className="text-gray-200 px-1">
-                <div className="flex mb-1 bg-gray-900 p-1 text-gray-400 rounded-md">
-                  {Object.keys(data.position.balance).map((key, i) => {
-                    return (
-                      <div
-                        className={`flex-1 ${i === 1 && "text-right"}`}
-                        key={key}
-                      >
-                        <span className="text-gray-200">
-                          <HideShow>
-                            {round(data.position.balance[key], 10)}
-                          </HideShow>
-                        </span>{" "}
-                        {key}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md">
-                  <div className="flex-1">
-                    <FormattedMessage id="profit" />:
+              <form ref={form} onSubmit={formik.handleSubmit}>
+                <div className="text-gray-200 px-1">
+                  <div className="flex mb-1 bg-gray-900 p-1 text-gray-400 rounded-md">
+                    {Object.keys(data.position.balance).map((key, i) => {
+                      return (
+                        <div
+                          className={`flex-1 ${i === 1 && "text-right"}`}
+                          key={key}
+                        >
+                          <span className="text-gray-200">
+                            <HideShow>
+                              {round(data.position.balance[key], 10)}
+                            </HideShow>
+                          </span>{" "}
+                          {key}
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div
-                    className={profit < 0 ? "text-red-600" : "text-green-500"}
-                  >
-                    <HideShow>{round(profit)}</HideShow>(
-                    {round(
-                      data.position.investment > 0
-                        ? (profit * 100) / (data.position.investment || 1)
-                        : 0
-                    )}
-                    %)
-                  </div>
-                </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md">
-                  <div className="flex-1">
-                    <FormattedMessage id="investment" />:
-                  </div>
-                  <div className="text-gray-200">
-                    <HideShow>
+                  <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md">
+                    <div className="flex-1">
+                      <FormattedMessage id="profit" />:
+                    </div>
+                    <div
+                      className={profit < 0 ? "text-red-600" : "text-green-500"}
+                    >
+                      <HideShow>{round(profit)}</HideShow>(
                       {round(
                         data.position.investment > 0
-                          ? data.position.investment
+                          ? (profit * 100) / (data.position.investment || 1)
                           : 0
                       )}
-                    </HideShow>
+                      %)
+                    </div>
                   </div>
-                </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md items-center">
-                  <div className="flex-1">
-                    <FormattedMessage id="goal" />:
+                  <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md">
+                    <div className="flex-1">
+                      <FormattedMessage id="investment" />:
+                    </div>
+                    <div className="text-gray-200">
+                      <HideShow>
+                        <Input
+                          className="text-right"
+                          name="investment"
+                          type="number"
+                          value={formik.values.investment}
+                          error={formik.errors.investment}
+                          onChange={formik.handleChange}
+                          onBlur={() => {
+                            if (formik.isValid && form.current) {
+                              formik.handleSubmit({
+                                target: form.current,
+                              } as any);
+                            }
+                          }}
+                        />
+                      </HideShow>
+                    </div>
                   </div>
-                  <div className="text-gray-200">
-                    <form ref={form} onSubmit={formik.handleSubmit}>
+                  <div className="bg-gray-900 p-1 text-gray-400 mb-1 flex rounded-md items-center">
+                    <div className="flex-1">
+                      <FormattedMessage id="goal" />:
+                    </div>
+                    <div className="text-gray-200">
                       <Input
                         className="text-right"
                         name="objectif"
@@ -239,18 +251,18 @@ export default function Trade() {
                           }
                         }}
                       />
-                    </form>
+                    </div>
+                  </div>
+                  <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md">
+                    <div className="flex-1">
+                      <FormattedMessage id="market" />:
+                    </div>
+                    <div className="text-gray-200">
+                      {Number(market) && market}
+                    </div>
                   </div>
                 </div>
-                <div className="bg-gray-900 p-1 text-gray-400 mb-1 hidden md:flex rounded-md">
-                  <div className="flex-1">
-                    <FormattedMessage id="market" />:
-                  </div>
-                  <div className="text-gray-200">
-                    {Number(market) && market}
-                  </div>
-                </div>
-              </div>
+              </form>
               {/* <div className="">
                 <div>Predict</div>
                 <div>

@@ -16,9 +16,13 @@ import {
 } from "../generated/graphql";
 import { FormattedMessage, useIntl } from "react-intl";
 import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
+import useWallet from "use-wallet";
+import Web3 from "web3";
+import { TokenPrice } from "../utils/tokenPrice";
 
 export default function Exchange() {
   const intl = useIntl();
+  const { ethereum } = useWallet();
   const [addExchangeShowing, setAddExchangeShowing] = useState(false);
   const { data: exchanges, refetch: getExchanges } =
     useQuery<ExchangesQuery>(ExchangesDocument);
@@ -40,7 +44,24 @@ export default function Exchange() {
       getExchanges();
     },
   });
-  
+
+  useEffect(() => {
+    if (ethereum) {
+      const web3 = new Web3(ethereum);
+      TokenPrice.history(
+        web3,
+        "0x4b5decb9327b4d511a58137a1ade61434aacdd43",
+        // 1633731001000 / 1000
+      )
+        .then((e) => {
+          console.log(e);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    }
+  }, [ethereum]);
+
   return (
     <>
       <Head>

@@ -52,6 +52,7 @@ type Position {
   pair: String!
   investment: Float!
   exchangeId: String!
+  exchange: String!
   objectif: Float
   available: Float
   locked: Float
@@ -102,7 +103,7 @@ type Mutation {
   logout(confirmPassword: String!, password: String!, email: String!): Boolean!
   updateLang(lang: String!): User!
   removePosition(_id: String!): Boolean!
-  editPosition(objectif: Float!, _id: String!): Position!
+  editPosition(investment: Float!, objectif: Float!, _id: String!): Position!
   syncPositions(_id: String!): Position!
   addPosition(symbol: String!): Position!
 }

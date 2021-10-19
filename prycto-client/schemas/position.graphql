@@ -8,5 +8,6 @@ query position($_id: String!) {
     investment
     objectif
     balance
+    exchange
   }
 }

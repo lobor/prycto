@@ -138,6 +138,7 @@ export type MutationRemovePositionArgs = {
 
 
 export type MutationEditPositionArgs = {
+  investment: Scalars['Float'];
   objectif: Scalars['Float'];
   _id: Scalars['String'];
 };
@@ -163,9 +164,11 @@ export type Position = {
   pair: Scalars['String'];
   investment: Scalars['Float'];
   exchangeId: Scalars['String'];
+  exchange: Scalars['String'];
   objectif?: Maybe<Scalars['Float']>;
   available?: Maybe<Scalars['Float']>;
   locked?: Maybe<Scalars['Float']>;
+  address?: Maybe<Scalars['String']>;
   balance: Scalars['JSON'];
   predict: Predict;
 };
@@ -291,6 +294,7 @@ export type BalancesByExchangeIdQuery = (
 export type EditPositionMutationVariables = Exact<{
   _id: Scalars['String'];
   objectif: Scalars['Float'];
+  investment: Scalars['Float'];
 }>;
 
 
@@ -298,7 +302,7 @@ export type EditPositionMutation = (
   { __typename?: 'Mutation' }
   & { editPosition: (
     { __typename?: 'Position' }
-    & Pick<Position, '_id' | 'objectif'>
+    & Pick<Position, '_id' | 'objectif' | 'investment'>
   ) }
 );
 
@@ -405,7 +409,7 @@ export type PositionQuery = (
   { __typename?: 'Query' }
   & { position: (
     { __typename?: 'Position' }
-    & Pick<Position, '_id' | 'pair' | 'exchangeId' | 'available' | 'locked' | 'investment' | 'objectif' | 'balance'>
+    & Pick<Position, '_id' | 'pair' | 'exchangeId' | 'available' | 'locked' | 'investment' | 'objectif' | 'balance' | 'exchange'>
   ) }
 );
 
@@ -418,7 +422,7 @@ export type PositionsQuery = (
   { __typename?: 'Query' }
   & { positions: Array<(
     { __typename?: 'Position' }
-    & Pick<Position, '_id' | 'pair' | 'exchangeId' | 'available' | 'locked' | 'investment' | 'objectif'>
+    & Pick<Position, '_id' | 'pair' | 'exchangeId' | 'available' | 'locked' | 'investment' | 'exchange' | 'objectif'>
     & { predict: (
       { __typename?: 'Predict' }
       & Pick<Predict, 'up' | 'down' | 'predictDate'>
@@ -600,10 +604,11 @@ export const BalancesByExchangeIdDocument = gql`
     `;
 export type BalancesByExchangeIdQueryResult = Apollo.QueryResult<BalancesByExchangeIdQuery, BalancesByExchangeIdQueryVariables>;
 export const EditPositionDocument = gql`
-    mutation editPosition($_id: String!, $objectif: Float!) {
-  editPosition(_id: $_id, objectif: $objectif) {
+    mutation editPosition($_id: String!, $objectif: Float!, $investment: Float!) {
+  editPosition(_id: $_id, objectif: $objectif, investment: $investment) {
     _id
     objectif
+    investment
   }
 }
     `;
@@ -693,6 +698,7 @@ export const PositionDocument = gql`
     investment
     objectif
     balance
+    exchange
   }
 }
     `;
@@ -706,6 +712,7 @@ export const PositionsDocument = gql`
     available
     locked
     investment
+    exchange
     objectif
     predict {
       up

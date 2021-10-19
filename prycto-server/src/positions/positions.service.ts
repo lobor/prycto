@@ -21,6 +21,12 @@ export class PositionsService {
     return this.positionModel.find({ exchangeId, ...other });
   }
 
+  async findManyByExchangeId(
+    exchangeIds: string[],
+  ): Promise<PositionDocument[]> {
+    return this.positionModel.find({ exchangeId: { $in: exchangeIds } });
+  }
+
   async findByPair(
     exchangeId: string,
     pair: string,

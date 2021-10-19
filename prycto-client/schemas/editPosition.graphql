@@ -1,6 +1,7 @@
-mutation editPosition($_id: String!, $objectif: Float!) {
-  editPosition(_id: $_id, objectif: $objectif) {
+mutation editPosition($_id: String!, $objectif: Float!, $investment: Float!) {
+  editPosition(_id: $_id, objectif: $objectif, investment: $investment) {
     _id
     objectif
+    investment
   }
 }

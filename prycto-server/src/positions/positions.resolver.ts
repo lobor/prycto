@@ -21,6 +21,7 @@ import { CcxtService } from 'src/ccxt/ccxt.service';
 import { BscService } from 'src/bsc/bsc.service';
 import * as Web3 from 'web3';
 import { pancakeSwapAbi } from 'src/utils/tokenPrice';
+import { keyBy } from 'lodash';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -39,55 +40,56 @@ export class PositionsResolver {
     @Context() ctx: { user: User },
     @Args('exchangeId', { type: () => ID }) exchangeId: string,
   ): Promise<Position[]> {
-    const exchange = await this.exchangeService.findById(exchangeId);
-    if (!exchange || ctx.user._id.toString() !== exchange.userId) {
-      throw new NotFoundException();
-    }
-    const positions = await this.positionService.findByExchangeId(exchangeId);
-    if (exchange.exchange === 'metamask') {
-      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
-      const minABI = [
-        // balanceOf
-        {
-          constant: true,
-          inputs: [{ name: '_owner', type: 'address' }],
-          name: 'balanceOf',
-          outputs: [{ name: 'balance', type: 'uint256' }],
-          type: 'function',
-        },
-      ];
-      return Promise.all(
-        positions.map(async (position) => {
-          let balance = 0;
-          if (position.address) {
-            const contract = new web3.eth.Contract(
-              minABI as any,
-              position.address,
-            );
-            balance =
-              Number(
-                await contract.methods.balanceOf(exchange.address).call(),
-              ) / Number(web3.utils.toWei('1'));
-          }
-          return {
-            ...position.toJSON(),
-            available: balance,
-            locked: 0,
-            exchange: exchange.exchange,
-          };
-        }),
-      );
-    } else {
-      return positions.map((position) => {
+    const exchanges = await this.exchangeService.findByUserId(ctx.user._id);
+    const exchangeByIds = keyBy(exchanges, '_id');
+    const positions = await this.positionService.findManyByExchangeId(
+      Object.keys(exchangeByIds),
+    );
+    const positionToReturn: Position[] = [];
+    for (const position of positions) {
+      const exchange = exchangeByIds[position.exchangeId];
+      if (!exchange) {
+        continue;
+      }
+      if (exchange.exchange === 'metamask') {
+        const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+        const minABI = [
+          // balanceOf
+          {
+            constant: true,
+            inputs: [{ name: '_owner', type: 'address' }],
+            name: 'balanceOf',
+            outputs: [{ name: 'balance', type: 'uint256' }],
+            type: 'function',
+          },
+        ];
+        let balance = 0;
+        if (position.address) {
+          const contract = new web3.eth.Contract(
+            minABI as any,
+            position.address,
+          );
+          balance =
+            Number(await contract.methods.balanceOf(exchange.address).call()) /
+            Number(web3.utils.toWei('1'));
+        }
+        positionToReturn.push({
+          ...position.toJSON(),
+          available: balance,
+          locked: 0,
+          exchange: exchange.exchange,
+        });
+      } else {
         const { pair } = position;
         const [asset1] = pair.split('/');
-        return {
+        positionToReturn.push({
           ...position.toJSON(),
           ...((exchange.balance && exchange.balance[asset1]) || {}),
           exchange: exchange.exchange,
-        };
-      });
+        });
+      }
     }
+    return positionToReturn;
   }
 
   @ResolveField()
@@ -104,13 +106,40 @@ export class PositionsResolver {
     if (!exchange) {
       throw new NotFoundException();
     }
-    return pair.split('/').reduce((acc, symbol) => {
-      acc[symbol] =
-        exchange.balance && exchange.balance[symbol]
-          ? exchange.balance[symbol].available + exchange.balance[symbol].locked
-          : 0;
-      return acc;
-    }, {});
+    if (exchange.exchange === 'metamask') {
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      const minABI = [
+        // balanceOf
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+      ];
+      let balance = 0;
+      if (position.address) {
+        const contract = new web3.eth.Contract(minABI as any, position.address);
+        balance =
+          Number(await contract.methods.balanceOf(exchange.address).call()) /
+          Number(web3.utils.toWei('1'));
+      }
+      const [base, quote] = pair.split('/');
+      return {
+        [base]: (position.locked || 0) + (balance || 0),
+        [quote]: 0,
+      };
+    } else {
+      return pair.split('/').reduce((acc, symbol) => {
+        acc[symbol] =
+          exchange.balance && exchange.balance[symbol]
+            ? exchange.balance[symbol].available +
+              exchange.balance[symbol].locked
+            : 0;
+        return acc;
+      }, {});
+    }
   }
 
   @Query(() => Position)
@@ -127,11 +156,39 @@ export class PositionsResolver {
     if (!exchange) {
       throw new NotFoundException();
     }
-    const [asset1] = position.pair.split('/');
-    return {
-      ...position,
-      ...((exchange.balance && asset1 && exchange.balance[asset1]) || {}),
-    };
+
+    if (exchange.exchange === 'metamask') {
+      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      const minABI = [
+        // balanceOf
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+      ];
+      let balance = 0;
+      if (position.address) {
+        const contract = new web3.eth.Contract(minABI as any, position.address);
+        balance =
+          Number(await contract.methods.balanceOf(exchange.address).call()) /
+          Number(web3.utils.toWei('1'));
+      }
+      return {
+        ...position,
+        available: balance,
+        exchange: exchange.exchange,
+      };
+    } else {
+      const [asset1] = position.pair.split('/');
+      return {
+        ...position,
+        ...((exchange.balance && asset1 && exchange.balance[asset1]) || {}),
+        exchange: exchange.exchange,
+      };
+    }
   }
 
   @Mutation(() => Boolean)
@@ -156,12 +213,18 @@ export class PositionsResolver {
     @Context() ctx: { user: UserDocument },
     @Args('_id') _id: string,
     @Args('objectif') objectif: number,
+    @Args('investment') investment: number,
   ): Promise<Position> {
     const position = await this.positionService.findById(_id);
     if (!position || ctx.user._id.toString() !== position.userId) {
       throw new Error('position not found');
     }
-    return this.positionService.updateOne(_id, { objectif: Number(objectif) });
+    const exchange = await this.exchangeService.findById(position.exchangeId);
+    const newPosition = await this.positionService.updateOne(_id, {
+      objectif: Number(objectif),
+      investment: Number(investment),
+    });
+    return { ...newPosition, exchange: exchange.exchange };
   }
 
   @Mutation(() => Position)
@@ -260,7 +323,7 @@ export class PositionsResolver {
       });
     }
 
-    return position;
+    return { ...position, exchange: exchange.exchange };
   }
 
   @Mutation(() => Position)
@@ -325,7 +388,7 @@ export class PositionsResolver {
       );
       positionTmp.investment = investment < 0 ? 0 : investment;
       const position = await this.positionService.insertOne(positionTmp);
-      return position;
+      return { ...position, exchange: exchange.exchange };
     } else {
       const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
       const contract = new web3.eth.Contract(
@@ -357,7 +420,7 @@ export class PositionsResolver {
       );
       const positionTmp = {
         exchangeId: ctx.exchangeId,
-        pair: `${await contract.methods.symbol().call()}/USD`,
+        pair: `${await contract.methods.symbol().call()}/USDT`,
         investment: 0,
         available: 0,
         objectif: 0,
@@ -367,7 +430,7 @@ export class PositionsResolver {
 
       const position = await this.positionService.insertOne(positionTmp);
 
-      return position;
+      return { ...position, exchange: exchange.exchange };
     }
   }
 }

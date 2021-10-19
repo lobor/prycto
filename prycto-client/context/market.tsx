@@ -80,7 +80,6 @@ function useMarket(symbol?: string) {
       oldExchangeId.current === exchangeId;
     }
   }, [exchangeId]);
-  console.log(data)
   if (symbol) {
     return (data && data.getMarkets[symbol]) || 0;
   }

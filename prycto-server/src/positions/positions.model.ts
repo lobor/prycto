@@ -16,6 +16,9 @@ export class Position {
   @Field()
   exchangeId: string;
 
+  @Field()
+  exchange: string;
+
   @Field({ nullable: true })
   objectif?: number;
 
