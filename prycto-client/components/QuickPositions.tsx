@@ -27,6 +27,7 @@ const sortFunction =
   };
 
 const QuickPositions = () => {
+  const { exchangeId, exchange, loading: loadingExchange } = useExchange();
   const router = useRouter();
   const [sort, setSort] = useState<{ sort: string; key: string }>({
     sort: "desc",
@@ -36,7 +37,8 @@ const QuickPositions = () => {
   const { markets } = useMarket() as ContextMarkets;
   const { data: dataPositions, loading: loadingPosition } =
     useQuery<PositionsQuery>(PositionsDocument, {
-      variables: { exchangeId: '' },
+      variables: { exchangeId },
+      skip: loadingExchange || !exchangeId,
     });
   const positionsOriginal = useMemo(() => {
     return ((dataPositions && dataPositions.positions) || []).map(

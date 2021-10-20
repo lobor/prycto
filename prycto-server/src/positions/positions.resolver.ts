@@ -40,17 +40,12 @@ export class PositionsResolver {
     @Context() ctx: { user: User },
     @Args('exchangeId', { type: () => ID }) exchangeId: string,
   ): Promise<Position[]> {
-    const exchanges = await this.exchangeService.findByUserId(ctx.user._id);
-    const exchangeByIds = keyBy(exchanges, '_id');
-    const positions = await this.positionService.findManyByExchangeId(
-      Object.keys(exchangeByIds),
-    );
-    const positionToReturn: Position[] = [];
+    const exchange = await this.exchangeService.findById(exchangeId);
+    if (!exchange || ctx.user._id.toString() !== exchange.userId) {
+      throw new NotFoundException();
+    }
+    const positions = await this.positionService.findByExchangeId(exchangeId);
     for (const position of positions) {
-      const exchange = exchangeByIds[position.exchangeId];
-      if (!exchange) {
-        continue;
-      }
       if (exchange.exchange === 'metamask') {
         const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
         const minABI = [
@@ -63,33 +58,39 @@ export class PositionsResolver {
             type: 'function',
           },
         ];
-        let balance = 0;
-        if (position.address) {
-          const contract = new web3.eth.Contract(
-            minABI as any,
-            position.address,
-          );
-          balance =
-            Number(await contract.methods.balanceOf(exchange.address).call()) /
-            Number(web3.utils.toWei('1'));
-        }
-        positionToReturn.push({
-          ...position.toJSON(),
-          available: balance,
-          locked: 0,
-          exchange: exchange.exchange,
-        });
+        return Promise.all(
+          positions.map(async (position) => {
+            let balance = 0;
+            if (position.address) {
+              const contract = new web3.eth.Contract(
+                minABI as any,
+                position.address,
+              );
+              balance =
+                Number(
+                  await contract.methods.balanceOf(exchange.address).call(),
+                ) / Number(web3.utils.toWei('1'));
+            }
+            return {
+              ...position.toJSON(),
+              available: balance,
+              locked: 0,
+              exchange: exchange.exchange,
+            };
+          }),
+        );
       } else {
-        const { pair } = position;
-        const [asset1] = pair.split('/');
-        positionToReturn.push({
-          ...position.toJSON(),
-          ...((exchange.balance && exchange.balance[asset1]) || {}),
-          exchange: exchange.exchange,
+        return positions.map((position) => {
+          const { pair } = position;
+          const [asset1] = pair.split('/');
+          return {
+            ...position.toJSON(),
+            ...((exchange.balance && exchange.balance[asset1]) || {}),
+            exchange: exchange.exchange,
+          };
         });
       }
     }
-    return positionToReturn;
   }
 
   @ResolveField()
