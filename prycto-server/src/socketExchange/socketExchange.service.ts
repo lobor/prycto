@@ -103,24 +103,24 @@ export class SocketExchangeService {
         console.log('error', name, e.toString());
       });
     } else if (name === 'metamask' && address) {
-      const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
-      setInterval(async () => {
-        const positions = await this.positionsService.findByExchangeId(_id);
-        positions.map(async (position) => {
-          try {
-            const price = await TokenPrice.calcSell(web3, position.address);
-            const [base, quote] = position.pair.split('/');
-            this.event(name)({
-              base,
-              quote,
-              price,
-            });
-          } catch (e) {
-            console.log(e)
-            this.logger.error(e);
-          }
-        });
-      }, 3000);
+      // const web3 = new (Web3 as any)('https://bsc-dataseed1.binance.org');
+      // setInterval(async () => {
+      //   const positions = await this.positionsService.findByExchangeId(_id);
+      //   positions.map(async (position) => {
+      //     try {
+      //       const price = await TokenPrice.calcSell(web3, position.address);
+      //       const [base, quote] = position.pair.split('/');
+      //       this.event(name)({
+      //         base,
+      //         quote,
+      //         price,
+      //       });
+      //     } catch (e) {
+      //       console.log(e)
+      //       this.logger.error(e);
+      //     }
+      //   });
+      // }, 3000);
     }
   }
 
