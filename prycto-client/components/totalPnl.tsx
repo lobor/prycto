@@ -6,9 +6,12 @@ import { useQuery } from "@apollo/client";
 import { PositionsDocument, PositionsQuery } from "../generated/graphql";
 import { useExchange } from "../context/exchange";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import { intlFormat } from "date-fns";
+import { useIntl } from "react-intl";
 
 const stableCoins = "BUSD|USDT|USDC|TUSD";
 const TotalPnl = () => {
+  const intl = useIntl();
   const { exchangeId, loading } = useExchange();
   const { data: positions } = useQuery<PositionsQuery>(PositionsDocument, {
     variables: { exchangeId },
@@ -25,7 +28,9 @@ const TotalPnl = () => {
         const profit =
           market * ((position.available || 0) + (position.locked || 0));
         acc.globalProfit += profit;
-        acc.globalInvestment += position.investment;
+        if (position.investment > 0) {
+          acc.globalInvestment += position.investment;
+        }
       }
       return acc;
     },
@@ -52,7 +57,7 @@ const TotalPnl = () => {
         </span>
         <small className="text-sm text-gray-500 flex items-center">
           <AiOutlineInfoCircle className="mr-1" />
-          Only stablecoins pairs {stableCoins}
+          {intl.formatMessage({id: "pnl.only"}, { pairs: stableCoins })}
         </small>
       </span>
     </div>
