@@ -221,7 +221,7 @@ export class CcxtService {
       { available: number; locked: number }
     > = {};
     Object.keys(balances.total).forEach((key) => {
-      if ((balances.total as unknown as any)[key] > 0) {
+      if ((balances.total as unknown as any)[key] >= 0) {
         balancesValidate[key] = {
           available: (balances.total as unknown as any)[key],
           locked: 0,
