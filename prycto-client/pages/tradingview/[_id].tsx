@@ -79,6 +79,17 @@ export default function Trade() {
 
   const [showHistory, setShowHistory] = useState(false);
 
+  const { data: historyOrder } = useQuery<
+    GetHistoryOrderBySymbolQuery,
+    GetHistoryOrderBySymbolQueryVariables
+  >(GetHistoryOrderBySymbolDocument, {
+    variables: {
+      symbol: pair && (pair.label as string),
+      positionId: _id as string,
+    },
+    skip: !pair || !_id,
+  });
+
   useEffect(() => {
     if (pair && pair.exchange && process.browser) {
       if (!div.current && document.getElementById(`container-${pair.label}`)) {
