@@ -99,7 +99,9 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
   const profit = useMemo(() => {
     if (historyOrder && historyOrder.getHistoryOrderBySymbol && market) {
       return historyOrder.getHistoryOrderBySymbol.reduce((acc, order) => {
-        acc += market * order.amount - order.cost
+        if (order.status === 'closed') {
+          acc += market * order.amount - order.cost
+        }
         return acc;
       }, 0);
     }
