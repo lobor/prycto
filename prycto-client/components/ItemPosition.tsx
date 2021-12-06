@@ -261,7 +261,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           <div>
             <HideShow>
-              {round(investment > 0 ? profit : profit + investment)}
+              {round(profit)}
             </HideShow>
           </div>
           <div>{round(investment > 0 ? (profit * 100) / investment : 0)}%</div>

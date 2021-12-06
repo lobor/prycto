@@ -112,9 +112,6 @@ const Positions = () => {
                 .filter(({ symbol }) => position.pair === symbol)
                 .reduce((acc, order) => {
                   if (order.status === "closed") {
-                    // if (order.symbol === "DYDX/BUSD") {
-                    //   console.log(order)
-                    // }
                     if (order.side === 'buy') {
                       acc += market * order.amount - order.cost;
                     } else {
@@ -131,7 +128,7 @@ const Positions = () => {
             position.investment > 0
               ? (profit * 100) / (position.investment || 1)
               : 0,
-          profit,
+              profit,
           total,
           gain: position.investment < 0 ? position.investment * -1 : 0,
         };
