@@ -8,6 +8,9 @@ import {
   AddPositionDocument,
   AddPositionMutation,
   AddPositionMutationVariables,
+  GetHistoryOrderBySymbolDocument,
+  GetHistoryOrderBySymbolQuery,
+  GetHistoryOrderBySymbolQueryVariables,
   PositionsDocument,
   PositionsQuery,
 } from "../generated/graphql";
@@ -60,6 +63,16 @@ const Positions = () => {
     }
   );
 
+  const { data: historyOrder } = useQuery<
+    GetHistoryOrderBySymbolQuery,
+    GetHistoryOrderBySymbolQueryVariables
+  >(GetHistoryOrderBySymbolDocument, {
+    variables: {
+      positionIds: ((data && data.positions) || []).map(({ _id }) => _id),
+    },
+    skip: loading || !data || !data.positions,
+  });
+
   const [addPosition] = useMutation<
     AddPositionMutation,
     AddPositionMutationVariables
@@ -83,23 +96,48 @@ const Positions = () => {
 
   const totalPnlRender = useMemo(() => <TotalPnl />, []);
 
-  const positionsOriginal = ((data && data.positions) || []).map((position) => {
-    const { available, locked } = position;
-    const market = (markets && markets[position.pair]) || 0;
-    const total = Number(available || 0) + (Number(locked || 0) || 0);
-    const profit = market * total - position.investment;
-    return {
-      ...position,
-      market,
-      profitPercent:
-        position.investment > 0
-          ? (profit * 100) / (position.investment || 1)
-          : 0,
-      profit,
-      total,
-      gain: position.investment < 0 ? position.investment * -1 : 0,
-    };
-  });
+  const positionsOriginal = useMemo(
+    () =>
+      ((data && data.positions) || []).map((position) => {
+        const { available, locked } = position;
+        const market = (markets && markets[position.pair]) || 0;
+        const total = Number(available || 0) + (Number(locked || 0) || 0);
+        // const profit = market * total - position.investment;
+        const profit =
+          historyOrder &&
+          historyOrder.getHistoryOrderBySymbol &&
+          market &&
+          position.investment > 0
+            ? historyOrder.getHistoryOrderBySymbol
+                .filter(({ symbol }) => position.pair === symbol)
+                .reduce((acc, order) => {
+                  if (order.status === "closed") {
+                    // if (order.symbol === "DYDX/BUSD") {
+                    //   console.log(order)
+                    // }
+                    if (order.side === 'buy') {
+                      acc += market * order.amount - order.cost;
+                    } else {
+                      acc -= market * order.amount - order.cost;
+                    }
+                  }
+                  return acc;
+                }, 0)
+            : 0;
+        return {
+          ...position,
+          market,
+          profitPercent:
+            position.investment > 0
+              ? (profit * 100) / (position.investment || 1)
+              : 0,
+          profit,
+          total,
+          gain: position.investment < 0 ? position.investment * -1 : 0,
+        };
+      }),
+    [historyOrder, markets, data]
+  );
 
   const handleSort = (key: string) => () => {
     if (positionsOriginal) {

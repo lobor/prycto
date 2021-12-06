@@ -224,8 +224,7 @@ export type QueryGetMarketsArgs = {
 
 
 export type QueryGetHistoryOrderBySymbolArgs = {
-  positionId: Scalars['String'];
-  symbol: Scalars['String'];
+  positionIds: Array<Scalars['String']>;
 };
 
 export type Subscription = {
@@ -345,8 +344,7 @@ export type GetHistoryBySymbolQuery = (
 );
 
 export type GetHistoryOrderBySymbolQueryVariables = Exact<{
-  symbol: Scalars['String'];
-  positionId: Scalars['String'];
+  positionIds: Array<Scalars['String']> | Scalars['String'];
 }>;
 
 
@@ -645,8 +643,8 @@ export const GetHistoryBySymbolDocument = gql`
     `;
 export type GetHistoryBySymbolQueryResult = Apollo.QueryResult<GetHistoryBySymbolQuery, GetHistoryBySymbolQueryVariables>;
 export const GetHistoryOrderBySymbolDocument = gql`
-    query getHistoryOrderBySymbol($symbol: String!, $positionId: String!) {
-  getHistoryOrderBySymbol(symbol: $symbol, positionId: $positionId) {
+    query getHistoryOrderBySymbol($positionIds: [String!]!) {
+  getHistoryOrderBySymbol(positionIds: $positionIds) {
     amount
     side
     status

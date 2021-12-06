@@ -7,6 +7,7 @@ import { PositionsService } from '../positions/positions.service';
 import { User } from '../user/user.schema';
 import { CcxtService } from 'src/ccxt/ccxt.service';
 import { ExchangeService } from 'src/exchanges/service';
+import { keyBy } from 'lodash';
 
 @Resolver(() => History)
 export class HistoryResolver {
@@ -21,25 +22,32 @@ export class HistoryResolver {
   @UseGuards(AuthGuard)
   async getHistoryOrderBySymbol(
     @Context() ctx: { user: User },
-    @Args('symbol') symbol: string,
-    @Args('positionId') positionId: string,
+    @Args('positionIds', { type: () => [String] }) positionId: string[],
   ): Promise<History[]> {
-    const position = await this.positionsService.findById(positionId);
-    if (!position || position.userId !== ctx.user._id.toString()) {
+    const positions = await this.positionsService.findByPositionIds(positionId);
+    if (
+      positions.some((position) => position.userId !== ctx.user._id.toString())
+    ) {
       throw new NotFoundException();
     }
 
-    const exchange = await this.exchangeService.findById(position.exchangeId);
+    const exchangeOfPositions = keyBy(positions, 'exchangeId');
+
+    if (Object.keys(exchangeOfPositions).length !== 1) {
+      throw new NotFoundException();
+    }
+
+    const exchange = await this.exchangeService.findById(
+      Object.keys(exchangeOfPositions)[0],
+    );
+
     if (!exchange || exchange.userId !== ctx.user._id.toString()) {
       throw new NotFoundException();
     }
 
-    if (exchange.exchange === 'bsc') {
-      return [];
-    }
     return this.ccxtService.getHistoryByExchangeId({
-      exchangeId: position.exchangeId,
-      pairs: [symbol],
+      exchangeId: exchange._id,
+      pairs: positions.map(({ pair }) => pair),
     }) as unknown as History[];
   }
 }

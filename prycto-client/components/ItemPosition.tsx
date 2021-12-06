@@ -57,7 +57,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     _id,
     pair: symbol,
     investment,
-    // profit = 0,
+    profit = 0,
     objectif,
     market,
     total,
@@ -85,28 +85,6 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       getPositions({ variables: { exchangeId: position.exchangeId } });
     },
   });
-
-  const { data: historyOrder } = useQuery<
-    GetHistoryOrderBySymbolQuery,
-    GetHistoryOrderBySymbolQueryVariables
-  >(GetHistoryOrderBySymbolDocument, {
-    variables: {
-      symbol,
-      positionId: _id,
-    },
-  });
-
-  const profit = useMemo(() => {
-    if (historyOrder && historyOrder.getHistoryOrderBySymbol && market) {
-      return historyOrder.getHistoryOrderBySymbol.reduce((acc, order) => {
-        if (order.status === 'closed') {
-          acc += market * order.amount - order.cost
-        }
-        return acc;
-      }, 0);
-    }
-    return 0;
-  }, [historyOrder, market]);
 
   const { data: dataHistory } = useQuery<GetHistoryBySymbolQuery>(
     GetHistoryBySymbolDocument,

@@ -84,8 +84,7 @@ export default function Trade() {
     GetHistoryOrderBySymbolQueryVariables
   >(GetHistoryOrderBySymbolDocument, {
     variables: {
-      symbol: pair && (pair.label as string),
-      positionId: _id as string,
+      positionIds: [_id as string],
     },
     skip: !pair || !_id,
   });

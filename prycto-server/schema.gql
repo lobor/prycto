@@ -89,7 +89,7 @@ type Query {
   getHistoryBySymbol(limit: Int = 7, symbol: String!): [Cours!]!
   getMarkets(exchangeId: String!): JSON!
   getPairs: [Pair!]!
-  getHistoryOrderBySymbol(positionId: String!, symbol: String!): [History!]!
+  getHistoryOrderBySymbol(positionIds: [String!]!): [History!]!
 }
 
 type Mutation {
