@@ -104,15 +104,12 @@ const Positions = () => {
         const total = Number(available || 0) + (Number(locked || 0) || 0);
         // const profit = market * total - position.investment;
         const profit =
-          historyOrder &&
-          historyOrder.getHistoryOrderBySymbol &&
-          market &&
-          position.investment > 0
+          historyOrder && historyOrder.getHistoryOrderBySymbol && market
             ? historyOrder.getHistoryOrderBySymbol
                 .filter(({ symbol }) => position.pair === symbol)
                 .reduce((acc, order) => {
                   if (order.status === "closed") {
-                    if (order.side === 'buy') {
+                    if (order.side === "buy") {
                       acc += market * order.amount - order.cost;
                     } else {
                       acc -= market * order.amount - order.cost;
@@ -128,7 +125,7 @@ const Positions = () => {
             position.investment > 0
               ? (profit * 100) / (position.investment || 1)
               : 0,
-              profit,
+          profit: position.investment > 0 ? profit : market * total - position.investment,
           total,
           gain: position.investment < 0 ? position.investment * -1 : 0,
         };
