@@ -104,7 +104,7 @@ export class EchangeResolver {
         ...exchange.balance,
         ...Object.keys(balance).reduce((acc, key) => {
           if (!acc[key]) {
-            acc[key] = { available: 0, locked: 0 };
+            acc[key] = exchange.balance[key] || { available: 0, locked: 0 };
           }
           if (Number(balance[key])) {
             acc[key].locked = Number(balance[key]);

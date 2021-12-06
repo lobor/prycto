@@ -21,6 +21,9 @@ import {
   SyncPositionsDocument,
   GetHistoryBySymbolDocument,
   GetHistoryBySymbolQuery,
+  GetHistoryOrderBySymbolQuery,
+  GetHistoryOrderBySymbolQueryVariables,
+  GetHistoryOrderBySymbolDocument,
 } from "../generated/graphql";
 import { VictoryChart, VictoryAxis, VictoryArea } from "victory";
 import { useExchange } from "../context/exchange";
@@ -54,7 +57,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     _id,
     pair: symbol,
     investment,
-    profit = 0,
+    // profit = 0,
     objectif,
     market,
     total,
@@ -82,6 +85,26 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       getPositions({ variables: { exchangeId: position.exchangeId } });
     },
   });
+
+  const { data: historyOrder } = useQuery<
+    GetHistoryOrderBySymbolQuery,
+    GetHistoryOrderBySymbolQueryVariables
+  >(GetHistoryOrderBySymbolDocument, {
+    variables: {
+      symbol,
+      positionId: _id,
+    },
+  });
+
+  const profit = useMemo(() => {
+    if (historyOrder && historyOrder.getHistoryOrderBySymbol && market) {
+      return historyOrder.getHistoryOrderBySymbol.reduce((acc, order) => {
+        acc += market * order.amount - order.cost
+        return acc;
+      }, 0);
+    }
+    return 0;
+  }, [historyOrder, market]);
 
   const { data: dataHistory } = useQuery<GetHistoryBySymbolQuery>(
     GetHistoryBySymbolDocument,
@@ -232,7 +255,9 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
           </HideShow>
         </div>
         {/* Market column  */}
-        <div className="py-2 md:px-6 hidden md:block flex-1">{round(market, 8)}</div>
+        <div className="py-2 md:px-6 hidden md:block flex-1">
+          {round(market, 8)}
+        </div>
         {/* Investment column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1">
           <HideShow>{round(investment > 0 ? investment : 0)}</HideShow> /{" "}
