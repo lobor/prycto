@@ -194,6 +194,7 @@ export type Query = {
   getMarkets: Scalars['JSON'];
   getPairs: Array<Pair>;
   getHistoryOrderBySymbol: Array<History>;
+  getHistoryOrderByExchange: Array<History>;
 };
 
 
@@ -225,6 +226,11 @@ export type QueryGetMarketsArgs = {
 
 export type QueryGetHistoryOrderBySymbolArgs = {
   positionIds: Array<Scalars['String']>;
+};
+
+
+export type QueryGetHistoryOrderByExchangeArgs = {
+  exchangeId: Scalars['String'];
 };
 
 export type Subscription = {
@@ -340,6 +346,19 @@ export type GetHistoryBySymbolQuery = (
   & { getHistoryBySymbol: Array<(
     { __typename?: 'Cours' }
     & Pick<Cours, '_id' | 'timestamp' | 'close'>
+  )> }
+);
+
+export type GetHistoryOrderByExchangeQueryVariables = Exact<{
+  exchangeId: Scalars['String'];
+}>;
+
+
+export type GetHistoryOrderByExchangeQuery = (
+  { __typename?: 'Query' }
+  & { getHistoryOrderByExchange: Array<(
+    { __typename?: 'History' }
+    & Pick<History, 'amount' | 'side' | 'status' | 'symbol' | 'type' | 'timestamp' | 'cost' | 'price'>
   )> }
 );
 
@@ -642,6 +661,21 @@ export const GetHistoryBySymbolDocument = gql`
 }
     `;
 export type GetHistoryBySymbolQueryResult = Apollo.QueryResult<GetHistoryBySymbolQuery, GetHistoryBySymbolQueryVariables>;
+export const GetHistoryOrderByExchangeDocument = gql`
+    query getHistoryOrderByExchange($exchangeId: String!) {
+  getHistoryOrderByExchange(exchangeId: $exchangeId) {
+    amount
+    side
+    status
+    symbol
+    type
+    timestamp
+    cost
+    price
+  }
+}
+    `;
+export type GetHistoryOrderByExchangeQueryResult = Apollo.QueryResult<GetHistoryOrderByExchangeQuery, GetHistoryOrderByExchangeQueryVariables>;
 export const GetHistoryOrderBySymbolDocument = gql`
     query getHistoryOrderBySymbol($positionIds: [String!]!) {
   getHistoryOrderBySymbol(positionIds: $positionIds) {

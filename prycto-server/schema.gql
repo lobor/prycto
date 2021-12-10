@@ -90,6 +90,7 @@ type Query {
   getMarkets(exchangeId: String!): JSON!
   getPairs: [Pair!]!
   getHistoryOrderBySymbol(positionIds: [String!]!): [History!]!
+  getHistoryOrderByExchange(exchangeId: String!): [History!]!
 }
 
 type Mutation {

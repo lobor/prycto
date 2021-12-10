@@ -25,6 +25,10 @@ export class PositionsService {
     return this.positionModel.find({ _id: { $in: positionIds } });
   }
 
+  async findUserId(userId: string): Promise<PositionDocument[]> {
+    return this.positionModel.find({ userId }).exec();
+  }
+
   async findManyByExchangeId(
     exchangeIds: string[],
   ): Promise<PositionDocument[]> {

@@ -249,7 +249,7 @@ export class PositionsResolver {
         ctx.exchangeId,
       );
 
-      const histories = await this.ccxtService.getHistoryByExchangeId({
+      const histories = await this.ccxtService.getOrderBySymbolByExchangeId({
         exchangeId: ctx.exchangeId,
         pairs: [position.pair],
       });
@@ -347,7 +347,7 @@ export class PositionsResolver {
       if (pair) {
         throw new Error('pair already exist');
       }
-      const histories = await this.ccxtService.getHistoryByExchangeId({
+      const histories = await this.ccxtService.getOrderBySymbolByExchangeId({
         exchangeId: ctx.exchangeId,
         pairs: [symbol],
       });

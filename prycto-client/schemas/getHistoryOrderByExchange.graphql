@@ -1,0 +1,12 @@
+query getHistoryOrderByExchange($exchangeId: String!) {
+  getHistoryOrderByExchange(exchangeId: $exchangeId) {
+    amount
+    side
+    status
+    symbol
+    type
+    timestamp
+    cost
+    price
+  }
+}

@@ -102,8 +102,8 @@ const Positions = () => {
         const { available, locked } = position;
         const market = (markets && markets[position.pair]) || 0;
         const total = Number(available || 0) + (Number(locked || 0) || 0);
-        // const profit = market * total - position.investment;
-        const profit =
+        let amount = 0
+        let profit =
           historyOrder && historyOrder.getHistoryOrderBySymbol && market
             ? historyOrder.getHistoryOrderBySymbol
                 .filter(({ symbol }) => position.pair === symbol)
@@ -111,13 +111,16 @@ const Positions = () => {
                   if (order.status === "closed") {
                     if (order.side === "buy") {
                       acc += market * order.amount - order.cost;
+                      amount += order.amount
                     } else {
                       acc -= market * order.amount - order.cost;
+                      amount -= order.amount
                     }
                   }
                   return acc;
                 }, 0)
             : 0;
+        profit += (total - amount) * market
         return {
           ...position,
           market,
@@ -127,7 +130,7 @@ const Positions = () => {
               : 0,
           profit: position.investment > 0 ? profit : market * total - position.investment,
           total,
-          gain: position.investment < 0 ? position.investment * -1 : 0,
+          gain: position.investment < 0 || total === 0 ? position.investment * -1 : 0,
         };
       }),
     [historyOrder, markets, data]

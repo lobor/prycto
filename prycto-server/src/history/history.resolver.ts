@@ -45,9 +45,21 @@ export class HistoryResolver {
       throw new NotFoundException();
     }
 
-    return this.ccxtService.getHistoryByExchangeId({
+    return this.ccxtService.getOrderBySymbolByExchangeId({
       exchangeId: exchange._id,
       pairs: positions.map(({ pair }) => pair),
     }) as unknown as History[];
+  }
+
+  @Query(() => [History])
+  @UseGuards(EchangeIdGuard)
+  @UseGuards(AuthGuard)
+  async getHistoryOrderByExchange(
+    @Context() ctx: { user: User },
+    @Args('exchangeId', { type: () => String }) exchangeId: string,
+  ): Promise<History[]> {
+    return this.ccxtService.getOrderByExchangeId(
+      exchangeId,
+    ) as unknown as History[];
   }
 }

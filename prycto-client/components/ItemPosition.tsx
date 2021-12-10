@@ -240,7 +240,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         </div>
         {/* Investment column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1">
-          <HideShow>{round(investment > 0 ? investment : 0)}</HideShow> /{" "}
+          <HideShow>{round(total !== 0 && investment > 0 ? investment : 0)}</HideShow> /{" "}
           <span className="text-gray-400">
             <HideShow>{round(investment + profit)}</HideShow>
           </span>
@@ -261,10 +261,10 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           <div>
             <HideShow>
-              {round(investment > 0 ? profit : profit + investment)}
+              {round(total !== 0 && investment > 0 ? profit : profit + investment)}
             </HideShow>
           </div>
-          <div>{round(investment > 0 ? (profit * 100) / investment : 0)}%</div>
+          <div>{round(total !== 0 && investment > 0 ? (profit * 100) / investment : 0)}%</div>
         </div>
         {/* Gain column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1 text-center">

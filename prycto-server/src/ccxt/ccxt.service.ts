@@ -86,7 +86,18 @@ export class CcxtService {
     );
   }
 
-  public async getHistoryByExchangeId(params: {
+  public async getOrderByExchangeId(exchangeId: string) {
+    const exchange = this.exchanges[exchangeId];
+    let orders = [];
+    if (exchange && exchange.has.fetchOrders) {
+      orders = await exchange.fetchOrders(undefined, undefined, undefined, {
+        recvWindow: 60000,
+      });
+    }
+    return orders;
+  }
+
+  public async getOrderBySymbolByExchangeId(params: {
     exchangeId: string;
     pairs: string[];
   }) {
