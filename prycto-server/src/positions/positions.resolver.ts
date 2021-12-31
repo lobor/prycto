@@ -22,6 +22,7 @@ import { BscService } from 'src/bsc/bsc.service';
 import * as Web3 from 'web3';
 import { pancakeSwapAbi } from 'src/utils/tokenPrice';
 import { keyBy } from 'lodash';
+import { HistoryService } from 'src/history/history.service';
 
 @Resolver(() => Position)
 export class PositionsResolver {
@@ -32,6 +33,7 @@ export class PositionsResolver {
     private readonly ccxtService: CcxtService,
     private readonly predictService: PredictService,
     private readonly bscService: BscService,
+    private readonly historyService: HistoryService,
   ) {}
 
   @Query(() => [Position])
@@ -249,10 +251,15 @@ export class PositionsResolver {
         ctx.exchangeId,
       );
 
-      const histories = await this.ccxtService.getOrderBySymbolByExchangeId({
-        exchangeId: ctx.exchangeId,
-        pairs: [position.pair],
-      });
+      await this.historyService.syncBySymbolAndExchange(
+        ctx.exchangeId,
+        position.pair,
+      );
+
+      const histories = await this.historyService.getBySymbolAndExchange(
+        ctx.exchangeId,
+        position.pair,
+      );
       const historiesOnPosition = histories.filter(
         (history) => history.symbol === position.pair,
       );

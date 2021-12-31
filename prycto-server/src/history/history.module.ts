@@ -16,5 +16,6 @@ import { UserModule } from 'src/user/user.module';
     CcxtServiceModule,
   ],
   providers: [HistoryService, HistoryResolver],
+  exports: [HistoryService],
 })
 export class HistoryModule {}

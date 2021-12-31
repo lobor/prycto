@@ -49,7 +49,7 @@ export class History {
   @Prop({ required: true, type: Number })
   cost: number;
 
-  @Prop({ required: true, type: Number })
+  @Prop({ type: Number })
   average: number;
 
   @Prop({ required: true, type: Number })

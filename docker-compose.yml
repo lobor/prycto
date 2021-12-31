@@ -54,7 +54,6 @@ services:
   redis-prycto:
     container_name: redis-prycto
     image: redis
-    restart: always
     ports:
       - 6377:6379
   

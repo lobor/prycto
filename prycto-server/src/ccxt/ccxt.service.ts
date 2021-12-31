@@ -102,7 +102,7 @@ export class CcxtService {
     pairs: string[];
   }) {
     const exchange = this.exchanges[params.exchangeId];
-    let orders = [];
+    let orders: ccxt.Order[] = [];
     if (exchange && exchange.has.fetchOrders) {
       orders = flatten(
         await Promise.all(

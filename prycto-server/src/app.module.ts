@@ -23,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CronsModule } from './crons/cron.module';
 import { CcxtServiceModule } from './ccxt/ccxt.module';
 import { BscModule } from './bsc/bsc.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { BscModule } from './bsc/bsc.module';
     PredictModule,
     CcxtServiceModule,
     BscModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [
