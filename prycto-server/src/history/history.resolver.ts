@@ -8,10 +8,12 @@ import { User } from '../user/user.schema';
 import { CcxtService } from 'src/ccxt/ccxt.service';
 import { ExchangeService } from 'src/exchanges/service';
 import { keyBy } from 'lodash';
+import { HistoryService } from './history.service';
 
 @Resolver(() => History)
 export class HistoryResolver {
   constructor(
+    private readonly historyService: HistoryService,
     private readonly exchangeService: ExchangeService,
     private readonly positionsService: PositionsService,
     private readonly ccxtService: CcxtService,
@@ -45,10 +47,10 @@ export class HistoryResolver {
       throw new NotFoundException();
     }
 
-    return this.ccxtService.getOrderBySymbolByExchangeId({
-      exchangeId: exchange._id,
-      pairs: positions.map(({ pair }) => pair),
-    }) as unknown as History[];
+    return this.historyService.getBySymbolAndExchange(
+      exchange._id,
+      positions.map(({ pair }) => pair),
+    );
   }
 
   @Query(() => [History])

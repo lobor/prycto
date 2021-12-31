@@ -106,7 +106,7 @@ export class EchangeResolver {
           if (!acc[key]) {
             acc[key] = exchange.balance[key] || { available: 0, locked: 0 };
           }
-          if (Number(balance[key])) {
+          if (Number(balance[key]) || Number(balance[key]) === 0) {
             acc[key].locked = Number(balance[key]);
           }
 

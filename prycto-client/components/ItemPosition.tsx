@@ -8,11 +8,10 @@ import HideShow from "./HideShow";
 import { useMemo, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   ExchangeByIdDocument,
   ExchangeByIdQuery,
-  PositionsDocument,
   RemovePositionDocument,
   RemovePositionMutation,
   RemovePositionMutationVariables,
@@ -21,19 +20,9 @@ import {
   SyncPositionsDocument,
   GetHistoryBySymbolDocument,
   GetHistoryBySymbolQuery,
-  GetHistoryOrderBySymbolQuery,
-  GetHistoryOrderBySymbolQueryVariables,
-  GetHistoryOrderBySymbolDocument,
 } from "../generated/graphql";
 import { VictoryChart, VictoryAxis, VictoryArea } from "victory";
-import { useExchange } from "../context/exchange";
-import {
-  AiOutlineCaretDown,
-  AiOutlineCaretUp,
-  AiOutlineDash,
-  AiOutlineDelete,
-  AiOutlineReload,
-} from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineReload } from "react-icons/ai";
 import { ImSpinner5 } from "react-icons/im";
 
 export interface ItemPositionProps {
@@ -44,6 +33,7 @@ export interface ItemPositionProps {
     total: number;
     gain: number;
   };
+  refetchPosition: ({ exchangeId }: { exchangeId: string }) => void;
 }
 
 declare global {
@@ -52,7 +42,7 @@ declare global {
   }
 }
 
-const ItemPosition = ({ position }: ItemPositionProps) => {
+const ItemPosition = ({ position, refetchPosition }: ItemPositionProps) => {
   const {
     _id,
     pair: symbol,
@@ -76,15 +66,14 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
       setEditObjectif(false);
     },
   });
-  const [getPositions] = useLazyQuery(PositionsDocument, {
-    fetchPolicy: "network-only",
-    variables: { exchangeId: position.exchangeId },
-  });
-  const [updatePosition] = useMutation(SyncPositionsDocument, {
-    onCompleted: () => {
-      getPositions({ variables: { exchangeId: position.exchangeId } });
-    },
-  });
+  const [updatePosition, { loading: loadingUpdate }] = useMutation(
+    SyncPositionsDocument,
+    {
+      onCompleted: () => {
+        refetchPosition({ exchangeId: position.exchangeId });
+      },
+    }
+  );
 
   const { data: dataHistory } = useQuery<GetHistoryBySymbolQuery>(
     GetHistoryBySymbolDocument,
@@ -95,7 +84,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
     RemovePositionMutationVariables
   >(RemovePositionDocument, {
     onCompleted: () => {
-      getPositions();
+      refetchPosition({ exchangeId: position.exchangeId });
     },
   });
   const { addTab, selectTab } = useTabsContext();
@@ -240,7 +229,10 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         </div>
         {/* Investment column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1">
-          <HideShow>{round(total !== 0 && investment > 0 ? investment : 0)}</HideShow> /{" "}
+          <HideShow>
+            {round(total !== 0 && investment > 0 ? investment : 0)}
+          </HideShow>{" "}
+          /{" "}
           <span className="text-gray-400">
             <HideShow>{round(investment + profit)}</HideShow>
           </span>
@@ -261,10 +253,17 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
         >
           <div>
             <HideShow>
-              {round(total !== 0 && investment > 0 ? profit : profit + investment)}
+              {round(
+                total !== 0 && investment > 0 ? profit : profit + investment
+              )}
             </HideShow>
           </div>
-          <div>{round(total !== 0 && investment > 0 ? (profit * 100) / investment : 0)}%</div>
+          <div>
+            {round(
+              total !== 0 && investment > 0 ? (profit * 100) / investment : 0
+            )}
+            %
+          </div>
         </div>
         {/* Gain column  */}
         <div className="py-2 md:px-6 hidden md:block flex-1 text-center">
@@ -310,6 +309,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
           Edit
         </Button> */}
           <Button
+            disabled={loadingUpdate}
             className="ml-2"
             onClick={() => {
               updatePosition({
@@ -319,7 +319,7 @@ const ItemPosition = ({ position }: ItemPositionProps) => {
               });
             }}
           >
-            <AiOutlineReload />
+            <AiOutlineReload className={loading ? "animate-spin" : ""} />
           </Button>
         </div>
       </div>

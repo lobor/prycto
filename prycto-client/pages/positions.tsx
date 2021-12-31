@@ -173,7 +173,7 @@ const Positions = () => {
             {positionsOriginal.length > 0 && (
               <div>
                 {sortFunction(sort)(positionsOriginal).map((position) => (
-                  <ItemPosition key={position.pair} position={position} />
+                  <ItemPosition key={position.pair} position={position} refetchPosition={refetch} />
                 ))}
               </div>
             )}
@@ -186,7 +186,7 @@ const Positions = () => {
         )}
       </AutoSizer>
     );
-  }, [sort, positionsOriginal]);
+  }, [sort, positionsOriginal, refetch]);
   return (
     <div className="flex-1 flex flex-col h-full">
       <Head>

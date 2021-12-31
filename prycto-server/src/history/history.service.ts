@@ -14,9 +14,14 @@ export class HistoryService {
   ) {}
   getBySymbolAndExchange(
     exchangeId: string,
-    symbol: string,
+    symbol: string | string[],
   ): Promise<HistoryDocument[]> {
-    return this.historyModel.find({ exchangeId, symbol }).exec();
+    return this.historyModel
+      .find({
+        exchangeId,
+        symbol: { $in: Array.isArray(symbol) ? symbol : [symbol] },
+      })
+      .exec();
   }
 
   createMany(histories: HistoryDocument[]): Promise<HistoryDocument[]> {
@@ -33,17 +38,16 @@ export class HistoryService {
       pairs: [symbol],
     });
 
-    const historiesById = keyBy(histories, 'id');
+    const historiesById = keyBy(histories, 'clientOrderId');
 
     const { toCreate, toUpdate } = orders.reduce(
       (acc, order) => {
         if (
-          historiesById[order.id] &&
-          historiesById[order.id].status !== order.status
+          historiesById[order.clientOrderId] &&
+          historiesById[order.clientOrderId].status !== order.status
         ) {
           acc.toUpdate.push(order);
-        } else {
-          console.log(order)
+        } else if (!historiesById[order.clientOrderId]) {
           acc.toCreate.push({ ...order, exchangeId });
         }
         return acc;
